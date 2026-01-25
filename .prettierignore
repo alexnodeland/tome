@@ -1,0 +1,24 @@
+# Build outputs
+dist/
+.svelte-kit/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Rust
+src-tauri/target/
+
+# Generated
+*.generated.*
+
+# Lockfiles (keep as-is)
+package-lock.json
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store

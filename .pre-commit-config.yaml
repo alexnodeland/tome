@@ -1,0 +1,103 @@
+# Pre-commit hooks configuration
+# https://pre-commit.com/
+#
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # === Local Hooks ===
+  - repo: local
+    hooks:
+      # --- Rust ---
+      - id: cargo-fmt
+        name: Rust Format Check
+        entry: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+        description: "Check Rust code formatting with rustfmt"
+
+      - id: cargo-clippy
+        name: Rust Lint
+        entry: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --all-features -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
+        description: "Lint Rust code with clippy (warnings as errors)"
+
+      - id: cargo-test
+        name: Rust Tests
+        entry: cargo test --manifest-path src-tauri/Cargo.toml --quiet
+        language: system
+        types: [rust]
+        pass_filenames: false
+        description: "Run Rust unit tests"
+        stages: [pre-push]
+
+      # --- TypeScript/Svelte ---
+      - id: eslint
+        name: ESLint
+        entry: npx eslint --max-warnings 0
+        language: system
+        types_or: [javascript, typescript, svelte]
+        description: "Lint TypeScript/Svelte with ESLint"
+
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --check
+        language: system
+        types_or: [javascript, typescript, json, yaml, markdown, svelte, css]
+        description: "Check formatting with Prettier"
+
+      - id: typecheck
+        name: TypeScript Check
+        entry: npx svelte-check --tsconfig ./tsconfig.json
+        language: system
+        types_or: [typescript, svelte]
+        pass_filenames: false
+        description: "Type check with svelte-check"
+
+      - id: js-tests
+        name: JavaScript Tests
+        entry: npm test -- --run
+        language: system
+        types_or: [typescript, svelte]
+        pass_filenames: false
+        description: "Run JavaScript unit tests"
+        stages: [pre-push]
+
+      # --- Architecture ---
+      - id: check-boundaries
+        name: Architecture Boundaries
+        entry: npx ts-node scripts/check-boundaries.ts
+        language: system
+        types_or: [typescript, svelte]
+        pass_filenames: false
+        description: "Verify architectural boundaries"
+
+  # === Standard Hooks ===
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # === Secret Detection ===
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: 'package-lock\.json'
+
+# === Global Settings ===
+default_stages: [pre-commit]
+fail_fast: false

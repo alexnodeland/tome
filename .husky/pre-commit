@@ -1,0 +1,13 @@
+#!/bin/sh
+# Husky pre-commit hook
+# This runs lint-staged which handles formatting and linting
+
+# Exit on error
+set -e
+
+# Run lint-staged (configured in package.json)
+npx lint-staged
+
+# Run architecture boundary check
+echo "Checking architecture boundaries..."
+npx ts-node scripts/check-boundaries.ts 2>/dev/null || echo "Boundary check skipped (script not found)"

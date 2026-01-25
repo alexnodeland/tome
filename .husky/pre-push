@@ -1,0 +1,20 @@
+#!/bin/sh
+# Husky pre-push hook
+# Runs full test suite before pushing
+
+# Exit on error
+set -e
+
+echo "Running pre-push checks..."
+
+# Run Rust tests
+echo "Running Rust tests..."
+if [ -f "src-tauri/Cargo.toml" ]; then
+  cargo test --manifest-path src-tauri/Cargo.toml --quiet
+fi
+
+# Run JavaScript tests
+echo "Running JavaScript tests..."
+npm test -- --run
+
+echo "All pre-push checks passed!"

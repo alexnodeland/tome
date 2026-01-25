@@ -1,0 +1,24 @@
+# CODEOWNERS - defines who reviews what
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @maintainer
+
+# Rust core
+/src-tauri/ @maintainer
+
+# Frontend
+/src/ @maintainer
+
+# CI/CD configuration
+/.github/ @maintainer
+
+# Documentation
+/docs/ @maintainer
+/.claude/ @maintainer
+
+# Configuration files
+/*.json @maintainer
+/*.yaml @maintainer
+/*.yml @maintainer
+/*.toml @maintainer

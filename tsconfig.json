@@ -1,0 +1,64 @@
+{
+  "compilerOptions": {
+    // === Strict Type Checking ===
+    // Enable all strict type checking options
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    // === Additional Checks ===
+    // Catch common errors
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // === Module Resolution ===
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "target": "ESNext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // === Path Mapping ===
+    "baseUrl": ".",
+    "paths": {
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"]
+    },
+
+    // === Output ===
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmit": true,
+
+    // === Svelte Support ===
+    // Svelte files are handled by svelte-check
+    "skipLibCheck": true,
+
+    // === Type Roots ===
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.svelte",
+    "scripts/**/*.ts",
+    "vite.config.ts",
+    "svelte.config.js",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", ".svelte-kit"]
+}

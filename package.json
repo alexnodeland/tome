@@ -1,0 +1,79 @@
+{
+  "name": "tome",
+  "version": "0.1.0",
+  "description": "A native macOS documentation reader",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:vite": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test",
+    "check:quick": "npm run lint && npm run typecheck",
+    "lint": "eslint . --ext .ts,.svelte --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts,.svelte --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run test:e2e",
+    "gen:component": "ts-node scripts/gen-component.ts",
+    "gen:command": "ts-node scripts/gen-command.ts",
+    "gen:store": "ts-node scripts/gen-store.ts",
+    "check:boundaries": "ts-node scripts/check-boundaries.ts",
+    "setup": "bash scripts/setup.sh",
+    "clean": "rm -rf dist .svelte-kit node_modules/.vite",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@sveltejs/adapter-static": "^3.0.0",
+    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "@tauri-apps/cli": "^1.5.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/svelte": "^4.0.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-svelte": "^2.35.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "prettier-plugin-svelte": "^3.1.0",
+    "svelte": "^4.2.0",
+    "svelte-check": "^3.6.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,svelte}": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml}": [
+      "prettier --write"
+    ],
+    "*.rs": [
+      "cargo fmt --"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

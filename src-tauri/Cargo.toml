@@ -1,0 +1,163 @@
+[package]
+name = "tome"
+version = "0.1.0"
+description = "A native macOS documentation reader"
+authors = ["Tome Authors"]
+license = "MIT"
+repository = "https://github.com/tome/tome"
+edition = "2021"
+rust-version = "1.75"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "tome_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+# Tauri framework
+tauri = { version = "1.6", features = ["shell-open"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# HTTP client for scraping
+reqwest = { version = "0.11", features = ["json", "cookies"] }
+
+# HTML parsing
+html5ever = "0.26"
+markup5ever_rcdom = "0.2"
+scraper = "0.18"
+
+# Full-text search
+tantivy = "0.21"
+
+# Database
+rusqlite = { version = "0.30", features = ["bundled"] }
+
+# Syntax highlighting
+syntect = "5.1"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging/tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Utilities
+uuid = { version = "1.6", features = ["v4", "serde"] }
+sha2 = "0.10"
+regex = "1.10"
+url = "2.5"
+dirs = "5.0"
+
+# File watching
+notify = "6.1"
+
+# Cron scheduling
+cron = "0.12"
+
+[dev-dependencies]
+# Testing utilities
+tempfile = "3.9"
+wiremock = "0.5"
+tokio-test = "0.4"
+
+[features]
+# This feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+# Enable LTO for smaller binary size
+lto = true
+# Single codegen unit for better optimization
+codegen-units = 1
+# Strip symbols for smaller binary
+strip = true
+# Optimize for size (slightly slower but smaller)
+opt-level = "s"
+
+[profile.dev]
+# Faster dev builds with incremental compilation
+incremental = true
+# Keep some debug info for better error messages
+debug = 1
+
+[lints.rust]
+# Treat warnings as errors in CI
+# Enable with RUSTFLAGS="-Dwarnings"
+unsafe_code = "deny"
+
+[lints.clippy]
+# === Categories ===
+# Enable all pedantic lints, then selectively disable
+pedantic = { level = "warn", priority = -1 }
+
+# === Correctness ===
+correctness = "deny"
+
+# === Suspicious ===
+suspicious = "warn"
+
+# === Complexity ===
+complexity = "warn"
+
+# === Performance ===
+perf = "warn"
+
+# === Style ===
+style = "warn"
+
+# === Restriction (selectively enable) ===
+# These are opt-in lints that enforce stricter rules
+
+# Prevent use of unwrap in production code
+unwrap_used = "warn"
+expect_used = "warn"
+
+# Prefer explicit error handling
+panic = "warn"
+unimplemented = "warn"
+todo = "warn"
+
+# String handling
+string_to_string = "warn"
+str_to_string = "warn"
+
+# Encourage better practices
+clone_on_ref_ptr = "warn"
+create_dir = "warn"
+dbg_macro = "warn"
+exit = "warn"
+print_stdout = "warn"
+print_stderr = "warn"
+
+# === Selectively allow (pedantic overrides) ===
+# These pedantic lints are too noisy or not applicable
+
+# Allow missing docs for internal modules (we document public API)
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+# Allow default trait implementations
+must_use_candidate = "allow"
+
+# Allow some common patterns
+module_name_repetitions = "allow"
+similar_names = "allow"
+too_many_lines = "allow"
+
+# Allow struct update syntax
+struct_excessive_bools = "allow"

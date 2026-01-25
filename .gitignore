@@ -1,0 +1,51 @@
+# === Dependencies ===
+node_modules/
+
+# === Build outputs ===
+dist/
+.svelte-kit/
+build/
+
+# === Rust ===
+src-tauri/target/
+**/*.rs.bk
+Cargo.lock
+
+# === IDE ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Testing ===
+coverage/
+playwright-report/
+e2e/test-results/
+
+# === Environment ===
+.env
+.env.local
+.env.*.local
+
+# === Logs ===
+*.log
+npm-debug.log*
+
+# === Secrets ===
+.secrets.baseline
+*.p12
+*.pem
+*.key
+
+# === Misc ===
+*.tgz
+*.zip
+
+# === Tome user data (for local dev) ===
+# Don't commit user configuration
+~/.tome/

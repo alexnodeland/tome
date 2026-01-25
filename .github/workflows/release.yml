@@ -1,0 +1,115 @@
+# Release Pipeline
+# Triggered when a version tag is pushed
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-sign:
+    name: Build and Sign
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Import signing certificate
+        if: env.APPLE_CERTIFICATE != ''
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+      - name: Build and sign
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: npm run tauri build -- --target aarch64-apple-darwin
+
+      - name: Notarize (if credentials available)
+        if: env.APPLE_ID != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          APP_PATH="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Tome.app"
+
+          if [ -d "$APP_PATH" ]; then
+            # Create zip for notarization
+            ditto -c -k --keepParent "$APP_PATH" Tome.zip
+
+            # Submit for notarization
+            xcrun notarytool submit Tome.zip \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait
+
+            # Staple
+            xcrun stapler staple "$APP_PATH"
+          fi
+
+      - name: Create DMG
+        run: |
+          APP_PATH="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Tome.app"
+          if [ -d "$APP_PATH" ]; then
+            # Create a simple DMG
+            hdiutil create -volname "Tome" -srcfolder "$APP_PATH" -ov -format UDZO "Tome-${{ github.ref_name }}.dmg"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Tome-${{ github.ref_name }}.dmg
+            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
+          generate_release_notes: true
+          draft: true
+
+  # === Update Homebrew Cask (optional) ===
+  update-homebrew:
+    name: Update Homebrew
+    runs-on: ubuntu-latest
+    needs: build-and-sign
+    if: false # Enable when you have a homebrew tap
+    steps:
+      - name: Update Homebrew Cask
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${{ github.ref_name }}"
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/Tome-${VERSION}.dmg"
+          # Implementation depends on your homebrew tap setup
+          echo "Would update homebrew tap with $DMG_URL"
