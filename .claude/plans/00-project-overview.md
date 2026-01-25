@@ -147,14 +147,30 @@ A ticket is complete when:
 
 ## Document Index
 
+### Phase Plans
 | Document | Description |
 |----------|-------------|
-| [01-phase-1-foundation.md](./01-phase-1-foundation.md) | Phase 1 detailed tickets |
-| [02-phase-2-search-platforms.md](./02-phase-2-search-platforms.md) | Phase 2 detailed tickets |
-| [03-phase-3-bookmarks-sync.md](./03-phase-3-bookmarks-sync.md) | Phase 3 detailed tickets |
-| [04-phase-4-automation-integration.md](./04-phase-4-automation-integration.md) | Phase 4 detailed tickets |
-| [05-phase-5-polish-launch.md](./05-phase-5-polish-launch.md) | Phase 5 detailed tickets |
+| [01-phase-1-foundation.md](./01-phase-1-foundation.md) | Phase 1 detailed tickets (22) |
+| [02-phase-2-search-platforms.md](./02-phase-2-search-platforms.md) | Phase 2 detailed tickets (18) |
+| [03-phase-3-bookmarks-sync.md](./03-phase-3-bookmarks-sync.md) | Phase 3 detailed tickets (15) |
+| [04-phase-4-automation-integration.md](./04-phase-4-automation-integration.md) | Phase 4 detailed tickets (18) |
+| [05-phase-5-polish-launch.md](./05-phase-5-polish-launch.md) | Phase 5 detailed tickets (14) |
 | [06-dependency-map.md](./06-dependency-map.md) | Full dependency visualization |
+
+### Supporting Documents
+| Document | Description |
+|----------|-------------|
+| [07-technical-spikes.md](./07-technical-spikes.md) | Research tasks to de-risk unknowns |
+| [08-testing-strategy.md](./08-testing-strategy.md) | Unit, integration, E2E test plans |
+| [09-non-functional-requirements.md](./09-non-functional-requirements.md) | Performance, security, accessibility |
+| [10-cicd-devops.md](./10-cicd-devops.md) | GitHub Actions, release process |
+| [11-risk-register.md](./11-risk-register.md) | Detailed risk assessment |
+| [12-security-considerations.md](./12-security-considerations.md) | Security design and threat model |
+| [13-observability-plan.md](./13-observability-plan.md) | Logging, metrics (dev only) |
+| [14-api-versioning-strategy.md](./14-api-versioning-strategy.md) | API and protocol versioning |
+| [15-design-system.md](./15-design-system.md) | UI components and visual language |
+| [16-support-maintenance.md](./16-support-maintenance.md) | Post-launch support model |
+| [17-rollback-recovery.md](./17-rollback-recovery.md) | Disaster recovery procedures |
 
 ---
 
@@ -184,3 +200,4 @@ Examples:
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-01-25 | Claude | Initial project plan created |
+| 2026-01-25 | Claude | Added supporting documents (spikes, testing, NFRs, CI/CD, etc.) |
