@@ -1,0 +1,984 @@
+# Tome: Product Requirements Document
+
+**Version:** 1.0  
+**Date:** January 2026  
+**Author:** Alex  
+**Status:** Draft
+
+-----
+
+## Executive Summary
+
+Tome is a native macOS application for developers who want unified, offline access to technical documentation. It aggregates documentation from diverse sources—ReadTheDocs, rustdoc, man pages, GitBook, and more—into a single, beautifully typeset reading experience with powerful search, bookmarks, and sync via iCloud.
+
+Tome differentiates from existing solutions (Dash, DevDocs) through its local-first architecture, typography-forward design philosophy, extensible ingestion pipeline, and deep integration with developer tooling via a Claude Code plugin and MCP server.
+
+-----
+
+## Problem Statement
+
+Developers constantly context-switch between documentation sources:
+
+- Browser tabs for ReadTheDocs, GitBook, package docs
+- Terminal for `man` pages
+- IDE hover docs (incomplete)
+- PDF references
+- Local project wikis
+
+Each source has different styling, search behavior, and navigation. Documentation is ephemeral—close the tab, lose your place. No unified bookmarks, no annotations, no offline guarantee.
+
+**Current alternatives fall short:**
+
+|Solution         |Limitation                                       |
+|-----------------|-------------------------------------------------|
+|Dash             |Proprietary, subscription model, closed ecosystem|
+|DevDocs          |Web-only, no native experience, no sync          |
+|Browser bookmarks|No offline, no unified search, tab chaos         |
+|Zeal             |Linux-focused, dated UI, limited platform support|
+
+-----
+
+## Target Users
+
+**Primary:** Professional developers who work across multiple languages and frameworks, value offline capability (travel, focus time), and appreciate thoughtful design.
+
+**Secondary:** Technical writers maintaining documentation, students learning new technologies, open-source maintainers tracking ecosystem docs.
+
+**Anti-persona:** Casual users who need documentation once a month and are fine with Google.
+
+-----
+
+## Product Vision
+
+> Tome is the personal library for the working programmer—a quiet, beautiful space where all technical knowledge lives, always available, deeply searchable, and entirely yours.
+
+### Design Principles
+
+1. **Local-first**: Your docs, your machine, your control. Cloud is optional sync, not a dependency.
+1. **Typography matters**: Reading documentation should feel like reading a well-set book, not a raw HTML dump.
+1. **Invisible complexity**: Platform-specific scrapers, format normalization, index building—all hidden. Users see unified docs.
+1. **Extensible by default**: First-party scrapers for common platforms, but anyone can add sources via config or the Claude Code plugin.
+1. **Programmable**: Local API and MCP server enable integration with editors, scripts, and AI agents.
+
+-----
+
+## Core Features
+
+### 1. Documentation Library
+
+The primary interface is a library view showing all ingested documentation sources organized by category, with search, filtering, and customizable organization.
+
+**Capabilities:**
+
+- Grid or list view of doc sources
+- Categories: Language (Rust, Python, JS…), Framework, Tool, Project, Custom
+- Source metadata: version, last synced, size, entry count
+- Quick actions: sync, remove, open, configure
+
+### 2. Platform-Aware Ingestion
+
+Tome ships with scrapers for common documentation platforms that understand their structure:
+
+|Platform       |Detection                                   |Extraction Strategy                                          |Priority|
+|---------------|--------------------------------------------|-------------------------------------------------------------|--------|
+|**ReadTheDocs**|`readthedocs.io` subdomain, Sphinx markers  |Parse `searchindex.js` for doc tree, semantic HTML extraction|v1.0    |
+|**rustdoc**    |`doc.rust-lang.org` style, `search-index.js`|Parse search index, module/type/function structure           |v1.0    |
+|**mdBook**     |`book.toml`, SUMMARY.md structure           |Parse SUMMARY.md hierarchy, chapter extraction               |v1.0    |
+|**Man pages**  |Local `man -w` paths                        |`mandoc -T html` rendering, section indexing                 |v1.0    |
+|**Generic**    |Fallback for unknown sites                  |Configurable BFS crawl with selectors                        |v1.0    |
+|**GitBook**    |`gitbook.io` or theme markers               |Navigation JSON parsing                                      |v1.1    |
+|**Docusaurus** |Meta tags, sidebars structure               |Parse sidebars.js manifest                                   |v1.1    |
+|**MkDocs**     |`mkdocs.yml`, Material theme                |Index parsing similar to Sphinx                              |v1.1    |
+|**Docsets**    |`.docset` bundle format                     |Dash-compatible import                                       |v1.2    |
+
+**Generic Scraper Configuration:**
+
+```yaml
+source:
+  type: generic
+  url: "https://example.com/docs/"
+  generic:
+    entry_points: ["/docs/", "/api/"]
+    max_depth: 4
+    include_patterns: ["^/docs/", "^/api/"]
+    exclude_patterns: ["/changelog", "/_static/", "/search"]
+    content_selector: "main.content, article, .documentation"
+    title_selector: "h1, .page-title"
+    nav_selector: "nav.sidebar, .toc"
+```
+
+### 3. Unified Reader
+
+All documentation renders through a normalization pipeline producing consistent, beautiful output.
+
+**Reader Features:**
+
+- Consistent typography (see Design section)
+- Syntax highlighting for code blocks (language-aware)
+- Internal link resolution (cross-reference within doc set)
+- External link handling (open in browser)
+- Table of contents sidebar (extracted from page structure)
+- Breadcrumb navigation
+- Keyboard navigation (j/k scroll, g for go-to, / for search)
+- Reading position memory (resume where you left off)
+
+**Rendering Pipeline:**
+
+```
+Raw HTML/Markdown → Parse to AST → Normalize structure → 
+Apply typography → Syntax highlight → Render to WebView
+```
+
+### 4. Search
+
+Full-text search across all documentation with scoping and filtering.
+
+**Search Capabilities:**
+
+- Global search (all sources) or scoped (single source/category)
+- Fuzzy matching with typo tolerance
+- Symbol-aware search (recognizes `fn`, `class`, `def` patterns)
+- Recent searches history
+- Search within current page (Cmd+F)
+- Keyboard-first (Cmd+K opens global search)
+
+**Implementation:** Tantivy (Rust) for full-text indexing, with optional future extension to vector/semantic search.
+
+**Index Structure:**
+
+- Title (boosted weight)
+- Headers (boosted weight)
+- Body text
+- Code blocks (separate field, symbol extraction)
+- Source metadata (for filtering)
+
+### 5. Bookmarks & Annotations
+
+Personal layer on top of documentation.
+
+**Features:**
+
+- Bookmark any page (keyboard: Cmd+D)
+- Organize bookmarks into collections
+- Highlight text passages (stored as character offsets)
+- Add notes to highlights
+- Export annotations (Markdown, JSON)
+
+**Sync:** Bookmarks and annotations sync via iCloud, not the doc content itself.
+
+### 6. Sync Strategy Configuration
+
+Each documentation source has independent sync settings.
+
+**Strategies:**
+
+|Strategy   |Behavior                                                     |
+|-----------|-------------------------------------------------------------|
+|`manual`   |Only sync when explicitly triggered                          |
+|`on_launch`|Check for updates when Tome launches                         |
+|`scheduled`|Sync on schedule (daily, weekly, monthly)                    |
+|`watch`    |Monitor package registry for new versions, sync when detected|
+
+**Version Pinning:** Option to lock a doc source to a specific version, ignoring updates. Useful for projects locked to older library versions.
+
+**Configuration:**
+
+```yaml
+sync:
+  strategy: scheduled
+  schedule: weekly
+  pin_version: false
+  watch_source: "crates:serde"  # for watch strategy
+```
+
+### 7. Man Page Integration
+
+First-class support for Unix manual pages.
+
+**Features:**
+
+- Index all installed man pages (configurable paths)
+- Render via `mandoc -T html` with Tome styling
+- Section-aware browsing (1-8)
+- Cross-reference linking (when man page references another)
+- Optional: tldr-style summary display alongside full man page
+
+**Configuration:**
+
+```yaml
+source:
+  type: man
+  paths:
+    - /usr/share/man
+    - /usr/local/share/man
+    - /opt/homebrew/share/man
+  sections: [1, 2, 3, 5, 7, 8]  # which sections to index
+```
+
+### 8. Local API
+
+HTTP API for programmatic access, enabling editor integrations and scripts.
+
+**Endpoints:**
+
+```
+GET  /api/search?q={query}&scope={source}&limit={n}
+     Search documentation, returns ranked results
+
+GET  /api/sources
+     List all documentation sources with metadata
+
+GET  /api/sources/{id}
+     Get specific source details
+
+POST /api/sources
+     Add new documentation source (accepts config YAML/JSON)
+
+DELETE /api/sources/{id}
+     Remove documentation source
+
+GET  /api/sources/{id}/pages
+     List all pages in a source
+
+GET  /api/sources/{id}/pages/{path}
+     Get rendered page content
+
+POST /api/sources/{id}/sync
+     Trigger sync for a source
+
+GET  /api/bookmarks
+     List all bookmarks
+
+POST /api/bookmarks
+     Create bookmark
+
+GET  /api/status
+     Health check, sync status, index stats
+```
+
+**Authentication:** Local-only by default (localhost binding). Optional token auth for network exposure.
+
+### 9. MCP Server
+
+Model Context Protocol server enabling AI agents to query documentation.
+
+**Tools Exposed:**
+
+```typescript
+// Search across all documentation
+tome_search(query: string, scope?: string, limit?: number): SearchResult[]
+
+// Get specific page content
+tome_get_page(source_id: string, page_path: string): PageContent
+
+// List available sources
+tome_list_sources(): Source[]
+
+// Get source table of contents
+tome_get_toc(source_id: string): TableOfContents
+
+// Add bookmark (with optional note)
+tome_bookmark(source_id: string, page_path: string, note?: string): Bookmark
+
+// Lookup symbol (function, type, module)
+tome_lookup_symbol(symbol: string, language?: string): SymbolResult[]
+```
+
+**Use Cases:**
+
+- Claude Code queries relevant docs while helping with code
+- Agentic workflows that need API references
+- Custom tooling that surfaces docs contextually
+
+**Configuration:**
+
+```yaml
+mcp:
+  enabled: true
+  socket: ~/.tome/mcp.sock  # Unix socket
+  # or
+  port: 7432               # TCP for network access
+```
+
+### 10. Claude Code Plugin
+
+Slash command integration for managing Tome from the terminal.
+
+**Commands:**
+
+```bash
+/tome add <url>
+# Detects platform, proposes config, adds source
+# Example: /tome add https://docs.pola.rs/
+
+/tome add <local-path>
+# Configures local documentation directory
+# Example: /tome add ~/projects/mylib/docs/
+
+/tome search <query>
+# Search and display results inline
+# Example: /tome search "async iterator rust"
+
+/tome sync [source]
+# Trigger sync, shows progress
+# Example: /tome sync polars
+
+/tome list
+# Show all configured sources with status
+
+/tome remove <source>
+# Remove a documentation source
+
+/tome config <source>
+# Open/edit source configuration
+```
+
+**Workflow Example:**
+
+```
+User: /tome add https://docs.pola.rs/
+
+Claude Code:
+  → Fetches URL, analyzes structure
+  → Detects: MkDocs with Material theme
+  → "This looks like Polars documentation (Python DataFrame library).
+     I'll configure it with:
+     - Weekly sync schedule
+     - Category: Python
+     Want me to proceed, or would you like to customize?"
+  
+User: proceed
+
+Claude Code:
+  → Writes ~/.tome/sources/polars.yaml
+  → Invokes: tome pull polars
+  → "Done! Polars docs are now available in Tome.
+     Found 847 pages across 12 sections."
+```
+
+-----
+
+## Technical Architecture
+
+### Stack
+
+|Layer            |Technology       |Rationale                                      |
+|-----------------|-----------------|-----------------------------------------------|
+|**Native Shell** |Swift + AppKit   |True macOS integration, menu bar, notifications|
+|**UI**           |Svelte           |Reactive, lightweight, excellent DX            |
+|**Core Engine**  |Rust             |Performance for parsing, indexing, sync        |
+|**Doc Rendering**|WKWebView        |Native WebKit, good typography control         |
+|**Search Index** |Tantivy          |Rust-native, fast, full-featured               |
+|**Storage**      |SQLite           |Metadata, bookmarks, sync state                |
+|**File Storage** |Filesystem       |Raw doc content, organized by source           |
+|**IPC**          |Tauri commands   |Rust ↔ JS bridge                               |
+|**Sync**         |iCloud (CloudKit)|Native macOS sync, no server needed            |
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        macOS Application                         │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                    Swift Shell (AppKit)                    │  │
+│  │         Menu Bar • Notifications • Global Shortcuts        │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                      Svelte UI Layer                       │  │
+│  │    Library View • Reader • Search • Settings • Bookmarks   │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                    Rust Core Engine                        │  │
+│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐  │  │
+│  │  │  Ingestion  │ │   Search    │ │  Render Pipeline    │  │  │
+│  │  │  ─────────  │ │  ────────   │ │  ───────────────    │  │  │
+│  │  │  Scrapers   │ │  Tantivy    │ │  HTML → AST →       │  │  │
+│  │  │  Parsers    │ │  Indexing   │ │  Normalize →        │  │  │
+│  │  │  Extractors │ │  Query      │ │  Style → Render     │  │  │
+│  │  └─────────────┘ └─────────────┘ └─────────────────────┘  │  │
+│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐  │  │
+│  │  │  Local API  │ │ MCP Server  │ │   Sync Manager      │  │  │
+│  │  │  ─────────  │ │ ──────────  │ │   ────────────      │  │  │
+│  │  │  HTTP/REST  │ │  Tools for  │ │   iCloud +          │  │  │
+│  │  │  localhost  │ │  AI agents  │ │   Strategy exec     │  │  │
+│  │  └─────────────┘ └─────────────┘ └─────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                      Storage Layer                         │  │
+│  │   SQLite (metadata, bookmarks)  •  Filesystem (doc blobs) │  │
+│  │                    iCloud Container (sync)                 │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              ▼                 ▼                 ▼
+      ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+      │ Claude Code  │  │   Scripts    │  │   Editors    │
+      │   Plugin     │  │  (via API)   │  │ (via MCP)    │
+      └──────────────┘  └──────────────┘  └──────────────┘
+```
+
+### Data Model
+
+**Source:**
+
+```rust
+struct Source {
+    id: Uuid,
+    name: String,
+    source_type: SourceType,  // ReadTheDocs, Rustdoc, Man, Generic...
+    url: Option<String>,
+    local_path: Option<PathBuf>,
+    version: Option<String>,
+    category: String,
+    icon: Icon,
+    accent_color: Option<String>,
+    sync_config: SyncConfig,
+    created_at: DateTime,
+    last_synced: Option<DateTime>,
+    page_count: u32,
+    index_size_bytes: u64,
+}
+```
+
+**Page:**
+
+```rust
+struct Page {
+    id: Uuid,
+    source_id: Uuid,
+    path: String,           // Relative path within source
+    title: String,
+    content_hash: String,   // For change detection
+    last_modified: DateTime,
+}
+```
+
+**Bookmark:**
+
+```rust
+struct Bookmark {
+    id: Uuid,
+    source_id: Uuid,
+    page_path: String,
+    title: String,
+    scroll_position: Option<f32>,
+    highlight_ranges: Vec<(u32, u32)>,  // Character offsets
+    note: Option<String>,
+    collection_id: Option<Uuid>,
+    created_at: DateTime,
+    synced: bool,
+}
+```
+
+### File System Layout
+
+```
+~/.tome/
+├── config.yaml              # Global configuration
+├── sources/                 # Source configurations
+│   ├── rust-std.yaml
+│   ├── polars.yaml
+│   └── ...
+├── data/                    # Document content (not synced)
+│   ├── rust-std/
+│   │   ├── pages/          # Rendered/normalized HTML
+│   │   └── raw/            # Original fetched content
+│   └── ...
+├── index/                   # Tantivy search index
+├── tome.db                  # SQLite database
+├── mcp.sock                 # MCP Unix socket
+└── icloud/                  # Symlink to iCloud container
+    ├── bookmarks.json
+    ├── collections.json
+    └── sources-meta.json   # Source list (not content)
+```
+
+### iCloud Sync Architecture
+
+**What syncs:**
+
+- Source configurations (which docs you have, not the content)
+- Bookmarks and annotations
+- Collections/organization
+- Reading history and positions
+- User preferences
+
+**What doesn’t sync (too large, easily re-fetched):**
+
+- Actual documentation content
+- Search index
+
+**Sync mechanism:**
+
+- Use CloudKit with CKRecord for structured data
+- Conflict resolution: last-write-wins for simple fields, merge for collections
+- Offline support: queue changes, sync when connected
+
+-----
+
+## Design Specification
+
+### Visual Identity
+
+**Philosophy:** A quiet, focused reading environment. The documentation is the star, not the chrome.
+
+**Color Palette:**
+
+|Element       |Light Mode            |Dark Mode              |
+|--------------|----------------------|-----------------------|
+|Background    |`#FAFAFA` (warm white)|`#1C1C1E` (system dark)|
+|Surface       |`#FFFFFF`             |`#2C2C2E`              |
+|Text Primary  |`#1D1D1F`             |`#F5F5F7`              |
+|Text Secondary|`#6E6E73`             |`#98989D`              |
+|Accent        |`#5856D6` (indigo)    |`#5E5CE6`              |
+|Border        |`#E5E5EA`             |`#38383A`              |
+
+### Typography
+
+**Body Text:**
+
+- Font: New York (system serif) with SF Pro fallback
+- Size: 17px (matches Apple’s reading-optimized size)
+- Line height: 1.6
+- Measure: 70ch maximum
+- Paragraph spacing: 1em
+
+**Code:**
+
+- Font: SF Mono or user-configured monospace
+- Size: 15px (slightly smaller than body)
+- Background: subtle contrast (`#F5F5F7` / `#2C2C2E`)
+- Syntax highlighting: Subtle, muted palette (not rainbow)
+
+**Headings:**
+
+- Font: SF Pro Display (system sans)
+- Weight: Semibold
+- Scale: 1.25 ratio (h1: 2em, h2: 1.6em, h3: 1.25em)
+
+### Layout
+
+**Three-panel design:**
+
+```
+┌─────────┬──────────────────────────────────────┬─────────┐
+│         │                                      │         │
+│ Sources │           Reader Pane                │  Page   │
+│  List   │                                      │   TOC   │
+│         │                                      │         │
+│  ────   │                                      │  ────   │
+│         │                                      │         │
+│ Library │     Beautifully rendered docs        │ Quick   │
+│ Browser │                                      │  nav    │
+│         │                                      │         │
+└─────────┴──────────────────────────────────────┴─────────┘
+     240px              flexible                    200px
+```
+
+**Responsive behavior:**
+
+- Sidebars collapsible (keyboard: Cmd+1, Cmd+2)
+- Reader expands to fill space
+- Minimum window: 800x600
+
+### Components
+
+**Search (Cmd+K):**
+
+- Centered modal overlay
+- Large input field
+- Live results as you type
+- Keyboard navigation (↑↓ to select, Enter to open)
+- Scope indicator (searching: All / Rust / Python…)
+
+**Bookmark indicator:**
+
+- Subtle filled bookmark icon in toolbar when page is bookmarked
+- Click to add/remove
+- Long-press to add note
+
+**Sync status:**
+
+- Subtle indicator in toolbar
+- Animated during sync
+- Click for detailed status
+
+### Keyboard Shortcuts
+
+|Action               |Shortcut              |
+|---------------------|----------------------|
+|Global search        |`Cmd + K`             |
+|Search in page       |`Cmd + F`             |
+|Toggle source sidebar|`Cmd + 1`             |
+|Toggle TOC sidebar   |`Cmd + 2`             |
+|Bookmark page        |`Cmd + D`             |
+|Back                 |`Cmd + [`             |
+|Forward              |`Cmd + ]`             |
+|Scroll down          |`J` or `Space`        |
+|Scroll up            |`K` or `Shift + Space`|
+|Next section         |`N`                   |
+|Previous section     |`P`                   |
+|Go to top            |`G G`                 |
+|Go to bottom         |`Shift + G`           |
+|Sync current source  |`Cmd + R`             |
+|Preferences          |`Cmd + ,`             |
+
+-----
+
+## CLI Specification
+
+The CLI enables scripting and serves as the backend for the Claude Code plugin.
+
+```bash
+tome [command] [options]
+
+Commands:
+  add <url|path>       Add documentation source (interactive)
+  pull [source]        Fetch/update documentation
+  list                 List all sources
+  search <query>       Search documentation
+  remove <source>      Remove a source
+  config [source]      View/edit configuration
+  serve                Start local API server
+  mcp                  Start MCP server
+  status               Show sync and index status
+  export               Export bookmarks/annotations
+
+Options:
+  --json               Output as JSON (for scripting)
+  --quiet              Suppress non-essential output
+  --config <path>      Use alternate config file
+  --help               Show help
+
+Examples:
+  tome add https://docs.python.org/3/
+  tome pull --all
+  tome search "async iterator" --scope rust
+  tome list --json | jq '.[] | select(.category == "Rust")'
+```
+
+-----
+
+## Milestones & Roadmap
+
+### Phase 1: Foundation (v0.1) — 8 weeks
+
+**Goal:** Core reading experience with manual doc addition.
+
+**Deliverables:**
+
+- [ ] Tauri + Svelte + Rust project scaffolding
+- [ ] Basic three-panel UI layout
+- [ ] Generic web scraper with configurable selectors
+- [ ] Content normalization and rendering pipeline
+- [ ] Typography system implementation
+- [ ] SQLite storage for sources and pages
+- [ ] Local file-based source configs
+- [ ] Basic navigation (back/forward, TOC)
+- [ ] Manual source addition via config file
+
+**Exit Criteria:** Can add a ReadTheDocs site via config and read it with consistent styling.
+
+-----
+
+### Phase 2: Search & Platforms (v0.2) — 6 weeks
+
+**Goal:** Intelligent search and platform-specific scrapers.
+
+**Deliverables:**
+
+- [ ] Tantivy integration for full-text search
+- [ ] Global search UI (Cmd+K)
+- [ ] Search within page (Cmd+F)
+- [ ] ReadTheDocs scraper (Sphinx structure-aware)
+- [ ] rustdoc scraper (search-index.js parsing)
+- [ ] mdBook scraper
+- [ ] Man page integration (`mandoc` rendering)
+- [ ] Platform auto-detection from URL
+
+**Exit Criteria:** Fast search across multiple doc sources, platform scrapers work reliably.
+
+-----
+
+### Phase 3: Bookmarks & Sync (v0.3) — 6 weeks
+
+**Goal:** Personal layer and cross-device sync.
+
+**Deliverables:**
+
+- [ ] Bookmark system (add, organize, collections)
+- [ ] Text highlighting with notes
+- [ ] Reading position memory
+- [ ] iCloud sync for bookmarks/annotations
+- [ ] Source list sync (not content)
+- [ ] Sync status UI
+- [ ] Conflict resolution handling
+
+**Exit Criteria:** Bookmarks sync reliably between two Macs via iCloud.
+
+-----
+
+### Phase 4: Automation & Integration (v0.4) — 6 weeks
+
+**Goal:** Programmable access and developer tool integration.
+
+**Deliverables:**
+
+- [ ] CLI tool (`tome` command)
+- [ ] Local HTTP API (localhost)
+- [ ] MCP server implementation
+- [ ] Claude Code plugin (`/tome` commands)
+- [ ] Sync strategy system (manual, scheduled, watch)
+- [ ] Package registry watching (crates.io, npm, PyPI)
+
+**Exit Criteria:** Claude Code can add and search docs; MCP tools work with AI agents.
+
+-----
+
+### Phase 5: Polish & Launch (v1.0) — 4 weeks
+
+**Goal:** Production-ready release.
+
+**Deliverables:**
+
+- [ ] Performance optimization (lazy loading, incremental indexing)
+- [ ] Error handling and recovery
+- [ ] Onboarding experience (first-run, sample docs)
+- [ ] Preferences UI (typography, sync, keyboard)
+- [ ] Menu bar integration
+- [ ] Notarization and distribution (DMG, Homebrew cask)
+- [ ] Documentation and landing page
+
+**Exit Criteria:** App is stable, performant, and ready for public use.
+
+-----
+
+### Future (v1.x)
+
+- **v1.1:** GitBook, Docusaurus, MkDocs scrapers
+- **v1.2:** Dash docset import
+- **v1.3:** Semantic/vector search option
+- **v1.4:** Annotation export to Obsidian/Notion
+- **v1.5:** iOS companion app (read-only)
+
+-----
+
+## Success Metrics
+
+|Metric             |Target                     |Measurement           |
+|-------------------|---------------------------|----------------------|
+|Cold search latency|< 100ms                    |P95 across 10+ sources|
+|Index build time   |< 30s for 1000 pages       |Benchmark suite       |
+|Memory usage       |< 200MB idle               |Activity Monitor      |
+|Sync reliability   |> 99.5%                    |Automated sync tests  |
+|User-reported bugs |< 5 critical in first month|GitHub issues         |
+
+-----
+
+## Open Questions
+
+1. **Docset support priority:** Should Dash docset import be v1.0 or post-launch? (Currently: v1.2)
+1. **Offline-first vs. always-fetch:** For sources with `watch` strategy, do we fetch eagerly or wait until user opens? (Leaning: fetch eagerly in background)
+1. **Annotation format:** Plain text notes, or support Markdown in annotations?
+1. **Export destinations:** Which integrations matter most? Obsidian, Notion, plain files?
+1. **Pricing model:** Free and open source? Paid with trial? (Leaning: open source core, optional paid sync service later)
+
+-----
+
+## Appendix A: Source Configuration Schema
+
+Full YAML schema for documentation sources:
+
+```yaml
+# ~/.tome/sources/{name}.yaml
+
+# Required
+name: string                    # Human-readable name
+source:
+  type: enum                    # readthedocs | rustdoc | mdbook | man | generic | local | docset
+  
+  # For remote sources
+  url: string                   # Entry URL
+  
+  # For local sources
+  path: string                  # Local filesystem path
+  
+  # For generic scraper
+  generic:
+    entry_points: [string]      # Starting paths
+    max_depth: integer          # Crawl depth limit (default: 4)
+    include_patterns: [regex]   # URL patterns to include
+    exclude_patterns: [regex]   # URL patterns to exclude
+    content_selector: string    # CSS selector for main content
+    title_selector: string      # CSS selector for page title
+    nav_selector: string        # CSS selector for navigation
+    
+  # For man pages
+  man:
+    paths: [string]             # Man page directories
+    sections: [integer]         # Sections to index (1-8)
+
+# Optional
+version: string                 # Pin to specific version
+category: string                # Organization category
+display:
+  icon: string                  # URL, local path, or emoji
+  accent_color: string          # Hex color for UI accents
+
+# Sync configuration
+sync:
+  strategy: enum                # manual | on_launch | scheduled | watch
+  schedule: string              # For scheduled: daily | weekly | monthly
+  watch_source: string          # For watch: package identifier
+  pin_version: boolean          # If true, never auto-update
+
+# Enrichment (future)
+enrich:
+  link_to_source: boolean       # Link symbols to source code
+  tldr_summaries: boolean       # Generate brief summaries
+```
+
+-----
+
+## Appendix B: API Reference
+
+### Local HTTP API
+
+Base URL: `http://localhost:7431/api`
+
+#### Search
+
+```http
+GET /search?q={query}&scope={source_id}&limit={n}
+
+Response:
+{
+  "results": [
+    {
+      "source_id": "uuid",
+      "source_name": "Rust std",
+      "page_path": "/std/vec/struct.Vec.html",
+      "title": "Vec in std::vec",
+      "snippet": "A contiguous growable array type...",
+      "score": 0.95
+    }
+  ],
+  "total": 42,
+  "query_time_ms": 12
+}
+```
+
+#### Sources
+
+```http
+GET /sources
+GET /sources/{id}
+POST /sources          # Body: YAML or JSON config
+DELETE /sources/{id}
+POST /sources/{id}/sync
+```
+
+#### Pages
+
+```http
+GET /sources/{id}/pages
+GET /sources/{id}/pages/{path}   # Returns rendered HTML
+```
+
+#### Bookmarks
+
+```http
+GET /bookmarks
+POST /bookmarks        # Body: { source_id, page_path, note? }
+DELETE /bookmarks/{id}
+```
+
+### MCP Tools
+
+```typescript
+// Tool definitions for MCP server
+
+tool tome_search {
+  description: "Search documentation across all sources or within a specific source"
+  parameters: {
+    query: string (required)
+    scope: string (optional) - source ID to limit search
+    limit: number (optional, default 10)
+  }
+  returns: SearchResult[]
+}
+
+tool tome_get_page {
+  description: "Retrieve the content of a documentation page"
+  parameters: {
+    source_id: string (required)
+    page_path: string (required)
+  }
+  returns: { title: string, content: string, toc: Section[] }
+}
+
+tool tome_list_sources {
+  description: "List all available documentation sources"
+  parameters: {}
+  returns: Source[]
+}
+
+tool tome_lookup_symbol {
+  description: "Look up a symbol (function, type, module) across documentation"
+  parameters: {
+    symbol: string (required)
+    language: string (optional) - filter by language
+  }
+  returns: SymbolResult[]
+}
+
+tool tome_bookmark {
+  description: "Bookmark a documentation page with optional note"
+  parameters: {
+    source_id: string (required)
+    page_path: string (required)  
+    note: string (optional)
+  }
+  returns: Bookmark
+}
+```
+
+-----
+
+## Appendix C: Keyboard Shortcut Reference
+
+|Category      |Action               |Shortcut             |
+|--------------|---------------------|---------------------|
+|**Navigation**|Back                 |`Cmd + [`            |
+|              |Forward              |`Cmd + ]`            |
+|              |Go to source         |`Cmd + O`            |
+|              |Go to page (by title)|`Cmd + P`            |
+|**Search**    |Global search        |`Cmd + K`            |
+|              |Search in page       |`Cmd + F`            |
+|              |Next match           |`Cmd + G`            |
+|              |Previous match       |`Cmd + Shift + G`    |
+|**Reading**   |Scroll down          |`J` / `Space`        |
+|              |Scroll up            |`K` / `Shift + Space`|
+|              |Page down            |`Ctrl + D`           |
+|              |Page up              |`Ctrl + U`           |
+|              |Top of page          |`G G`                |
+|              |Bottom of page       |`Shift + G`          |
+|              |Next section         |`N`                  |
+|              |Previous section     |`P`                  |
+|**Bookmarks** |Bookmark page        |`Cmd + D`            |
+|              |Show bookmarks       |`Cmd + B`            |
+|**View**      |Toggle source sidebar|`Cmd + 1`            |
+|              |Toggle TOC sidebar   |`Cmd + 2`            |
+|              |Toggle both sidebars |`Cmd + \`            |
+|              |Increase font size   |`Cmd + =`            |
+|              |Decrease font size   |`Cmd + -`            |
+|              |Reset font size      |`Cmd + 0`            |
+|**Sync**      |Sync current source  |`Cmd + R`            |
+|              |Sync all sources     |`Cmd + Shift + R`    |
+|**App**       |Preferences          |`Cmd + ,`            |
+|              |Quit                 |`Cmd + Q`            |
+
+-----
+
+*End of PRD*
