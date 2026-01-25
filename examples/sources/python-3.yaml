@@ -1,0 +1,19 @@
+# Example Source Configuration: Python 3 Documentation
+# ReadTheDocs/Sphinx-style documentation
+
+name: Python 3
+
+source:
+  type: readthedocs
+  url: https://docs.python.org/3/
+
+version: "3.12"
+category: Language
+
+sync:
+  strategy: on_launch
+  pin_version: false
+
+display:
+  icon: "🐍"
+  accent_color: "#3776AB"

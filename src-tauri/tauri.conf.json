@@ -51,7 +51,7 @@
       "identifier": "app.tome.reader",
       "longDescription": "Tome is a native macOS documentation reader that provides unified, offline access to technical documentation from diverse sources.",
       "macOS": {
-        "entitlements": null,
+        "entitlements": "Entitlements.plist",
         "exceptionDomain": "",
         "frameworks": [],
         "minimumSystemVersion": "12.0",

@@ -1,0 +1,56 @@
+# Example Source Configuration: Rust Standard Library
+# See .claude/plans/01-phase-1-foundation.md for full specification
+
+# Human-readable name displayed in the library
+name: Rust Standard Library
+
+# Source configuration
+source:
+  # Type of documentation source
+  # Options: readthedocs, rustdoc, mdbook, man, generic, local
+  type: rustdoc
+
+  # Base URL of the documentation
+  url: https://doc.rust-lang.org/std/
+
+  # Generic scraper settings (only used when type: generic)
+  # generic:
+  #   entry_points: ["/"]
+  #   max_depth: 4
+  #   content_selector: "main"
+  #   title_selector: "h1"
+  #   nav_selector: "nav.sidebar"
+  #   exclude_patterns:
+  #     - "/search"
+  #     - "/print.html"
+
+# Version of the documentation (for display and pinning)
+version: "1.75.0"
+
+# Category for organizing in library view
+# Common categories: Language, Framework, Tool, Library, Project
+category: Language
+
+# Sync configuration
+sync:
+  # Sync strategy
+  # Options: manual, on_launch, scheduled, watch
+  strategy: weekly
+
+  # For scheduled strategy, cron expression
+  # schedule: "0 9 * * 1"  # Every Monday at 9am
+
+  # Pin to specific version (don't auto-update)
+  pin_version: false
+
+  # Watch for new releases (for crates, npm packages, etc.)
+  # watch_registry: crates.io
+  # watch_package: serde
+
+# Display customization
+display:
+  # Emoji icon shown in library
+  icon: "🦀"
+
+  # Accent color for this source (hex)
+  accent_color: "#CE422B"

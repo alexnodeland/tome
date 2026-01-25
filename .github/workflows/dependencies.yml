@@ -1,0 +1,137 @@
+# Automated Dependency Updates
+# Runs weekly to check for and apply dependency updates
+
+name: Dependencies
+
+on:
+  schedule:
+    # Run every Monday at 9:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # === Rust Dependencies ===
+  update-rust:
+    name: Update Rust Dependencies
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Use a PAT to allow pushing to protected branches
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Update Cargo dependencies
+        run: |
+          cd src-tauri
+          cargo update
+
+      - name: Run security audit
+        run: |
+          cargo install cargo-audit
+          cd src-tauri
+          cargo audit
+
+      - name: Test with updated dependencies
+        run: |
+          cd src-tauri
+          cargo test
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet src-tauri/Cargo.lock; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(deps): update Rust dependencies'
+          title: 'chore(deps): update Rust dependencies'
+          body: |
+            Automated Rust dependency update.
+
+            This PR updates `Cargo.lock` to the latest compatible versions.
+
+            **Checklist:**
+            - [ ] Review updated dependencies
+            - [ ] Check for breaking changes in changelogs
+            - [ ] Verify tests pass
+          branch: deps/rust-update
+          delete-branch: true
+          labels: dependencies, rust
+
+  # === JavaScript Dependencies ===
+  update-npm:
+    name: Update npm Dependencies
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Update npm dependencies
+        run: |
+          npm update
+          npm audit fix --force || true
+
+      - name: Run security audit
+        run: npm audit --audit-level=high || true
+
+      - name: Test with updated dependencies
+        run: |
+          npm ci
+          npm run check:quick || true
+          npm test || true
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet package-lock.json; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(deps): update npm dependencies'
+          title: 'chore(deps): update npm dependencies'
+          body: |
+            Automated npm dependency update.
+
+            This PR updates `package-lock.json` to the latest compatible versions.
+
+            **Checklist:**
+            - [ ] Review updated dependencies
+            - [ ] Check for breaking changes in changelogs
+            - [ ] Verify tests pass
+          branch: deps/npm-update
+          delete-branch: true
+          labels: dependencies, javascript

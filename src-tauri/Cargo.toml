@@ -74,6 +74,13 @@ tempfile = "3.9"
 wiremock = "0.5"
 tokio-test = "0.4"
 
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "search_benchmark"
+harness = false
+
 [features]
 # This feature is used for production builds or when `devPath` points to the filesystem
 # DO NOT REMOVE!!

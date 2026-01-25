@@ -90,7 +90,11 @@ jobs:
       - name: Check coverage threshold
         run: |
           cd src-tauri
+          # 90% coverage target per planning docs
+          # Temporarily set to 80% until codebase has more tests
           cargo llvm-cov --all-features --fail-under 80
+          # TODO: Increase to 90% when ready:
+          # cargo llvm-cov --all-features --fail-under 90
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

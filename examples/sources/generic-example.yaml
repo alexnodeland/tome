@@ -1,0 +1,54 @@
+# Example Source Configuration: Generic Web Documentation
+# Use this for any documentation site that doesn't have a specialized scraper
+
+name: My Custom Docs
+
+source:
+  type: generic
+  url: https://example.com/docs/
+
+  # Generic scraper configuration - customize selectors for your site
+  generic:
+    # Starting points for the crawler
+    entry_points:
+      - "/"
+      - "/api/"
+      - "/guides/"
+
+    # Maximum crawl depth (0 = entry points only)
+    max_depth: 4
+
+    # CSS selector for main content area
+    # The scraper extracts content within this element
+    content_selector: "main"
+
+    # CSS selector for page title
+    # Falls back to <title> if not found
+    title_selector: "h1"
+
+    # CSS selector for navigation (optional)
+    # Used to extract table of contents
+    nav_selector: "nav.sidebar, nav.toc"
+
+    # URL patterns to exclude from crawling
+    exclude_patterns:
+      - "/search"
+      - "/print"
+      - "?print="
+      - "#"
+      - "/api/internal/"
+
+    # Additional options
+    follow_external_links: false
+    respect_robots_txt: true
+    request_delay_ms: 100
+
+version: "1.0"
+category: Custom
+
+sync:
+  strategy: manual
+
+display:
+  icon: "📚"
+  accent_color: "#4A90D9"
