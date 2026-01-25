@@ -29,7 +29,7 @@
     "check:boundaries": "ts-node scripts/check-boundaries.ts",
     "setup": "bash scripts/setup.sh",
     "clean": "rm -rf dist .svelte-kit node_modules/.vite",
-    "prepare": "husky"
+    "prepare": "node -e \"try { require('husky').default() } catch (e) { if (e.code !== 'MODULE_NOT_FOUND') throw e }\""
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.0"
