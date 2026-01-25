@@ -30,12 +30,7 @@ const config = {
       entries: [],
     },
 
-    // Disable CSRF protection for Tauri
-    // Tauri handles this at the IPC level
-    csrf: {
-      checkOrigin: false,
-    },
-  },
+      },
 
   // Compile-time warnings
   compilerOptions: {
