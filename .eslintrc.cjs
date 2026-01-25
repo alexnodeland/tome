@@ -251,6 +251,14 @@ module.exports = {
         '@typescript-eslint/no-var-requires': 'off',
       },
     },
+    {
+      // Scripts and config files - allow console and relax type checking
+      files: ['scripts/**/*.ts', '*.config.ts', '*.config.js', 'e2e/**/*.ts'],
+      rules: {
+        'no-console': 'off',
+        '@typescript-eslint/no-require-imports': 'off',
+      },
+    },
   ],
 
   // Ignored files
@@ -259,6 +267,7 @@ module.exports = {
     '.svelte-kit/',
     'node_modules/',
     'coverage/',
+    'src-tauri/',
     '*.cjs', // Will be linted with override
   ],
 };

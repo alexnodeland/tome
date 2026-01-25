@@ -1,7 +1,8 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
 import path from 'path';
+
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [svelte({ hot: !process.env.VITEST })],
@@ -49,7 +50,7 @@ export default defineConfig({
     globals: true,
 
     // Reporter
-    reporters: ['default', 'html'],
+    reporters: ['default'],
 
     // Timeouts
     testTimeout: 10000,

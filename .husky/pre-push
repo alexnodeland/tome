@@ -7,10 +7,12 @@ set -e
 
 echo "Running pre-push checks..."
 
-# Run Rust tests
-echo "Running Rust tests..."
-if [ -f "src-tauri/Cargo.toml" ]; then
+# Run Rust tests (only on macOS where Tauri dependencies are available)
+if [ "$(uname)" = "Darwin" ] && [ -f "src-tauri/Cargo.toml" ]; then
+  echo "Running Rust tests..."
   cargo test --manifest-path src-tauri/Cargo.toml --quiet
+else
+  echo "Skipping Rust tests (requires macOS with Tauri dependencies)"
 fi
 
 # Run JavaScript tests

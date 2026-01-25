@@ -56,9 +56,9 @@
     "src/**/*.d.ts",
     "src/**/*.svelte",
     "scripts/**/*.ts",
-    "vite.config.ts",
-    "svelte.config.js",
-    "playwright.config.ts"
+    "e2e/**/*.ts",
+    "*.config.ts",
+    "*.config.js"
   ],
   "exclude": ["node_modules", "dist", ".svelte-kit"]
 }

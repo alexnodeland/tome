@@ -3,16 +3,10 @@
 
   let version = 'Loading...';
 
-  onMount(async () => {
-    // Example of calling a Tauri command
-    // In real app, this would use our service layer
-    try {
-      // const { invoke } = await import('@tauri-apps/api/tauri');
-      // version = await invoke<string>('get_version');
-      version = '0.1.0'; // Placeholder
-    } catch {
-      version = 'Unknown';
-    }
+  onMount(() => {
+    // In real app, this would use our service layer to call Tauri
+    // For now, just set placeholder version
+    version = '0.1.0';
   });
 </script>
 
