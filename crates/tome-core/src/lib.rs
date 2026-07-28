@@ -10,6 +10,7 @@
 //! Nothing outside [`paths`] may construct a data path.
 
 pub mod config;
+pub mod crawl;
 pub mod db;
 pub mod error;
 pub mod fetch;

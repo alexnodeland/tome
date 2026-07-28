@@ -101,6 +101,35 @@ impl SourceSpec {
             Self::Man(_) | Self::Local { .. } | Self::Docset { .. } => None,
         }
     }
+
+    /// Generic-scraper crawl entry paths (relative to [`Self::url`]). Empty
+    /// for every non-generic type; the crawler falls back to the base URL.
+    pub fn generic_entry_points(&self) -> &[String] {
+        match self {
+            Self::Generic { scraper, .. } => &scraper.entry_points,
+            _ => &[],
+        }
+    }
+
+    /// Compiled include patterns, if this is a generic source with any.
+    pub fn generic_include(&self) -> Option<&Vec<regex::Regex>> {
+        match self {
+            Self::Generic { scraper, .. } if !scraper.include_patterns.is_empty() => {
+                Some(&scraper.include_patterns)
+            }
+            _ => None,
+        }
+    }
+
+    /// Compiled exclude patterns, if this is a generic source with any.
+    pub fn generic_exclude(&self) -> Option<&Vec<regex::Regex>> {
+        match self {
+            Self::Generic { scraper, .. } if !scraper.exclude_patterns.is_empty() => {
+                Some(&scraper.exclude_patterns)
+            }
+            _ => None,
+        }
+    }
 }
 
 /// Generic scraper settings, validated: patterns compile, selectors parse.
