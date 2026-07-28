@@ -9,11 +9,13 @@
 //!
 //! Nothing outside [`paths`] may construct a data path.
 
+pub mod assets;
 pub mod config;
 pub mod crawl;
 pub mod db;
 pub mod error;
 pub mod fetch;
+pub mod hash;
 pub mod model;
 pub mod normalize;
 pub mod parse;
