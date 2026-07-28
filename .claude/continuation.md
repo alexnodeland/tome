@@ -12,19 +12,27 @@ Tome was a docs-only repo: a PRD plus 18 planning documents, no code. The plan w
 (PR #4, **merged**). **Stage 0 is complete** — the scaffold plus S0-6 (fixture HTTP server), S0-7
 (golden-corpus harness) and S0-8 (property + fuzz scaffolding), so agent output on the ingestion
 path is verifiable *before* it is written. The app builds, launches, and creates its library at the
-right paths; the CLI is a stub except `tome status`. **SPIKE-002 (reader bridge) has run for real — the Stage 1
-entry gate is met.** No ingestion, no reader, no search — Stage 1 is where the product starts
-existing.
+right paths; the CLI is a stub except `tome status`. **Both Stage 1 gate spikes have run for real
+(SPIKE-002 reader bridge, SPIKE-010 legal posture) and S1-1 froze the core model.** No ingestion,
+no reader, no search yet — the S1 fan-out (S1-2/3/4/7) is where those start.
 
 ```
 main   ← everything below is merged; branch from here
+  499d5d0  S1-1: core types frozen; Python-first decision            (#16)
+  3a4461d  SPIKE-010: legal posture; corpus gate; 2 req/s default    (#17, replaced #15)
+  628b2cd  SPIKE-002: reader bridge measured; capabilities file      (#14)
   8eda146  fixture server, golden corpus harness, fuzz scaffolding   (S0-6/7/8)
   e3ddbca  unsigned distribution via own tap; local verification gate
   2acc9a2  implementation plan and Stage 0 scaffold
   8306422  plan audit                                                (#3)
 ```
 
-**51 Rust tests + 3 Vitest tests pass; the full gate is green including the app build.**
+**Merge trap, learned on #15:** merging a stacked PR with `--delete-branch` does not retarget the
+child PR — GitHub **closes** it, unrecoverably (cannot reopen, cannot change base of a closed PR).
+Merge the parent *keeping* the branch, `gh pr edit <child> --base main`, then merge the child and
+delete branches at the end. #17 is #15 recreated because of this.
+
+**71 Rust tests + 3 Vitest tests pass; the full gate is green including the app build.**
 `crates/tome-testkit` holds the fixture server and golden harness (**dev-dependency only** — if it
 ever appears under `[dependencies]`, that is a bug); `fuzz/` is a separate workspace, type-checked
 by `check.sh` on stable, run with `cargo +nightly fuzz`.
@@ -253,6 +261,10 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 - **DEC-005** docset import priority · **DEC-006** `watch` fetch vs notify · **DEC-007** note format ·
   **DEC-008** export targets. All non-blocking.
 - **PR #2** — the stale scaffolding branch, superseded. Left open; ask before closing.
+- **Dependabot opened nine PRs (#5–#13)** right after #4 merged. Several are majors (TypeScript 7,
+  eslint-plugin-svelte 3, prettier-plugin-svelte 4, jest-dom 7) and the Actions bumps are moot
+  until Actions can run. Untouched — batching the dev-dep majors through `check.sh` is a chore
+  worth doing deliberately, not silently.
 - ~~Which docs site S1 targets first~~ — **answered 2026-07-28: `docs.python.org`**, as the
   plan's exit gate names. S1-7/S1-8 fixtures and the first corpus suite are Sphinx-first;
   the `<dl>`-based API entries are the hard case, and `DefinitionList` in the frozen AST
