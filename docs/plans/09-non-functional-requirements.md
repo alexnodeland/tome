@@ -89,7 +89,7 @@ is not reproducible.
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| Scrape rate | 5 req/sec | Default, configurable |
+| Scrape rate | 2 req/sec default, capped at 4 | Owned by PRD § Crawl etiquette (changed by SPIKE-010) |
 | Page fetch timeout | 30s | Per page |
 | Crawl timeout | 10 min | Per source |
 
