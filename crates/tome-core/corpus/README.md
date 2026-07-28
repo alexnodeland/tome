@@ -32,7 +32,7 @@ the one after the diff has been looked at.
 
 | Suite | Checks | Lands with |
 |-------|--------|------------|
-| `normalization` | Normalized AST → HTML across ≥ 20 real sites spanning every target platform | S1-8 |
+| `normalization` | Normalized AST across documentation pages; **seeded S1-8** with the repo's Sphinx fixture, expanding to ≥ 20 real sites (see `normalization/input/SOURCES.md`) | S1-8 |
 | `sanitizer` | The XSS payload corpus (nothing survives) **and** the anchor corpus (nothing breaks) | S1-9 |
 | `snippets` | Search result snippet generation | S2 |
 

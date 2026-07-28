@@ -1,0 +1,82 @@
+{
+  "title": "Widget",
+  "description": "Widget is a fixture, not a library. It exists so that crawler and normalization tests have something stable to read.",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "anchor",
+        "id": "widget"
+      },
+      {
+        "type": "heading",
+        "level": 1,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "Widget"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Widget is a fixture, not a library. It exists so that crawler and normalization tests have something stable to read."
+          }
+        ]
+      },
+      {
+        "type": "image",
+        "src": "https://corpus.test/_static/logo.svg",
+        "alt": "Widget logo"
+      },
+      {
+        "type": "anchor",
+        "id": "installation"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "Installation"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "bash",
+        "code": "pip install widget"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "See the"
+          },
+          {
+            "type": "link",
+            "href": "https://example.invalid/widget",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "project page"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "for release notes."
+          }
+        ]
+      }
+    ]
+  }
+}

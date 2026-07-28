@@ -1,0 +1,190 @@
+{
+  "title": "API reference",
+  "description": "A widget of a given size.",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "anchor",
+        "id": "api-reference"
+      },
+      {
+        "type": "heading",
+        "level": 1,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "API reference"
+          }
+        ]
+      },
+      {
+        "type": "definition_list",
+        "items": [
+          {
+            "id": "widget.Widget",
+            "term": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "class"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "widget."
+              },
+              {
+                "type": "text",
+                "value": "Widget"
+              },
+              {
+                "type": "text",
+                "value": "("
+              },
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "size="
+                  },
+                  {
+                    "type": "text",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ")"
+              }
+            ],
+            "definition": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "A widget of a given size."
+                  }
+                ]
+              },
+              {
+                "type": "definition_list",
+                "items": [
+                  {
+                    "id": "widget.Widget.resize",
+                    "term": [
+                      {
+                        "type": "text",
+                        "value": "resize"
+                      },
+                      {
+                        "type": "text",
+                        "value": "("
+                      },
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "size"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": ")"
+                      }
+                    ],
+                    "definition": [
+                      {
+                        "type": "paragraph",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Resize in place. Raises"
+                          },
+                          {
+                            "type": "inline_code",
+                            "code": "ValueError"
+                          },
+                          {
+                            "type": "text",
+                            "value": "when"
+                          },
+                          {
+                            "type": "emphasis",
+                            "children": [
+                              {
+                                "type": "text",
+                                "value": "size"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "text",
+                            "value": "is negative."
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "examples"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "Examples"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "from widget import Widget\n\nw = Widget(3)\nw.resize(5)"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Back to the"
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/index.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "index"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      }
+    ]
+  }
+}
