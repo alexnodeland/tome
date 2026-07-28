@@ -9,11 +9,12 @@
 Tome is a macOS documentation reader: ingest any documentation site, read it offline with good
 typography, search across everything, and expose the library to coding agents over MCP.
 
-**Mostly specification, with a working scaffold.** The app builds and launches, the path layer is
-real, and the test infrastructure that makes later work verifiable — fixture server, golden-corpus
-harness, property and fuzz scaffolding — is in place. Ingestion, the reader, and search do not
-exist yet. When asked whether something works, check rather than assume — most of this repo
-describes intent, not behaviour.
+**Stage 1 is built; Stage 2 onwards is still specification.** Ingestion and the reader both work
+end to end: `tome pull` fetches a documentation site (robots, rate limit, SSRF, scope), normalizes,
+sanitizes, and localizes it into the library, and the app renders it offline in a sandboxed iframe
+with a library sidebar, a page outline, and back/forward. **Search, sync, annotations, MCP, and the
+local HTTP API do not exist yet.** When asked whether something works, check rather than assume —
+much of this repo still describes intent rather than behaviour.
 
 ## Where things are
 
@@ -28,6 +29,7 @@ describes intent, not behaviour.
 | `crates/tome-testkit/` | Test infrastructure: the fixture HTTP server and the golden-corpus harness. Dev-dependency only — never under `[dependencies]` |
 | `fuzz/` | Fuzz targets. Its own workspace; needs nightly to run |
 | `scripts/check.sh` | The verification gate, standing in for CI |
+| `scripts/check-contrast.mjs` | Design-token gate: WCAG contrast in both themes, light/dark parity, and that every `var(--token)` resolves. Specified by `docs/plans/15`; it found three real palette defects on its first run |
 | `dist/homebrew/` | Cask source of truth, mirrored to `alexnodeland/homebrew-tap` on release |
 | `docs/reviews/` | Point-in-time critical reviews of the plan |
 | `docs/spikes/` | Results of spikes that have actually run, raw output included. `docs/plans/07` defines the spikes; this directory is where their answers live |
@@ -36,9 +38,19 @@ describes intent, not behaviour.
 ## There is code now
 
 `crates/tome-core` (shared library), `crates/tome-cli` (`tome` binary), `crates/tome-testkit`
-(test infrastructure), `src-tauri` (the app), `src/` (Svelte frontend). The app builds and
-launches; of the product itself, the path layer and the frozen core model (`tome-core/src/model/`,
-S1-1 — its serde shape is pinned by test and is a storage/IPC contract) are implemented.
+(test infrastructure), `src-tauri` (the app), `src/` (Svelte frontend).
+
+The core model (`tome-core/src/model/`, S1-1) is **frozen** — its serde shape is pinned by test and
+is a storage/IPC contract. The pipeline is `config → crawl → normalize → sanitize → assets →
+relink → store + db`, composed by `pipeline::pull`; `render` turns the stored AST into the HTML the
+reader iframe displays. Two contracts thread through it and are easy to break silently:
+
+- **The renderer must quote every attribute and escape every value and text node.** The sanitizer
+  deliberately leaves free-text fields unstripped and delegates their safety here; `tome-core/src/html.rs`
+  is the one escaping helper and everything routes through it.
+- **Nothing rendered may reach the network.** Asset localization rewrites every image to a local
+  content-addressed path, the renderer re-checks that at emission, and the frame's CSP allows only
+  the `tome:` protocol. `tests/reader_offline.rs` shuts the fixture server down and asserts it.
 
 **`./scripts/check.sh` is the gate — CI cannot run** (private repo, and Actions is blocked at the
 account level). It runs exactly what `.github/workflows/ci.yml` runs. Change one, change the other.
@@ -80,6 +92,13 @@ These are settled, and earlier drafts had them wrong. Do not regress them.
 - **There is no telemetry of any kind**, including opt-in. Any metric expressed as a percentage of
   users is therefore unmeasurable — do not add one.
 - **`tome pull` fetches documentation. There is no `tome sync`** (bookmark sync is automatic).
+- **The reader is one sandboxed `<iframe>` with `sandbox="allow-scripts"` and nothing else.**
+  `allow-same-origin` would hand page content the app's origin and with it the IPC layer. Its CSP
+  names the app origin explicitly, because `'self'` in an opaque origin matches nothing.
+- **Highlighting is a render concern, not an AST mutation**, and emits CSS classes rather than
+  colours, so a theme change needs no re-highlighting.
+- **Stored pages carry library paths, not URLs.** A page that names the host it was crawled from
+  only makes sense on the machine that crawled it.
 - **The plan assumes ~2.5 engineers** (~381 person-days / 30 weeks). If asked about schedule, say
   so; DEC-004 is unresolved.
 
