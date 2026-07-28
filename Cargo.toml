@@ -30,6 +30,9 @@ regex = "1"
 # For CSS selector validation in source configs (S1-3) and the HTML parser
 # (S1-7) — one dependency serving both is why it lands with the earlier ticket.
 scraper = "0.27"
+# scraper's tree type, needed to walk the parsed DOM (S1-7). Kept at the
+# same version scraper resolves so there is exactly one tree type.
+ego-tree = "0.11"
 thiserror-ext = "0.2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs", "io-util"] }
 tracing = "0.1"

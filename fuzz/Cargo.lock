@@ -1192,6 +1192,7 @@ version = "0.0.0"
 dependencies = [
  "chrono",
  "directories",
+ "ego-tree",
  "regex",
  "rusqlite",
  "scraper",
@@ -1209,7 +1210,9 @@ name = "tome-fuzz"
 version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
+ "serde_json",
  "tome-core",
+ "url",
 ]
 
 [[package]]

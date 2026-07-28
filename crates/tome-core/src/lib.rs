@@ -14,6 +14,7 @@ pub mod db;
 pub mod error;
 pub mod fetch;
 pub mod model;
+pub mod parse;
 pub mod paths;
 
 pub use error::{Error, Result};

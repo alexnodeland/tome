@@ -11,6 +11,7 @@ authors.workspace = true
 [dependencies]
 chrono.workspace = true
 directories.workspace = true
+ego-tree.workspace = true
 regex.workspace = true
 rusqlite.workspace = true
 scraper.workspace = true

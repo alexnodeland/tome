@@ -3852,6 +3852,7 @@ version = "0.0.0"
 dependencies = [
  "chrono",
  "directories",
+ "ego-tree",
  "proptest",
  "regex",
  "rusqlite",
