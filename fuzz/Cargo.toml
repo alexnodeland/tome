@@ -58,3 +58,10 @@ path = "fuzz_targets/html_parser.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "ssrf"
+path = "fuzz_targets/ssrf.rs"
+test = false
+doc = false
+bench = false

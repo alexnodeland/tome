@@ -61,6 +61,9 @@ pub enum Error {
     #[error("This site's robots.txt does not permit fetching that page.")]
     BlockedByRobots,
 
+    #[error("That address is not a public destination and will not be fetched.")]
+    BlockedByFilter,
+
     #[error("The response exceeded the size limit ({limit} bytes).")]
     TooLarge { limit: u64 },
 

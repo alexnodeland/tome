@@ -16,9 +16,16 @@ use tome_testkit::{FixtureServer, Scripted};
 use url::Url;
 
 /// Fast test config: effectively no rate limit, millisecond backoff.
+///
+/// `allow_insecure` is set because the fixture server runs on `127.0.0.1`,
+/// and the SSRF filter (S1-5) blocks loopback under the default policy —
+/// which is correct: a loopback fixture is exactly the "a host you own"
+/// case that `allow_insecure` exists for. The SSRF behaviour itself is
+/// tested in `ssrf_filter.rs`, not here.
 fn fast_fetcher() -> Fetcher {
     let config = FetchConfig {
         rate_limit_rps: 1000.0,
+        allow_insecure: true,
         ..FetchConfig::default()
     };
     Fetcher::with_backoff_base(config, Duration::from_millis(5))
@@ -168,7 +175,8 @@ fn crawl_delay_stretches_the_rate_limit() {
 fn configured_rate_limit_spaces_requests() {
     let server = FixtureServer::start("sphinx-example").unwrap();
     let config = FetchConfig {
-        rate_limit_rps: 4.0, // the cap: 250ms between requests to one host
+        rate_limit_rps: 4.0,  // the cap: 250ms between requests to one host
+        allow_insecure: true, // loopback fixture — see fast_fetcher
         ..FetchConfig::default()
     };
     let fetcher = Fetcher::with_backoff_base(config, Duration::from_millis(5));

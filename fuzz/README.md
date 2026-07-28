@@ -43,6 +43,7 @@ in a pre-commit gate.
 | `sanitizer` | No input yields output containing script-capable markup | S1-9 |
 | `source_config` | No panic on any YAML; whatever parses honours the validated invariants (rate ≤ cap, https-or-allow_insecure, …) | Live |
 | `robots` | robots.txt parser/matcher never panics and never goes exponential; `/robots.txt` always fetchable | Live |
+| `ssrf` | Address classifier is total; every v6 spelling of a v4 address classifies identically (no v4-mapped bypass); policy is monotone | Live |
 | `annotation_anchor` | Re-anchoring resolves or reports `orphaned`, never lands on the wrong text | S3 |
 
 The properties in the right-hand column are the point. A fuzz target that only

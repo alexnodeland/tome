@@ -169,13 +169,30 @@ Four more fuzz targets live (`model_ids`, `source_config`, `robots`, `html_parse
 asserting an invariant, not just no-panic. The paths→`&SourceId` migration (#18) closed the S0
 containment gap. 105 tome-core tests.
 
-### Immediately: what remains of Stage 1
+### S1-5 (SSRF filter) — done, and the refute-panel earned its keep
 
-- **S1-5 (SSRF filter)** and later **S1-9 (sanitizer)** are the two tickets the plan routes as
-  **Opus + adversarial verify** — verifiers prompted to *refute*, majority-refute kills the
-  change. That means multi-agent verification, which needs the owner's opt-in in this harness;
-  ask before spawning, or implement single-pass with an attack corpus and say which happened.
-  The S1-5 seam is already marked in `Fetcher::fetch`.
+`tome-core/src/fetch/ssrf.rs` (classifier) + `resolver.rs` (installed as ureq's resolver, so the
+validated addresses are the exact ones dialed — closes DNS-rebind TOCTOU). The **adversarial
+refute-panel ran as a Workflow** (owner opted in): 4 Opus refuters by attack lens → 3 Opus judges
+per candidate → majority-real gates merge. **Round 1 confirmed 4 distinct real bypasses** and they
+were fixed before merge:
+
+1. NAT64 `64:ff9b::/96` embedded IPv4 not unwrapped → reached `169.254.169.254`. Now `embedded_v4()`
+   unwraps mapped/compatible/IPv4-translated/NAT64-WKP/6to4 to v4 and classifies as v4.
+2. Site-local `fec0::/10` classified Public → the structural fix: **classify_v6 default-denies
+   outside global unicast `2000::/3`** instead of naming bad ranges (the allowlist-by-omission was
+   the root cause).
+3. IPv4-translated `::ffff:0:0/96` (SIIT) not unwrapped — now handled.
+4. **`HTTP_PROXY`/`ALL_PROXY` bypassed the filter entirely** (ureq defaults to
+   `Proxy::try_from_env()`, dials the proxy so the destination is never classified) → `.proxy(None)`
+   on the agent config. A docs fetcher must never tunnel through an ambient proxy.
+
+The lesson worth keeping: **the first draft looked correct and passed its own tests; the panel
+found what the author's tests could not.** Do the same for S1-9. Round 2 re-ran against the
+hardened code to confirm the fixes held; see the plan's S1-5 row / the PR for its verdict.
+
+- **S1-9 (sanitizer)** — same treatment: Opus + refute-panel, two corpora (XSS: nothing survives;
+  anchors: nothing breaks). The `id`-stripping trap (breaks the TOC) is in the plan's notes.
 - **S1-6 (BFS crawl + URL filter)** behind S1-4/S1-5; nodejs.org trap recorded above.
 - **S1-8 (normalization + golden corpus)** — the corpus licence gate is in
   `crates/tome-core/corpus/README.md`; Python-first per the owner's call.
