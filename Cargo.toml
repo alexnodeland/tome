@@ -38,6 +38,10 @@ directories = "6"
 clap = { version = "4", features = ["derive", "env"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 url = { version = "2", features = ["serde"] }
+# `bundled` compiles SQLite in rather than linking whatever macOS shipped:
+# the schema uses STRICT tables (3.37+) and behaviour must not vary by OS
+# point release.
+rusqlite = { version = "0.40", features = ["bundled"] }
 
 # Test-only. `similar` produces the unified diffs the golden-corpus harness
 # prints; `proptest` and `tempfile` are used by tests across several crates.
