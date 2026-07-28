@@ -1,6 +1,10 @@
 [workspace]
 resolver = "2"
-members = ["crates/tome-core", "crates/tome-cli", "src-tauri"]
+members = ["crates/tome-core", "crates/tome-cli", "crates/tome-testkit", "src-tauri"]
+# `fuzz/` is its own workspace: `libfuzzer-sys` needs a nightly toolchain and
+# sanitizer flags, and pulling it into this workspace would impose both on every
+# ordinary `cargo test`. See fuzz/README.md.
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.0.0"
@@ -12,6 +16,7 @@ authors = ["Alex Nodeland"]
 
 [workspace.dependencies]
 tome-core = { path = "crates/tome-core", version = "0.0.0" }
+tome-testkit = { path = "crates/tome-testkit", version = "0.0.0" }
 
 anyhow = "1"
 thiserror = "2"
@@ -24,6 +29,12 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 directories = "6"
 clap = { version = "4", features = ["derive", "env"] }
+
+# Test-only. `similar` produces the unified diffs the golden-corpus harness
+# prints; `proptest` and `tempfile` are used by tests across several crates.
+similar = { version = "3", default-features = false, features = ["text"] }
+proptest = "1"
+tempfile = "3"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

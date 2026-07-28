@@ -211,11 +211,12 @@ ideas from the runners-up. Better than iterating one attempt.
 **Goal:** make it possible to tell whether agent output is correct.
 **Gate to leave S0:** CI is green, an empty app launches, and `cargo test` runs a real test.
 
-**Status: partially done.** S0-1..S0-5 and S0-9 are complete — the workspace builds, the app
-bundles and launches, `paths` has 9 unit tests plus a cross-binary integration test, and CI runs
-fmt / clippy `-D warnings` / tests / cargo-audit / cargo-deny / gitleaks / npm audit. Remaining:
-**S0-6 fixture server, S0-7 golden-corpus harness, S0-8 property-test scaffolding** — all three are
-prerequisites for S1 and should land before any ingestion code.
+**Status: complete.** The workspace builds, the app bundles and launches, `paths` has 9 unit tests
+plus a cross-binary integration test and 7 properties, and the gate runs fmt / clippy `-D warnings` /
+tests / fuzz-target type-check / cargo-audit / cargo-deny / gitleaks / npm audit. The verification
+infrastructure — fixture server, golden harness, property and fuzz scaffolding — lives in
+`crates/tome-testkit` and `fuzz/`, and is a dev-dependency of the shipping crates rather than part
+of them.
 
 Nothing in S0 is a feature. All of it is leverage — everything after it moves faster and more
 safely because it exists.
@@ -227,15 +228,21 @@ safely because it exists.
 | ✅ S0-3 | `paths` module + tests | **Opus** | P1-006. The first real code. A test asserts the app and CLI binaries resolve byte-identical paths |
 | ✅ S0-4 | Error taxonomy (`Error`) | Opus | Frozen early; every later ticket returns into it |
 | ✅ S0-5 | CI: fmt, clippy `-D warnings`, test, audit, deny, gitleaks | Fable | The audit job the old plan claimed to have |
-| S0-6 | Fixture HTTP server (serves committed doc-site fixtures offline) | Fable | **Prerequisite for S1.** Every scraper test needs it |
-| S0-7 | Golden-corpus harness (snapshot + diff normalized output) | Opus | Makes normalization quality reviewable |
-| S0-8 | Property-test + fuzz scaffolding (`proptest`, `cargo-fuzz`) | Fable | Targets added per-module later |
+| ✅ S0-6 | Fixture HTTP server (serves committed doc-site fixtures offline) | Fable | **Prerequisite for S1.** Every scraper test needs it. Scripted 4xx/5xx, redirects, delays, truncated bodies, conditional GET, a request log, and a shutdown that makes the port *refuse* connections |
+| ✅ S0-7 | Golden-corpus harness (snapshot + diff normalized output) | Opus | Makes normalization quality reviewable. An empty suite and an orphan golden both fail; update mode fails the run it rewrites |
+| ✅ S0-8 | Property-test + fuzz scaffolding (`proptest`, `cargo-fuzz`) | Fable | 7 properties over `paths` now; the interesting targets land with their modules (`fuzz/README.md` names them) |
 | ✅ S0-9 | `LICENSE-MIT` + `LICENSE-APACHE`, bundle id threaded through one constant | Fable | DEC-001, DEC-002 — now resolved |
 
 **S0-3 deserves its own note.** Every path in the codebase comes from this module; nothing else
 constructs one. The plan review found four different data locations across documents and several
 samples passing a literal `~` to APIs that do not expand it. A single module with a test that both
 binaries agree makes that class of bug impossible rather than merely discouraged.
+
+**One thing S0 did *not* settle, deliberately.** `Paths::pages_dir("../../etc")` still escapes the
+cache directory lexically — path *validation* is S1 work, next to the page loader that consumes
+user-supplied ids. The property tests say so in a comment rather than asserting a containment
+invariant that does not hold yet, because the alternative is a property that gets quietly weakened
+until it passes.
 
 ---
 

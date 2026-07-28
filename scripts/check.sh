@@ -41,8 +41,13 @@ run() {
 
 echo
 run "rust: formatting"      cargo fmt --all --check
-run "rust: lints"           cargo clippy -p tome-core -p tome-cli --all-targets -- -D warnings
-run "rust: tests"           cargo test -p tome-core -p tome-cli
+run "rust: lints"           cargo clippy -p tome-core -p tome-cli -p tome-testkit --all-targets -- -D warnings
+run "rust: tests"           cargo test -p tome-core -p tome-cli -p tome-testkit
+# Type-check only. Fuzzing itself is unbounded and belongs in a scheduled run;
+# what rots between those runs is a target that no longer compiles against the
+# module it fuzzes, and that is cheap to catch here. Stable is enough for this
+# (the nightly toolchain is only needed to *run* a target).
+run "fuzz: targets compile" cargo check --manifest-path fuzz/Cargo.toml
 run "frontend: types"       npm run check
 run "frontend: lint"        npm run lint
 run "frontend: tests"       npm run test

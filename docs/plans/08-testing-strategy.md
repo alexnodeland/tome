@@ -378,7 +378,9 @@ lives, and it is fully testable without a UI.
 #[tokio::test]
 async fn add_source_to_search_result() {
     let tmp = TempDir::new().unwrap();
-    let server = fixture_server("sphinx-example").await;   // serves committed fixtures
+    // Blocking, thread-backed, and therefore usable from sync and async tests
+    // alike. `crates/tome-testkit/src/server.rs`.
+    let server = FixtureServer::start("sphinx-example").unwrap();
     let app = TestApp::new(tmp.path()).await;
 
     app.add_source(source_config(&server.url())).await.unwrap();
@@ -387,8 +389,10 @@ async fn add_source_to_search_result() {
     let hits = app.search("iterator", None, 10).await.unwrap();
     assert!(hits.results.iter().any(|r| r.title.contains("Iterator")));
 
-    // Offline guarantee: shut the server down, then render.
-    server.shutdown().await;
+    // Offline guarantee: shut the server down, then render. After shutdown the
+    // port REFUSES connections, so anything still reaching for it fails
+    // immediately rather than hanging until a timeout the test would swallow.
+    server.shutdown();
     let page = app.render_page("test-docs", "/api/reference.html").await.unwrap();
     assert!(!page.html.contains("http://"), "rendered page must not reference remote resources");
 }
@@ -424,52 +428,47 @@ every assertion that *can* live in Tier A should.
 
 ## Test Data & Fixtures
 
-### Documentation Fixtures
+Two kinds of committed test data, with different purposes and different rules. Confusing them is
+how a corpus ends up proving nothing.
 
-Create a set of test documentation sources:
+| | Where | What it is | Rule |
+|---|---|---|---|
+| **Fixture sites** | `crates/tome-testkit/fixtures/` | Miniature documentation sites, **hand-authored** | Served by the fixture server. Small enough to read in one screen |
+| **Golden corpora** | `crates/tome-core/corpus/` | **Real pages**, with their expected output | Reviewed as a diff. A normalization corpus made of easy pages proves nothing |
 
-```
-e2e/fixtures/test-docs/
-├── sphinx-example/          # Minimal Sphinx site
-│   ├── searchindex.js
-│   ├── index.html
-│   └── api/
-│       └── reference.html
-├── rustdoc-example/         # Minimal rustdoc output
-│   ├── search-index.js
-│   └── test_crate/
-│       └── index.html
-└── mdbook-example/          # Minimal mdBook
-    ├── book.toml
-    ├── SUMMARY.md
-    └── src/
-        └── chapter1.md
-```
+Implemented in `crates/tome-testkit` (implementation plan S0-6 and S0-7); each directory's
+`README.md` owns the details, including why fixture sites must not be copied from real sites and
+where the legal question about real pages stands (SPIKE-010).
 
-### Mock Servers
+### The fixture server
 
-```typescript
-// e2e/fixtures/mock-server.ts
-export async function mockDocServer(type: 'sphinx' | 'rustdoc' | 'mdbook') {
-  const server = await createServer();
+One `FixtureServer` per test, on an ephemeral loopback port, serving a fixture directory. Beyond
+static files it does the things a test needs a *misbehaving* server for:
 
-  switch (type) {
-    case 'sphinx':
-      server.use(
-        rest.get('/searchindex.js', (req, res, ctx) =>
-          res(ctx.body(readFixture('sphinx-example/searchindex.js')))
-        ),
-        rest.get('/*', (req, res, ctx) =>
-          res(ctx.body(readFixture(`sphinx-example${req.url.pathname}`)))
-        ),
-      );
-      break;
-    // ... other types
-  }
+| | |
+|---|---|
+| Scripted responses | Any status, headers, delay, or a body truncated mid-flight. `Scripted::new(503).times(2)` is the shape a retry test wants |
+| Conditional GET | `ETag` / `Last-Modified` out, `If-None-Match` / `If-Modified-Since` in |
+| Request log | Method, path, headers, arrival instants — rate limiting is asserted from the server side, not by timing the client |
+| Shutdown | Closes the port, so post-shutdown requests are refused rather than hanging |
 
-  return server;
-}
-```
+Sites are hand-authored, and deliberately contain the things the pipeline must get right: a heading
+with an `id` (anchors have to survive sanitization), a relative link, an absolute external link, a
+local asset, a `robots.txt` with a disallowed directory, and a page reachable from nowhere so that
+crawl scope is testable.
+
+### Golden corpora
+
+For output that is judged rather than asserted — normalization, rendering, snippets. Inputs and
+expected outputs are committed; the harness diffs, writes `<golden>.actual` on a mismatch, and
+takes `TOME_UPDATE_GOLDEN=1` to rewrite. Three failure modes it treats as failures on purpose:
+
+- **An empty suite fails.** A suite with no cases passes vacuously forever.
+- **A golden with no input fails**, and is never auto-deleted — removing a committed expectation is
+  a decision, not a side effect.
+- **Update mode fails the run it rewrites.** A harness that rewrites expectations and reports
+  success lets a regression be laundered into the golden by one command. The passing run is the
+  second one, after `git diff`.
 
 ---
 
@@ -529,10 +528,19 @@ appears, that results render, that focus moves — never timings.
 
 ### Property and fuzz testing
 
-The plan had none, and three components in Tome are exactly the shape that rewards them:
+The plan had none, and three components in Tome are exactly the shape that rewards them. The
+scaffolding is in place (implementation plan S0-8): `proptest` alongside the module it covers,
+`cargo-fuzz` targets in [`fuzz/`](../../fuzz/README.md), which is its own workspace because
+`libfuzzer-sys` needs nightly. `./scripts/check.sh` type-checks the targets on every run — what
+rots between fuzzing sessions is a target that no longer compiles against the module it fuzzes —
+but does not fuzz; fuzzing is unbounded and belongs in a scheduled run.
+
+Where a real invariant exists, assert it. A target that only checks "did not panic" catches
+crashes; one that checks an invariant catches defects.
 
 | Target | Technique | What it catches |
 |--------|-----------|-----------------|
+| `paths` (live) | `proptest` over roots and source ids; fuzz over arbitrary bytes | State/cache never nest, every accessor lands on the correct side of the split, no path is relative or contains a literal `~`, no accessor panics |
 | HTML parser / normalizer | `cargo-fuzz` over a real-page corpus | Panics on malformed input — the plan's "zero panics on any input" criterion is otherwise unverified |
 | Sanitizer | Fuzz + an XSS payload corpus | Bypasses; anchor/`id` preservation regressions |
 | Sync convergence | `proptest`: random op sets, random permutations, assert identical final state | The bugs that lose user data, which example-based tests miss by construction |

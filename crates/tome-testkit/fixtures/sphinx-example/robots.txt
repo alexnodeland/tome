@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /private/
+
+# Tome obeys robots.txt by default and does not allow registry-shipped source
+# configurations to override it. This directory exists so that a crawler test
+# can prove the rule is applied rather than merely configured.

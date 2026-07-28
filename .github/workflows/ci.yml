@@ -44,7 +44,13 @@ jobs:
 
       - name: Rust lints
         # tome-app is excluded: it needs macOS system frameworks to build.
-        run: cargo clippy -p tome-core -p tome-cli --all-targets -- -D warnings
+        run: cargo clippy -p tome-core -p tome-cli -p tome-testkit --all-targets -- -D warnings
+
+      - name: Fuzz targets compile
+        # `fuzz/` is its own workspace. Type-checking it here catches a target
+        # that has drifted from the module it fuzzes; actually fuzzing is
+        # unbounded and belongs in a scheduled run, not a per-push gate.
+        run: cargo check --manifest-path fuzz/Cargo.toml
 
       - name: Frontend types
         run: npm run check
@@ -90,7 +96,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Unit and integration tests
-        run: cargo test -p tome-core -p tome-cli
+        run: cargo test -p tome-core -p tome-cli -p tome-testkit
 
   test-js:
     name: Test frontend

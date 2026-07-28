@@ -10,5 +10,17 @@ export default [
     files: ['**/*.svelte'],
     languageOptions: { parserOptions: { parser: ts.parser } },
   },
-  { ignores: ['dist/', 'target/', 'src-tauri/gen/', 'node_modules/'] },
+  {
+    // Test fixtures are data. `searchindex.js` is a miniature of Sphinx's own
+    // output and calls a global the real page defines; linting it as project
+    // source reports that global as undefined, which is true and irrelevant.
+    ignores: [
+      'dist/',
+      'target/',
+      'src-tauri/gen/',
+      'node_modules/',
+      'crates/*/fixtures/',
+      'crates/*/corpus/',
+    ],
+  },
 ];

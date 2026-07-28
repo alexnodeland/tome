@@ -30,6 +30,17 @@ lcov*.info
 /playwright-report/
 /test-results/
 
+# Golden-corpus scratch output. The harness writes `<golden>.actual` beside a
+# golden it did not match, so the full output can be inspected rather than only
+# read out of a test failure. The goldens themselves ARE committed.
+*.actual
+
+# Fuzzing. Corpora and crash artefacts are regenerable and can be large; a
+# crash worth keeping gets minimised and committed as a unit test instead.
+/fuzz/target/
+/fuzz/corpus/
+/fuzz/artifacts/
+
 # Local dev
 .env
 .env.local

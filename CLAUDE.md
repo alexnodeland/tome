@@ -9,9 +9,11 @@
 Tome is a macOS documentation reader: ingest any documentation site, read it offline with good
 typography, search across everything, and expose the library to coding agents over MCP.
 
-**Mostly specification, with a working scaffold.** The app builds and launches and the path layer
-is real; ingestion, the reader, and search do not exist yet. When asked whether something works,
-check rather than assume — most of this repo describes intent, not behaviour.
+**Mostly specification, with a working scaffold.** The app builds and launches, the path layer is
+real, and the test infrastructure that makes later work verifiable — fixture server, golden-corpus
+harness, property and fuzz scaffolding — is in place. Ingestion, the reader, and search do not
+exist yet. When asked whether something works, check rather than assume — most of this repo
+describes intent, not behaviour.
 
 ## Where things are
 
@@ -23,6 +25,8 @@ check rather than assume — most of this repo describes intent, not behaviour.
 | `docs/plans/06..17` | Dependency map, spikes, testing, NFRs, CI/CD, risk, security, observability, versioning, design system, support, recovery |
 | `docs/plans/18-implementation-plan.md` | **The execution plan** — stages, gates, model routing, orchestration patterns |
 | `crates/`, `src-tauri/`, `src/` | The code that exists so far |
+| `crates/tome-testkit/` | Test infrastructure: the fixture HTTP server and the golden-corpus harness. Dev-dependency only — never under `[dependencies]` |
+| `fuzz/` | Fuzz targets. Its own workspace; needs nightly to run |
 | `scripts/check.sh` | The verification gate, standing in for CI |
 | `dist/homebrew/` | Cask source of truth, mirrored to `alexnodeland/homebrew-tap` on release |
 | `docs/reviews/` | Point-in-time critical reviews of the plan |
@@ -30,8 +34,9 @@ check rather than assume — most of this repo describes intent, not behaviour.
 
 ## There is code now
 
-`crates/tome-core` (shared library), `crates/tome-cli` (`tome` binary), `src-tauri` (the app),
-`src/` (Svelte frontend). The app builds and launches; almost nothing else is implemented.
+`crates/tome-core` (shared library), `crates/tome-cli` (`tome` binary), `crates/tome-testkit`
+(test infrastructure), `src-tauri` (the app), `src/` (Svelte frontend). The app builds and
+launches; of the product itself, only the path layer is implemented.
 
 **`./scripts/check.sh` is the gate — CI cannot run** (private repo, and Actions is blocked at the
 account level). It runs exactly what `.github/workflows/ci.yml` runs. Change one, change the other.

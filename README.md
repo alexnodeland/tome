@@ -122,8 +122,14 @@ shipped and users ask for it.
 ```
 crates/
 ├── tome-core/                shared library — app, CLI, and MCP server all use it
-│   └── src/paths.rs          the only place a data path is constructed
-└── tome-cli/                 the `tome` binary
+│   ├── src/paths.rs          the only place a data path is constructed
+│   └── corpus/               golden corpora: real pages and their expected output
+├── tome-cli/                 the `tome` binary
+└── tome-testkit/             test infrastructure (dev-dependency only)
+    ├── src/server.rs         fixture HTTP server — serves doc-site fixtures offline
+    ├── src/golden.rs         golden-corpus harness — snapshot, diff, review
+    └── fixtures/             hand-authored miniature documentation sites
+fuzz/                         fuzz targets; its own workspace, needs nightly
 src-tauri/                    the desktop app (Tauri owns the shell)
 src/                          Svelte frontend
 docs/
