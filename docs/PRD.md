@@ -1285,10 +1285,10 @@ resolved by this document; several block Phase 1.
 
 |ID|Decision|Blocks|Status|
 |--|--------|------|------|
-|DEC-001|Licence: MIT vs Apache-2.0|Any public commit|**Open** — the plan asserts MIT in one place and "TBD" in another; no `LICENSE` file exists|
-|DEC-002|Bundle identifier and domain|Notarization, iCloud container, Keychain, Homebrew zap|**Open** — `com.example.tome` is a placeholder currently threaded through the release pipeline|
-|DEC-003|Funding model|Whether the Apple Developer Program ($99/yr, mandatory for notarization *and* iCloud) is sustainable|**Open**|
-|DEC-004|Team size|Every date in the roadmap|**Open** — see below; the plan implicitly assumes ~2.5 FTE|
+|DEC-001|Licence|—|✅ Dual MIT OR Apache-2.0 ([ADR-0003](./decisions/0003-dual-mit-apache-licence.md))|
+|DEC-002|Bundle identifier|—|✅ `com.alexnodeland.tome` ([ADR-0004](./decisions/0004-bundle-identifier.md))|
+|DEC-003|Apple Developer Program|—|✅ **Deferred.** Unsigned distribution via own Homebrew tap ([ADR-0006](./decisions/0006-unsigned-distribution.md)). Note this also gates iCloud sync, reinforcing its deferral.|
+|DEC-004|Capacity and scope|—|✅ Solo + agent workflows; sync deferred ([ADR-0005](./decisions/0005-agent-driven-build.md))|
 |DEC-005|Docset import priority|v1.0 vs v1.2|Open — importing Dash docsets is the cheapest possible answer to cold start and may deserve promotion|
 |DEC-006|`watch` strategy fetch behaviour|Eager background fetch vs on-open|Open — leaning on-open, to honour "no background network activity without user action"|
 |DEC-007|Annotation note format|Plain text vs Markdown|Open — leaning Markdown, rendered read-only|

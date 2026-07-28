@@ -11,7 +11,7 @@ repository = "https://github.com/alexnodeland/tome"
 authors = ["Alex Nodeland"]
 
 [workspace.dependencies]
-tome-core = { path = "crates/tome-core" }
+tome-core = { path = "crates/tome-core", version = "0.0.0" }
 
 anyhow = "1"
 thiserror = "2"

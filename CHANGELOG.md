@@ -9,6 +9,24 @@ This project will follow [Semantic Versioning](https://semver.org/) once it has 
 
 Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18-implementation-plan.md).
 
+### Changed — 2026-07-28 — distribution and verification
+
+- **DEC-003 resolved: Apple Developer Program deferred** (ADR-0006). Tome ships **unsigned and
+  un-notarized** through `alexnodeland/homebrew-tap`, following the cask conventions already used
+  by `curio` and `statusbar`. Gatekeeper blocks first launch; the cask's `caveats` document the
+  `xattr` fix and the click-through alternatives per macOS version. Revisit at v1.0.
+- `dist/homebrew/Casks/tome.rb` added as the cask's source of truth, validated with `brew style`.
+  It symlinks the `tome` CLI out of the app bundle so one install delivers both from one build.
+- P5-010 (notarization) deferred but left intact, so enabling it later is a credentials change.
+- **`scripts/check.sh` added.** The repository is private and GitHub Actions is unavailable, so
+  this runs everything CI would — formatting, clippy, tests, svelte-check, eslint, prettier,
+  vitest, `npm audit`, `cargo-deny`, `cargo-audit`, and the app build — and is the gate until the
+  repository goes public.
+- `cargo-deny` graph scoped to `aarch64-apple-darwin`, which removes ten unmaintained-crate
+  advisories for Tauri's Linux GTK backend that are never compiled into a macOS build. The five
+  remaining rust-unic advisories are listed individually with reasons rather than blanket-suppressed.
+- Workspace path dependency given an explicit version, fixing a `cargo-deny` wildcard error.
+
 ### Added — 2026-07-28 — implementation plan and Stage 0 scaffold
 
 - **Implementation plan** restructured for agent-driven execution: six stages with machine-checked

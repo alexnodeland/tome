@@ -60,6 +60,31 @@ most of which should be automated.
 
 ---
 
+## The gate is local until the repository goes public
+
+The plan leans on machine-checked gates. **GitHub Actions is unavailable**: the repository is
+private until release, and Actions is currently blocked at the account level, so every workflow
+run fails in two seconds without executing a step.
+
+That does not weaken the rule, it relocates it. **`./scripts/check.sh` is the gate.** It runs
+exactly what `.github/workflows/ci.yml` runs — formatting, clippy `-D warnings`, Rust tests,
+svelte-check, eslint, prettier, vitest, `npm audit`, `cargo-deny`, `cargo-audit`, and the app
+build — and it must pass before anything is committed or merged.
+
+```bash
+./scripts/check.sh          # everything
+./scripts/check.sh --fast   # skip the app build
+```
+
+Two consequences worth holding onto:
+
+- **The script and the workflow must not drift.** If they do, the first CI run after going public
+  will fail on things that passed locally for months — which is precisely the failure this
+  arrangement exists to avoid. Changing one means changing the other, in the same commit.
+- **Some checks genuinely cannot run locally**: the hosted actions (`rustsec/audit-check`,
+  `cargo-deny-action`, `gitleaks`) and the clean-runner build. Treat the first green CI run after
+  going public as a real gate, not a formality, and expect it to find something.
+
 ## Stage structure
 
 Six stages. Each has an entry gate that must pass before work starts and an exit gate that must
@@ -321,7 +346,14 @@ the few places where "agents help" is straightforwardly true.
 ## Stage 4 — Hardening and release
 
 **Entry gate:** S3 exit.
-**Exit gate:** notarized DMG installs from a clean machine and passes `spctl`.
+**Exit gate:** `brew install --cask alexnodeland/tap/tome` works on a machine that has never built
+Tome, the app launches after the documented quarantine step, `tome status` reports the same paths
+the app shows, and `--zap` leaves nothing behind.
+
+> **No notarization.** [ADR-0006](../decisions/0006-unsigned-distribution.md) defers the Apple
+> Developer Program, so Tome ships unsigned through `alexnodeland/homebrew-tap` — the same channel
+> and cask conventions as `curio` and `statusbar`. Gatekeeper will block first launch; the cask's
+> `caveats` carry the fix. Revisit at v1.0, when the friction starts costing real adoption.
 
 | # | Work | Spec | Model |
 |---|------|------|-------|
@@ -332,13 +364,24 @@ the few places where "agents help" is straightforwardly true.
 | S4-5 | Preferences UI | P5-007 | Fable |
 | S4-6 | Menu bar + global shortcut *(conditional on SPIKE-001)* | P5-008/009 | Fable |
 | S4-7 | Accessibility pass: contrast CI, keyboard, VoiceOver | design system | Opus |
-| S4-8 | Signing, notarization, DMG, own Homebrew tap | P5-010..012 | **Human + Fable** |
-| S4-9 | User docs + landing page | P5-013/014 | Fable |
+| S4-8 | Unsigned DMG + release workflow + tap mirror | P5-011/012 | Fable |
+| S4-9 | **Ship `tome` inside the app bundle** at `Contents/MacOS/tome` | new | Opus |
+| S4-10 | User docs + landing page | P5-013/014 | Fable |
 
-**S4-8 cannot be fully automated and should not be attempted blind.** Signing identities, the Apple
-Developer Program enrolment (DEC-003), and app-specific passwords involve credentials and a real
-Apple account. Agents can write the workflow; a human runs the first release and verifies the
-artifact on a clean machine.
+**S4-8 is much simpler than the original plan assumed**, because there are no signing identities,
+no Apple credentials, and no notarization step — the single most sensitive secret the release
+pipeline would have held is simply absent. The workflow builds, packages, publishes, and mirrors
+the cask.
+
+**S4-9 is the one that matters and is easy to get wrong.** The cask symlinks
+`Tome.app/Contents/MacOS/tome` onto `PATH`, so `brew install --cask tome` must deliver *both* the
+app and the CLI **from the same build**. That is what makes them resolve the same library — the
+invariant in [ADR-0002](../decisions/0002-no-app-sandbox.md), delivered through one install. A
+release that ships the app without the CLI will look fine and silently break every integration.
+
+**Verify on a clean machine regardless.** No notarization to get wrong, but a DMG missing the CLI,
+a `zap` list that leaves data behind, or an app that will not launch all pass every automated check
+and fail for every user.
 
 ---
 
@@ -408,4 +451,7 @@ generate something that *looks* finished.
 4. **S0 scaffold** — workspace, frontend, paths module, CI *(in progress)*
 5. **SPIKE-002** — WebView bridge, run for real before S1
 6. **SPIKE-010** — legal posture, one day, before the registry has entries
-7. **DEC-003** — Apple Developer Program enrolment. Lead-time item; start it long before S4.
+7. ✅ **DEC-003** — Apple Developer Program **deferred**; unsigned distribution via
+   `alexnodeland/homebrew-tap` ([ADR-0006](../decisions/0006-unsigned-distribution.md))
+8. **Keep `scripts/check.sh` and `ci.yml` in lockstep** — the local script is the gate until the
+   repository goes public, and drift between them is the failure mode that arrangement invites

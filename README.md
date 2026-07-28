@@ -20,9 +20,13 @@ If you are here to understand or shape it: start below.
 ```bash
 npm install
 npm run tauri dev          # launches the app
-cargo test --workspace     # 12 tests
+./scripts/check.sh         # everything CI would run
 cargo run -p tome-cli -- status
 ```
+
+> **CI does not run yet.** The repository is private until release, so
+> [`scripts/check.sh`](scripts/check.sh) is the gate — it runs exactly what
+> [`.github/workflows/ci.yml`](.github/workflows/ci.yml) will. Keep the two in lockstep.
 
 | | |
 |---|---|
@@ -36,6 +40,24 @@ cargo run -p tome-cli -- status
 **Start with the review.** It is the shortest path to understanding both the plan and its gaps.
 
 ---
+
+## Installing (once there is something to install)
+
+```bash
+brew install --cask alexnodeland/tap/tome
+xattr -dr com.apple.quarantine /Applications/Tome.app   # see below
+```
+
+Tome is **not signed or notarized** — the Apple Developer Program is deferred
+([ADR-0006](docs/decisions/0006-unsigned-distribution.md)). macOS Gatekeeper will refuse to open it
+on first launch until the quarantine flag is cleared; the command above works on every supported
+version, and the cask's caveats give the click-through alternatives. You only do it once per
+install.
+
+That friction is a real cost, and it is the main reason to revisit the decision at v1.0.
+
+`brew install --cask` delivers both the app and the `tome` CLI from the same build, which is what
+makes them read the same library.
 
 ## Why this exists
 
@@ -84,7 +106,7 @@ Recorded in [`docs/decisions/`](docs/decisions/). The ones that block progress:
 | DEC-001 | Licence | ✅ Dual **MIT OR Apache-2.0** |
 | DEC-002 | Bundle identifier | ✅ `com.alexnodeland.tome` |
 | DEC-004 | Capacity and scope | ✅ Solo + agent workflows; sync deferred |
-| **DEC-003** | Funding — the Apple Developer Program is $99/yr and mandatory for notarization *and* iCloud | **Open.** Lead-time item; blocks distribution only, but start enrolment early. |
+| DEC-003 | Apple Developer Program | ✅ **Deferred.** Ships unsigned via own Homebrew tap |
 | DEC-005–008 | Product questions (docset import, `watch` behaviour, note format, export targets) | Open, non-blocking |
 
 **How it is being built:** by a solo maintainer directing Fable + Opus agent workflows. That changes

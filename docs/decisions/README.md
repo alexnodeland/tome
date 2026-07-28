@@ -17,7 +17,7 @@ scattered across documents, contradicting each other, with no record of who chos
 
 | ID | Decision | Blocks | Notes |
 |----|----------|--------|-------|
-| **DEC-003** | Funding model | Distribution | The Apple Developer Program is $99/yr and is required for **both** notarization and iCloud. This is a standing cost, not a one-off task, and nothing in the plan accounted for it. |
+
 | **DEC-005** | Dash docset import: v1.0 or v1.2? | Cold-start strategy | Currently v1.2. Importing existing docsets may be the cheapest possible answer to an empty library (RISK-013) and is worth reconsidering. |
 | **DEC-006** | `watch` strategy: fetch eagerly or notify? | P4-018 | Leaning **notify**, to honour "no background network activity the user did not configure". |
 | **DEC-007** | Annotation notes: plain text or Markdown? | P3-008 | Leaning Markdown, rendered read-only (rendering user Markdown in the reader frame must not become an injection path). |
@@ -56,6 +56,7 @@ material pointed at the answer.
 | [ADR-0003](./0003-dual-mit-apache-licence.md) | Dual-licence MIT OR Apache-2.0 (**DEC-001**) | Accepted 2026-07-28 |
 | [ADR-0004](./0004-bundle-identifier.md) | Bundle identifier `com.alexnodeland.tome` (**DEC-002**) | Accepted 2026-07-28 |
 | [ADR-0005](./0005-agent-driven-build.md) | Solo maintainer directing agent workflows; scope cut (**DEC-004**) | Accepted 2026-07-28 |
+| [ADR-0006](./0006-unsigned-distribution.md) | Unsigned distribution via an own Homebrew tap; Apple Developer Program deferred (**DEC-003**) | Accepted 2026-07-28 |
 
 ---
 

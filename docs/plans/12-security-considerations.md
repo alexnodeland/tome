@@ -608,9 +608,16 @@ Security items for PR review:
 | Requirement | Status |
 |-------------|--------|
 | App Sandbox | **Not enabled** — only required for Mac App Store; incompatible with the shared CLI/app library. See `09-non-functional-requirements.md` § Local Security. |
-| Hardened Runtime | Enabled, minimum exceptions |
-| Notarization | Required, automated (needs an Apple Developer Program membership — DEC-003) |
+| Hardened Runtime | Configured, but **inert without a signing identity**. Kept so that enabling notarization later is a credentials change, not a config change. |
+| Notarization | **Deferred** — [ADR-0006](../decisions/0006-unsigned-distribution.md). Ships unsigned via an own Homebrew tap. |
 | Privacy manifest | Required for v1.0 |
+
+> **What shipping unsigned costs, security-wise.** Gatekeeper and notarization are Apple's malware
+> scan and tamper-evidence layer; without them, a user has no cryptographic assurance that the
+> `.app` they downloaded is the one that was built. The compensating controls are weaker but real:
+> the tap pins a `verified:` GitHub URL, releases are built from tagged commits in CI, and the
+> repository is public at release so the build is reproducible from source. Users who want a
+> stronger guarantee can build from source. This is a deliberate, reversible trade — see the ADR.
 
 ### Privacy Manifest
 
