@@ -71,6 +71,13 @@ If integration proves too complex, consider:
 
 ### SPIKE-002: WKWebView JavaScript Bridge Performance
 
+> **Ran 2026-07-28 — complete.** Results, raw output, and the consequences for S1-13 are in
+> [`docs/spikes/002-reader-iframe-bridge.md`](../spikes/002-reader-iframe-bridge.md). This
+> section predates the plan review: the bridge is not a bare WKWebView handler but two legs —
+> Tauri IPC (Rust ⇄ app webview) and `postMessage` (app webview ⇄ sandboxed reader iframe).
+> Every latency criterion passed with two orders of magnitude of headroom; frame pacing under
+> load moved to S1-13's interactive acceptance because occluded windows suspend rAF.
+
 **Question:** Can we achieve smooth bidirectional communication between WKWebView and Rust with acceptable latency?
 
 **Time Budget:** 2 days
@@ -456,7 +463,7 @@ testing, and misdiagnosed as a TOC bug.
 | ID | Title | Priority | Status | Assignee | Due |
 |----|-------|----------|--------|----------|-----|
 | SPIKE-001 | Tauri + Swift Integration | P0 | Not Started | - | Before P1 |
-| SPIKE-002 | WKWebView Bridge Perf | P0 | Not Started | - | Before P1 |
+| SPIKE-002 | WKWebView Bridge Perf | P0 | **Complete** — [write-up](../spikes/002-reader-iframe-bridge.md) | agent | 2026-07-28 |
 | SPIKE-003 | Tantivy Memory at Scale | P0 | Not Started | - | Before P1 |
 | SPIKE-004 | iCloud Drive container | P1 | Not Started | - | Before P3 |
 | SPIKE-005 | mandoc Output | P1 | Not Started | - | During P1 |

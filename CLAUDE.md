@@ -30,6 +30,7 @@ describes intent, not behaviour.
 | `scripts/check.sh` | The verification gate, standing in for CI |
 | `dist/homebrew/` | Cask source of truth, mirrored to `alexnodeland/homebrew-tap` on release |
 | `docs/reviews/` | Point-in-time critical reviews of the plan |
+| `docs/spikes/` | Results of spikes that have actually run, raw output included. `docs/plans/07` defines the spikes; this directory is where their answers live |
 | `docs/decisions/` | Open decisions (DEC-*) and accepted ADRs |
 
 ## There is code now

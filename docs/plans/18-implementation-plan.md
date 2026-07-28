@@ -250,7 +250,9 @@ until it passes.
 
 **Goal:** one real documentation site, fetched, normalized, sanitized, asset-localized, indexed for
 nothing yet, and **rendered offline in the reader**.
-**Entry gate:** S0 exit + **SPIKE-002** (WebView bridge) has run for real.
+**Entry gate:** S0 exit + **SPIKE-002** (WebView bridge) has run for real. ✅ **Both are met** —
+SPIKE-002 ran 2026-07-28 ([write-up](../spikes/002-reader-iframe-bridge.md)); S1-13 inherits its
+protocol and frame posture, plus an interactive frame-pacing check in its acceptance criteria.
 **Exit gate:** the app renders `docs.python.org` with the network off, images included, anchors
 working, and the golden corpus is committed.
 
@@ -455,8 +457,10 @@ generate something that *looks* finished.
 1. ✅ **DEC-001** — dual MIT OR Apache-2.0
 2. ✅ **DEC-002** — `com.alexnodeland.tome`
 3. ✅ **DEC-004** — solo + agent workflows; scope cut to S0–S4, sync deferred
-4. **S0 scaffold** — workspace, frontend, paths module, CI *(in progress)*
-5. **SPIKE-002** — WebView bridge, run for real before S1
+4. ✅ **S0 scaffold** — workspace, frontend, paths module, CI, test infrastructure (S0-6/7/8)
+5. ✅ **SPIKE-002** — ran 2026-07-28; [write-up](../spikes/002-reader-iframe-bridge.md). Single
+   postMessage carries a full page; CSP inheritance into srcdoc holds; the sandbox seals the IPC
+   layer; frame pacing moved to S1-13's interactive acceptance
 6. **SPIKE-010** — legal posture, one day, before the registry has entries
 7. ✅ **DEC-003** — Apple Developer Program **deferred**; unsigned distribution via
    `alexnodeland/homebrew-tap` ([ADR-0006](../decisions/0006-unsigned-distribution.md))

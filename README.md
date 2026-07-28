@@ -142,7 +142,8 @@ docs/
 │   ├── 08..17-*.md               testing, NFRs, CI/CD, risk, security, observability,
 │   │                             versioning, design system, support, recovery
 ├── decisions/                open decisions and architecture decision records
-└── reviews/                  point-in-time reviews of the plan
+├── reviews/                  point-in-time reviews of the plan
+└── spikes/                   results of spikes that have run, raw output included
 ```
 
 **`tome-core` shared by the app and the CLI is the load-bearing part.** They are separate

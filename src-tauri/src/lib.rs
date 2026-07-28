@@ -8,6 +8,8 @@
 
 use tome_core::Paths;
 
+mod spike002;
+
 /// Where this library lives on disk. Exposed so the UI can show it and so an
 /// integration test can assert the app and the CLI agree.
 #[derive(serde::Serialize)]
@@ -54,7 +56,15 @@ pub fn run() {
     }
 
     let result = tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![library_location])
+        .invoke_handler(tauri::generate_handler![
+            library_location,
+            spike002::spike002_mode,
+            spike002::spike002_page_html,
+            spike002::spike002_echo,
+            spike002::spike002_emit,
+            spike002::spike002_report,
+            spike002::spike002_done,
+        ])
         .run(tauri::generate_context!());
 
     if let Err(e) = result {
