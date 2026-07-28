@@ -264,7 +264,7 @@ This is the stage that answers whether the product is possible.
 | S1-1 ✅ | Freeze core types: `Source`, `Page`, `Node` (AST), `DocSet` | P1-004/012 | **Opus** | done 2026-07-28 — `tome-core/src/model/`; serde shape pinned by test |
 | S1-2 ✅ | SQLite schema + migrations + repos | P1-004/021 | Fable | done 2026-07-28 — `tome-core/src/db.rs`; SyncState deferred with sync (ADR-0005) |
 | S1-3 ✅ | Source config YAML parser + validation | P1-005 | Fable | done 2026-07-28 — `tome-core/src/config.rs`; `source_config` fuzz target live |
-| S1-4 | HTTP client: rate limit, robots.txt, retry, conditional GET | P1-008 | Fable | ∥ |
+| S1-4 ✅ | HTTP client: rate limit, robots.txt, retry, conditional GET | P1-008 | Fable | done 2026-07-28 — `tome-core/src/fetch/`; sync client, manual redirects (per-hop robots + the S1-5 seam); `robots` fuzz target live |
 | S1-5 | **SSRF filter** | P1-008 / security | **Opus + adversarial verify** | after S1-4 |
 | S1-6 | BFS crawl + URL filter | P1-010/011 | Fable | after S1-4 |
 | S1-7 | HTML → AST parser (html5ever) | P1-012 | Opus | ∥ S1-2..S1-6 |

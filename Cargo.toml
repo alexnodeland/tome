@@ -38,6 +38,11 @@ directories = "6"
 clap = { version = "4", features = ["derive", "env"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 url = { version = "2", features = ["serde"] }
+# Sync HTTP on purpose: the crawler is rate-limited to 2 req/s per host, so
+# async buys nothing, and a sync client keeps the whole ingestion pipeline
+# plain functions — no runtime threading through Tauri, the CLI, and tests.
+# rustls via the default features; no system TLS.
+ureq = "3"
 # `bundled` compiles SQLite in rather than linking whatever macOS shipped:
 # the schema uses STRICT tables (3.37+) and behaviour must not vary by OS
 # point release.

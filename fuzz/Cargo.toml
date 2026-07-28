@@ -42,3 +42,10 @@ path = "fuzz_targets/source_config.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "robots"
+path = "fuzz_targets/robots.rs"
+test = false
+doc = false
+bench = false

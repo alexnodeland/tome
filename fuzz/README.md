@@ -42,6 +42,7 @@ in a pre-commit gate.
 | `html_parser` | Zero panics parsing any byte sequence (P1-012's acceptance criterion, otherwise unverified) | S1-7 |
 | `sanitizer` | No input yields output containing script-capable markup | S1-9 |
 | `source_config` | No panic on any YAML; whatever parses honours the validated invariants (rate ≤ cap, https-or-allow_insecure, …) | Live |
+| `robots` | robots.txt parser/matcher never panics and never goes exponential; `/robots.txt` always fetchable | Live |
 | `annotation_anchor` | Re-anchoring resolves or reports `orphaned`, never lands on the wrong text | S3 |
 
 The properties in the right-hand column are the point. A fuzz target that only

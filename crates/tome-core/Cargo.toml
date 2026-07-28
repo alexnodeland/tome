@@ -21,12 +21,15 @@ serde_json.workspace = true
 serde_yaml_ng.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+ureq.workspace = true
 url.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
+# Dev-dependency ONLY — the fixture server must never ship in the product.
+tome-testkit.workspace = true
 
 [lints]
 workspace = true
