@@ -1,57 +1,13 @@
-/* Design tokens. Authoritative definitions: docs/plans/15-design-system.md.
-   Only the subset the scaffold needs is here; the full system lands in S1-12. */
+/* The app shell's stylesheet — implementation plan S1-12, ticket P1-015.
 
-/* This line is what makes every rem below correct. Without it, `rem` resolves
-   against the browser default of 16px and the whole scale renders a point small
-   -- the bug the design system carried before the plan review. */
-html {
-  font-size: 17px;
-}
+   Design tokens are NOT here. They live in `public/tokens.css`, which this
+   document links directly (see `index.html`) and the sandboxed reader iframe
+   links for itself. The frame has an opaque origin and cannot share this
+   cascade, so a copy of the tokens in each document would drift — and the
+   drift would show up as one theme in the chrome and another in the page.
+   One file, two links.
 
-:root {
-  --font-body: 'New York', Georgia, 'Times New Roman', serif;
-  --font-ui: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
-  --font-mono: 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
-
-  --text-sm: 0.8rem;
-  --text-md: 1rem;
-  --text-lg: 1.25rem;
-  --text-2xl: 1.953rem;
-  --leading-relaxed: 1.6;
-
-  --space-2: 0.5rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-
-  /* Contrast against --color-bg-primary, WCAG 2.1:
-       primary   16.8:1 AAA · secondary 4.9:1 AA · tertiary 6.4:1 AA */
-  --color-bg-primary: #fafafa;
-  --color-bg-secondary: #ffffff;
-  --color-bg-tertiary: #f1f1f4;
-  --color-text-primary: #1d1d1f;
-  --color-text-secondary: #6e6e73;
-  --color-text-tertiary: #57575b;
-  --color-border: #e5e5ea;
-  --color-accent: #5856d6;
-  --color-code-bg: #f1f1f4;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg-primary: #1c1c1e;
-    --color-bg-secondary: #2c2c2e;
-    --color-bg-tertiary: #38383a;
-    --color-text-primary: #f5f5f7;
-    --color-text-secondary: #98989d;
-    --color-text-tertiary: #8a8a8f;
-    --color-border: #38383a;
-    --color-accent: #5e5ce6;
-    /* Deliberately NOT equal to --color-bg-secondary, or code blocks vanish
-       on every panel that uses it. */
-    --color-code-bg: #222224;
-  }
-}
+   Authoritative definitions: docs/plans/15-design-system.md. */
 
 *,
 *::before,
@@ -59,22 +15,167 @@ html {
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: var(--font-ui);
   font-size: var(--text-md);
-  line-height: var(--leading-relaxed);
+  line-height: var(--leading-normal);
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
   -webkit-font-smoothing: antialiased;
+  /* The chrome is not a document; nothing in it should be selectable by a
+     stray drag. The reader (an iframe with its own document) is unaffected,
+     and text that IS meant to be selected opts back in below. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
+#app {
+  height: 100%;
+}
+
+::selection {
+  background: var(--color-selection);
+}
+
+/* ---- Typography classes -------------------------------------------------
+
+   The design system names these; they are the chrome's vocabulary, distinct
+   from the reader's, which styles bare elements because it renders a
+   document rather than an interface. */
+
+.heading-1 {
+  font-family: var(--font-heading);
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+}
+.heading-2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+}
+.heading-3 {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: var(--leading-normal);
+}
+.body {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+}
+.body-small {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+.label {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+/* --text-xs is 10.9px and also the lowest-contrast token; the two compound.
+   `.caption` uses --text-sm for that reason — see the floor note in
+   tokens.css. */
+.caption {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  font-variant-ligatures: none;
+}
+
+/* Anything the user is meant to be able to copy — a path, an id, an error
+   message — opts back into selection. */
+.selectable,
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* ---- Base elements ------------------------------------------------------ */
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: default;
+}
+
+input[type='search'],
+input[type='text'] {
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+}
+input[type='search']:focus,
+input[type='text']:focus {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-focus);
+  outline: none;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--color-code-bg);
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Accessibility ------------------------------------------------------ */
+
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Visible to a screen reader, invisible on screen. `clip-path` rather than
+   the old `clip`, and `white-space: nowrap` so the text is not wrapped into
+   nothing before it is read. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

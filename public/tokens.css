@@ -1,0 +1,351 @@
+/* Tome design tokens — implementation plan S1-12, ticket P1-015.
+   Authoritative definitions: docs/plans/15-design-system.md and
+   docs/PRD.md § Reading Experience. This file IS that document's code.
+
+   It lives in `public/` rather than `src/` because two separate documents
+   need the same tokens: the app shell, and the sandboxed reader iframe.
+   The frame has an opaque origin and cannot share the app's cascade, so it
+   links this file itself. A copy in each would drift, and the drift would be
+   invisible -- one theme in the chrome and another in the page. Served from
+   the app origin, so it resolves offline and under the frame CSP.
+
+   Nothing here selects an element. Tokens only. */
+
+/* This line is what makes every rem below correct. Without it `rem` resolves
+   against the browser default of 16px and the whole scale renders a point
+   small -- the bug the design system carried before the plan review.
+   It also makes the reader font-size preference (P5-007) work: changing this
+   one value rescales the entire system. */
+html {
+  font-size: 17px;
+}
+
+:root[data-text-size='small'] {
+  font-size: 15px;
+}
+:root[data-text-size='large'] {
+  font-size: 19px;
+}
+:root[data-text-size='xlarge'] {
+  font-size: 21px;
+}
+
+:root {
+  /* ---- Type ------------------------------------------------------------ */
+
+  /* New York is macOS's system serif and ships with the OS, so there is no
+     web font, no FOUT, and no network fetch -- which the reader could not
+     make anyway. Georgia is the fallback for a machine without it. */
+  --font-body: 'New York', Georgia, 'Times New Roman', serif;
+  --font-heading: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ui: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  --font-mono: 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
+
+  /* Scale: 1.25 ratio against the 17px root. */
+  --text-xs: 0.64rem; /* 10.9px -- see the floor note below */
+  --text-sm: 0.8rem; /* 13.6px */
+  --text-md: 1rem; /* 17px  -- PRD body size */
+  --text-lg: 1.25rem; /* 21.3px */
+  --text-xl: 1.563rem; /* 26.6px */
+  --text-2xl: 1.953rem; /* 33.2px */
+  --text-3xl: 2.441rem; /* 41.5px */
+
+  /* The PRD specifies 15px for code, which the 1.25 scale does not contain.
+     Do NOT substitute --text-sm (13.6px); that substitution was the drift
+     between the design system and the PRD. */
+  --text-code: 0.882rem; /* 15px */
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6; /* PRD body line height */
+  --leading-loose: 1.75;
+
+  /* Nothing renders below 11px. --text-xs is already at the edge of
+     legibility and is also the lowest-contrast token; the two compound.
+     Prefer --text-sm for captions. */
+
+  /* Optimal measure. 70ch of a serif at 17px is roughly 640px. */
+  --measure: 70ch;
+
+  /* ---- Space ----------------------------------------------------------- */
+
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+  --space-10: 4rem;
+  --space-12: 6rem;
+
+  --sidebar-width-left: 240px;
+  --sidebar-width-right: 200px;
+  --sidebar-min-width: 180px;
+  --sidebar-max-width: 400px;
+  --content-padding: var(--space-5);
+  --content-max-width: 900px;
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  /* ---- Motion ---------------------------------------------------------- */
+
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ---- Colour ------------------------------------------------------------ */
+
+/* Light and dark are defined once each, in a custom property block that both
+   the media query and the explicit [data-theme] override apply. P5-007 offers
+   light / dark / system; a `prefers-color-scheme` query alone cannot honour
+   an explicit choice, and an override that only works in one direction is
+   the bug that shape invites. */
+
+/* stylelint-disable-next-line no-duplicate-selectors */
+:root,
+:root[data-theme='light'] {
+  --color-accent: #5856d6;
+  --color-accent-hover: #4845b5;
+  --color-accent-active: #3d3a9e;
+
+  /* Link and focus are SEPARATE from accent, and that separation is a
+     finding rather than a preference. `scripts/check-contrast.mjs` measured
+     the design system's dark accent (#5E5CE6) at 3.36:1 against the dark
+     page background — fine for a filled button, below the 4.5:1 bar for the
+     link text that is most of a documentation page, and below the 3:1 bar
+     for a focus ring on a panel surface (2.70:1 on --color-bg-secondary).
+     Accent keeps its documented value for fills and active states; text and
+     focus get tokens bright enough to read. In light they coincide. */
+  --color-link: #5856d6;
+  --color-link-hover: #4845b5;
+  --color-focus: #5856d6;
+
+  --color-bg-primary: #fafafa;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f1f1f4;
+
+  /* Contrast against --color-bg-primary (#FAFAFA), WCAG 2.1:
+       primary   #1D1D1F  16.8:1  AAA
+       secondary #6E6E73   4.9:1  AA
+       tertiary  #57575B   6.4:1  AA  -- was #8E8E93 at 3.1:1, which FAILED
+                                         the 4.5:1 bar this project sets for
+                                         itself in the NFR document. */
+  --color-text-primary: #1d1d1f;
+  --color-text-secondary: #6e6e73;
+  --color-text-tertiary: #57575b;
+  /* Text on an accent fill. White in BOTH themes: accent is dark enough for
+     white in each (5.6:1 light, 5.1:1 dark), and the "obvious" dark value in
+     dark mode measures 3.3:1. */
+  --color-text-inverse: #ffffff;
+
+  --color-border: #e5e5ea;
+  --color-border-strong: #d1d1d6;
+
+  /* Status colours are indicator fills — a dot, an icon, a 3px rule. The
+     design system's rule that colour is never the only carrier of meaning is
+     what keeps them legitimate at these values; #34C759 on #FAFAFA is
+     2.2:1 and would be indefensible if it were the only signal.
+     Status *text* is a different token, below, because a coloured word on a
+     panel is text and 4.5:1 binds it. */
+  --color-success: #34c759;
+  --color-warning: #ff9500;
+  --color-error: #ff3b30;
+  --color-info: #5856d6;
+
+  --color-success-text: #14713c;
+  --color-warning-text: #8a5200;
+  --color-error-text: #c4291f;
+
+  /* #F5F5F7 against the page background #FAFAFA is a 1.02:1 difference,
+     effectively invisible. Code blocks need a discernible edge, so the
+     surface is slightly deeper and a border carries the boundary. */
+  --color-code-bg: #f1f1f4;
+  --color-code-text: #1d1d1f;
+  --color-code-border: #e5e5ea;
+
+  /* Chosen so black body text stays >= 4.5:1 on top of them. A saturated
+     yellow wash fails this and makes highlighted text the least readable
+     text on the page. */
+  --color-highlight-yellow: #fff3b0;
+  --color-highlight-green: #d6f5d6;
+  --color-highlight-blue: #d6e9ff;
+  --color-highlight-pink: #ffe0ec;
+
+  --color-selection: #d6d5f5;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 8%);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 10%);
+  --shadow-lg: 0 8px 32px rgb(0 0 0 / 14%);
+
+  /* Syntax tokens. Muted rather than saturated: a documentation page is read
+     for minutes at a time, and code is the majority of some pages. Contrast
+     is measured against --color-code-bg (#F1F1F4), not the page background,
+     because that is what code actually sits on. All >= 4.5:1.
+       comment  #64646A  5.4    string   #0F7B3E  4.8
+       keyword  #9A2F8C  6.0    number   #1D5FBF  5.5
+       entity   #6B3FA0  6.5    type     #0E6E75  5.4
+       variable #9A4B00  5.6    invalid  #C0202A  5.3 */
+  --tok-comment: #64646a;
+  --tok-string: #0f7b3e;
+  --tok-keyword: #9a2f8c;
+  --tok-constant: #1d5fbf;
+  --tok-entity: #6b3fa0;
+  --tok-support: #0e6e75;
+  --tok-variable: #9a4b00;
+  --tok-punctuation: #57575b;
+  --tok-invalid: #c0202a;
+  --tok-invalid-bg: #ffe3e1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-accent: #5e5ce6;
+    --color-accent-hover: #7674e8;
+    --color-accent-active: #8e8cea;
+
+    --color-link: #9d9bf5;
+    --color-link-hover: #b4b2f8;
+    --color-focus: #9d9bf5;
+
+    --color-bg-primary: #1c1c1e;
+    --color-bg-secondary: #2c2c2e;
+    --color-bg-tertiary: #38383a;
+
+    /* Contrast against --color-bg-primary (#1C1C1E):
+         primary   #F5F5F7  15.8:1  AAA
+         secondary #98989D   6.3:1  AA
+         tertiary  #8A8A8F   5.1:1  AA  -- was #6E6E73 at 3.4:1, which FAILED */
+    --color-text-primary: #f5f5f7;
+    --color-text-secondary: #98989d;
+    --color-text-tertiary: #8a8a8f;
+    --color-text-inverse: #ffffff;
+
+    --color-border: #38383a;
+    --color-border-strong: #48484a;
+
+    /* Status colours need dark variants too; omitting them means light-mode
+       values on dark backgrounds, which is what the original block did. */
+    --color-success: #30d158;
+    --color-warning: #ff9f0a;
+    --color-error: #ff453a;
+    --color-info: #5e5ce6;
+
+    --color-success-text: #6fcb86;
+    --color-warning-text: #f0b45c;
+    --color-error-text: #ff8078;
+
+    /* Deliberately NOT equal to --color-bg-secondary, or code blocks vanish
+       on every panel that uses it. */
+    --color-code-bg: #222224;
+    --color-code-text: #f5f5f7;
+    --color-code-border: #3a3a3c;
+
+    --color-highlight-yellow: #57501f;
+    --color-highlight-green: #29452b;
+    --color-highlight-blue: #24405e;
+    --color-highlight-pink: #52293b;
+
+    --color-selection: #3a388f;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow-md: 0 2px 8px rgb(0 0 0 / 48%);
+    --shadow-lg: 0 8px 32px rgb(0 0 0 / 56%);
+
+    /* Measured against --color-code-bg (#222224); all >= 4.6:1.
+         comment #94949A 5.3   string   #6FBF83 7.1
+         keyword #E78CD8 6.9   number   #86B6F0 7.6
+         entity  #B9A0F0 6.9   type     #6FC6C9 8.0
+         variable #E8A56B 7.5  invalid  #FF7A72 7.1 */
+    --tok-comment: #94949a;
+    --tok-string: #6fbf83;
+    --tok-keyword: #e78cd8;
+    --tok-constant: #86b6f0;
+    --tok-entity: #b9a0f0;
+    --tok-support: #6fc6c9;
+    --tok-variable: #e8a56b;
+    --tok-punctuation: #a0a0a6;
+    --tok-invalid: #ff7a72;
+    --tok-invalid-bg: #4a2523;
+  }
+}
+
+/* The explicit override must win in BOTH directions, so it repeats the dark
+   values outside the media query rather than relying on it. Repetition is
+   the price of an override that actually overrides. */
+:root[data-theme='dark'] {
+  --color-accent: #5e5ce6;
+  --color-accent-hover: #7674e8;
+  --color-accent-active: #8e8cea;
+
+  --color-link: #9d9bf5;
+  --color-link-hover: #b4b2f8;
+  --color-focus: #9d9bf5;
+
+  --color-bg-primary: #1c1c1e;
+  --color-bg-secondary: #2c2c2e;
+  --color-bg-tertiary: #38383a;
+
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #98989d;
+  --color-text-tertiary: #8a8a8f;
+  --color-text-inverse: #ffffff;
+
+  --color-border: #38383a;
+  --color-border-strong: #48484a;
+
+  --color-success: #30d158;
+  --color-warning: #ff9f0a;
+  --color-error: #ff453a;
+  --color-info: #5e5ce6;
+
+  --color-success-text: #6fcb86;
+  --color-warning-text: #f0b45c;
+  --color-error-text: #ff8078;
+
+  --color-code-bg: #222224;
+  --color-code-text: #f5f5f7;
+  --color-code-border: #3a3a3c;
+
+  --color-highlight-yellow: #57501f;
+  --color-highlight-green: #29452b;
+  --color-highlight-blue: #24405e;
+  --color-highlight-pink: #52293b;
+
+  --color-selection: #3a388f;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 48%);
+  --shadow-lg: 0 8px 32px rgb(0 0 0 / 56%);
+
+  --tok-comment: #94949a;
+  --tok-string: #6fbf83;
+  --tok-keyword: #e78cd8;
+  --tok-constant: #86b6f0;
+  --tok-entity: #b9a0f0;
+  --tok-support: #6fc6c9;
+  --tok-variable: #e8a56b;
+  --tok-punctuation: #a0a0a6;
+  --tok-invalid: #ff7a72;
+  --tok-invalid-bg: #4a2523;
+}
+
+/* Tells the OS which scrollbars, form controls, and default colours to draw.
+   Without it a dark theme has light scrollbars. */
+:root {
+  color-scheme: light dark;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

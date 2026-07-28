@@ -51,6 +51,7 @@ run "fuzz: targets compile" cargo check --manifest-path fuzz/Cargo.toml
 run "frontend: types"       npm run check
 run "frontend: lint"        npm run lint
 run "frontend: tests"       npm run test
+run "design: contrast"      node scripts/check-contrast.mjs
 run "deps: npm advisories"  npm audit --audit-level=high
 
 # cargo-deny and cargo-audit are optional locally: they are slow to install and
