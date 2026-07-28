@@ -1,0 +1,10 @@
+# Default owner for everything
+* @alexnodeland
+
+# Specifications: changes here change what gets built
+/docs/PRD.md          @alexnodeland
+/docs/plans/          @alexnodeland
+/docs/decisions/      @alexnodeland
+
+# Release and security surfaces
+/.github/             @alexnodeland

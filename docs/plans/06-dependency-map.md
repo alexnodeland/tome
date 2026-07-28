@@ -1,6 +1,10 @@
 # Tome Project: Comprehensive Dependency Map
 
-This document provides a complete visualization of dependencies between all 87 tickets across the 5 phases of the Tome project.
+This document provides a complete visualization of dependencies between all 90 tickets across the 5 phases of the Tome project.
+
+> **Owner note.** `00-project-overview.md` owns the critical path and the effort figures. This
+> document owns the full graph and the parallelization analysis. Where they previously disagreed —
+> and they did, in three places — the overview wins.
 
 ---
 
@@ -56,47 +60,55 @@ This document provides a complete visualization of dependencies between all 87 t
 
 ## Critical Path Analysis
 
-The critical path represents the longest sequence of dependent tickets. Any delay in these tickets directly delays the entire project.
+**Definition:** the longest chain of strictly dependent tickets, weighted by estimated effort. This
+document previously contained *two* versions of the critical path that disagreed with each other
+and with `00-project-overview.md` — a "Primary Critical Path" diagram and a 23-row table naming a
+different set of tickets. All three now agree; `00-project-overview.md` is the owner.
 
-### Primary Critical Path
+### The critical path (15 tickets, ≈ 88 working days)
 
 ```
-P1-001 → P1-002 → P1-003 → P1-016 → P1-020 → P2-001 → P2-002 → P2-004 → P2-005
-                                                                    ↓
-                                    ┌───────────────────────────────┘
-                                    ↓
-                              P4-001 → P4-002 → P4-005 → P4-017
-                                                    ↓
-                              P5-001 → P5-010 → P5-011 → P5-012
+P1-001 → P1-012 → P1-013 → P1-016 → P1-020
+       → P2-001 → P2-002 → P2-003
+       → P3-001 → P3-010 → P3-011 → P3-012 → P3-013
+       → P5-001 → P5-002
 ```
 
-### Critical Path Tickets (23 total)
+| # | Ticket | Effort | Why it is on the path |
+|---|--------|--------|-----------------------|
+| 1 | P1-001 Tauri init | 4 d | Nothing exists before it |
+| 2 | P1-012 HTML→AST parser | 7.5 d | Longest branch out of P1-001 |
+| 3 | P1-013 Normalization | 7.5 d | Everything rendered or indexed passes through it |
+| 4 | P1-016 Reader bridge | 7.5 d | Also needs P1-003 and P1-015, both shorter branches |
+| 5 | P1-020 Navigation | 4 d | Completes the Phase 1 exit criteria |
+| 6 | P2-001 Tantivy | 7.5 d | Also needs P1-004 + P1-021 (12 d branch, not critical) |
+| 7 | P2-002 Index schema | 4 d | Gates ranking, symbols, incremental indexing |
+| 8 | P2-003 Incremental indexing | 7.5 d | Longest branch in Phase 2 |
+| 9 | P3-001 Bookmark model | 4 d | Gates all of Phase 3 |
+| 10 | P3-010 Sync design | 7.5 d | |
+| 11 | P3-011 Op log + codec | 4 d | |
+| 12 | P3-012 Sync engine | 7.5 d | |
+| 13 | P3-013 Conflict resolution | 4 d | Phase 3's longest chain (27 d) beats Phase 4's (23.5 d) |
+| 14 | P5-001 Performance | 7.5 d | Cannot start before the system exists |
+| 15 | P5-002 Lazy loading | 4 d | |
 
-| Phase | Ticket | Title | Why Critical |
-|-------|--------|-------|--------------|
-| P1 | P1-001 | Initialize Tauri + Rust project | Foundation for everything |
-| P1 | P1-002 | Setup Svelte frontend scaffold | Required for UI |
-| P1 | P1-003 | Configure Tauri-Svelte integration | Bridges backend and frontend |
-| P1 | P1-004 | Design SQLite schema | Data foundation |
-| P1 | P1-008 | Implement generic HTTP scraper core | Content ingestion |
-| P1 | P1-012 | Create HTML-to-AST parser | Content processing |
-| P1 | P1-013 | Build AST normalization pipeline | Content normalization |
-| P1 | P1-016 | Build WKWebView rendering bridge | Content display |
-| P1 | P1-018 | Build source library sidebar | Core UI |
-| P2 | P2-001 | Integrate Tantivy search engine | Search foundation |
-| P2 | P2-002 | Design search index schema | Search structure |
-| P2 | P2-004 | Implement global search UI | User-facing search |
-| P2 | P2-005 | Create search results component | Search display |
-| P2 | P2-010 | Implement ReadTheDocs scraper | First platform |
-| P3 | P3-001 | Design bookmark data model | Bookmark foundation |
-| P3 | P3-010 | Design CloudKit sync architecture | Sync foundation |
-| P3 | P3-012 | Build sync engine core | Sync implementation |
-| P4 | P4-001 | Design CLI architecture | CLI foundation |
-| P4 | P4-002 | Implement CLI scaffolding | CLI implementation |
-| P4 | P4-009 | Implement HTTP server with Axum | API server |
-| P4 | P4-014 | Implement MCP protocol handler | AI integration |
-| P5 | P5-010 | macOS notarization setup | Distribution requirement |
-| P5 | P5-012 | Create Homebrew cask | Primary distribution |
+### Release-gate chain (mandatory, not longest)
+
+`P5-010 notarize (4 d) → P5-011 DMG (4 d) → P5-012 distribution (1.5 d)` — 9.5 d. Cannot be
+compressed and cannot start until DEC-002 and DEC-003 are resolved, so **start the Apple Developer
+Program enrolment early**; it is a lead-time item, not a task.
+
+### Near-critical: the agent-integration chain
+
+`P4-008 → P4-013 → P4-014 → P4-015 → P4-017` — 23.5 d against Phase 3's 27 d. Only 3.5 days of
+slack. **If Phase 3 is cut (see DEC-004), this becomes the critical path** — which is convenient,
+because it is also the more differentiated half of the product.
+
+### What the critical path does *not* tell you
+
+The path is ~18 calendar weeks with unlimited people. The plan is ~381 person-days. **Capacity, not
+sequencing, is the binding constraint.** Optimising the dependency graph further buys nothing until
+DEC-004 is answered.
 
 ---
 
@@ -169,6 +181,8 @@ P1-001 (Tauri Init)
             │               │                                   │
             ▼               ▼                                   ▼
       P2-009 (Fuzzy)   P2-002 (Schema) ──────────────┐    P2-018 (Bench)
+                                                        P2-019 (Relevance eval)
+                                                        P2-020 (Detection corpus)
                             │                        │
                ┌────────────┼────────────┐           │
                │            │            │           │
@@ -370,7 +384,7 @@ These workstreams can proceed independently within Phase 1:
 |-------|---------|-------|
 | **A: Core Infra** | P1-001 → P1-002 → P1-003 → P1-016 | Tauri/Svelte setup |
 | **B: Data Layer** | P1-001 → P1-004 → P1-021 | SQLite and storage |
-| **C: Ingestion** | P1-001 → P1-008 → P1-009, P1-010, P1-011 | Scraping system |
+| **C: Ingestion** | P1-001 → P1-008 → P1-009, P1-010, P1-011, P1-023 | Scraping system + assets |
 | **D: Config** | P1-001 → P1-005, P1-006 → P1-007 | Configuration |
 | **E: Parsing** | P1-001 → P1-012 → P1-013, P1-014 | Content processing |
 
@@ -379,11 +393,29 @@ These workstreams can proceed independently within Phase 1:
 - Developer 2: Track C + Track D (backend infra)
 - Developer 3: Track E (parsing/rendering)
 
+> ⚠️ **This allocation is the plan's implicit staffing assumption, and it is unresolved (DEC-004).**
+> Three developers on Phase 1 is roughly what the arithmetic requires: 102 person-days over 8 weeks
+> is 2.6 FTE. But `11-risk-register.md` RISK-010 describes a **single maintainer** bus factor. The
+> plan cannot simultaneously assume three developers and one. Until DEC-004 is answered, treat
+> every calendar date in this plan set as conditional.
+>
+> **Solo sequencing, if that is the answer.** Parallel tracks are worthless to one person; what
+> matters instead is ordering to get feedback early and to avoid rework:
+>
+> 1. P1-001 → P1-008 → P1-012 → P1-013 → a crude renderer. Get *one real docs site* readable
+>    end-to-end before building any UI polish. This validates the riskiest assumption — that
+>    normalization across arbitrary sites is tractable — in ~3 weeks rather than 8.
+> 2. Then P1-004/021 storage, then the three-panel UI, then P1-023 assets.
+> 3. Then Phase 2 search.
+> 4. Then the MCP half of Phase 4, which is the differentiated feature.
+> 5. Ship. Decide about sync afterwards, with users.
+
 ### Phase 2 Parallel Tracks
 
 | Track | Tickets | Focus |
 |-------|---------|-------|
 | **A: Search Core** | P2-001 → P2-002 → P2-003, P2-006, P2-015 | Tantivy integration |
+| **A0: Eval** | P2-019, P2-020 | **Build these first** — ranking work without an eval set is guesswork |
 | **B: Search UI** | P2-004 → P2-005 → P2-008, P2-016, P2-017 | Search interface |
 | **C: Scrapers** | P2-010, P2-011, P2-012, P2-013 → P2-014 | Platform scrapers |
 

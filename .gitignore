@@ -1,0 +1,50 @@
+# Rust / Tauri
+/target/
+/src-tauri/target/
+**/*.rs.bk
+*.pdb
+
+# Node
+node_modules/
+dist/
+.svelte-kit/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+
+# Build output
+/src-tauri/gen/
+*.app
+*.dmg
+*.zip
+
+# Signing — never commit these
+*.p12
+*.mobileprovision
+*.cer
+entitlements.local.plist
+
+# Test / coverage
+coverage/
+lcov*.info
+/playwright-report/
+/test-results/
+
+# Local dev
+.env
+.env.local
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+._*
+
+# Editors
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code local settings (shared settings.json IS committed)
+.claude/settings.local.json

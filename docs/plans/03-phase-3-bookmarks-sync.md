@@ -2,8 +2,20 @@
 
 **Goal:** Personal layer and cross-device sync
 **Tickets:** 15
+**Effort:** ~68 person-days
 **Prerequisites:** Phase 2 complete (can run parallel with Phase 4)
 **Exit Criteria:** Bookmarks sync reliably between two Macs via iCloud
+
+> **This phase is the first candidate to cut (DEC-004).** It is 68 person-days, it contains the
+> highest-scoring risk in the register (RISK-002), and cutting it costs the least: bookmarks and
+> annotations still work perfectly on a single machine. If the project is solo, ship v1.0 without
+> sync and add it once there is evidence people want it.
+
+> **Sync mechanism changed: iCloud Drive container, not CloudKit.** See
+> [PRD § iCloud Sync Architecture](../PRD.md#icloud-sync-architecture) for the reasoning. In short:
+> CloudKit is Swift-only, the core is Rust, and the CLI — which runs outside the app — must sync
+> too. The file-based approach is the contingency the risk register already recorded for RISK-002;
+> it is a better primary. P3-010, P3-011 and P3-012 below are rewritten accordingly.
 
 ---
 
@@ -20,12 +32,12 @@
 | P3-007 | Build text highlighting system | L | High | P1-016 |
 | P3-008 | Add annotation/notes to highlights | M | Critical | P3-007 |
 | P3-009 | Implement reading position memory | M | High | P1-016, P1-004 |
-| P3-010 | Design CloudKit sync architecture | L | Critical | P3-001 |
-| P3-011 | Implement CKRecord models | M | High | P3-010 |
+| P3-010 | Design file-based iCloud sync architecture | L | Critical | P3-001 |
+| P3-011 | Implement operation log and codec | M | High | P3-010 |
 | P3-012 | Build sync engine core | L | Critical | P3-010, P3-011 |
 | P3-013 | Add conflict resolution handling | M | High | P3-012 |
 | P3-014 | Create sync status UI | M | High | P3-012 |
-| P3-015 | Implement offline queue system | M | High | P3-012 |
+| P3-015 | Sync limits, backpressure and status surface | S | Medium | P3-012 |
 
 ---
 
@@ -54,27 +66,46 @@ Design the data model for bookmarks, highlights, and annotations.
 ```sql
 CREATE TABLE bookmarks (
     id TEXT PRIMARY KEY,
-    source_id TEXT NOT NULL REFERENCES sources(id),
+    source_id TEXT NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
     page_path TEXT NOT NULL,
     title TEXT NOT NULL,
-    scroll_position REAL,
+    note TEXT,
     created_at TEXT NOT NULL,
     modified_at TEXT NOT NULL,
-    sync_status TEXT DEFAULT 'pending', -- pending, synced, conflict
-    device_id TEXT NOT NULL,
-    UNIQUE(source_id, page_path, device_id)
+    -- Lamport counter for deterministic conflict resolution across devices.
+    lamport INTEGER NOT NULL DEFAULT 0,
+    -- Which device wrote last. METADATA ONLY -- never part of identity.
+    last_writer TEXT NOT NULL,
+    deleted_at TEXT,                 -- tombstone; retained 90 days, then vacuumed
+    UNIQUE(source_id, page_path)     -- one bookmark per page, per library
 );
 
-CREATE TABLE highlights (
+-- Annotations are independent of bookmarks: you can highlight a page you never
+-- bookmarked, and a bookmarked page can carry many annotations. The original
+-- schema made every highlight a child of a bookmark, which forced a phantom
+-- bookmark to exist for any highlight and cascade-deleted annotations when a
+-- user removed a bookmark.
+CREATE TABLE annotations (
     id TEXT PRIMARY KEY,
-    bookmark_id TEXT NOT NULL REFERENCES bookmarks(id) ON DELETE CASCADE,
-    start_offset INTEGER NOT NULL,
-    end_offset INTEGER NOT NULL,
+    source_id TEXT NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    page_path TEXT NOT NULL,
+    -- Robust anchoring (W3C Web Annotation selectors). See PRD "Annotation anchoring".
+    quote TEXT NOT NULL,             -- the exact highlighted text
+    prefix TEXT NOT NULL,            -- ~32 chars before
+    suffix TEXT NOT NULL,            -- ~32 chars after
+    hint_start INTEGER,              -- position hint only, NOT the source of truth
+    hint_end INTEGER,
+    anchor_state TEXT NOT NULL DEFAULT 'exact',  -- exact | approximate | orphaned
     color TEXT DEFAULT 'yellow',
     note TEXT,
     created_at TEXT NOT NULL,
-    modified_at TEXT NOT NULL
+    modified_at TEXT NOT NULL,
+    lamport INTEGER NOT NULL DEFAULT 0,
+    last_writer TEXT NOT NULL,
+    deleted_at TEXT
 );
+CREATE INDEX idx_annotations_page ON annotations(source_id, page_path);
+CREATE INDEX idx_annotations_state ON annotations(anchor_state) WHERE anchor_state != 'exact';
 
 CREATE TABLE collections (
     id TEXT PRIMARY KEY,
@@ -94,9 +125,29 @@ CREATE TABLE bookmark_collections (
 );
 
 CREATE INDEX idx_bookmarks_source ON bookmarks(source_id);
-CREATE INDEX idx_bookmarks_sync ON bookmarks(sync_status);
-CREATE INDEX idx_highlights_bookmark ON highlights(bookmark_id);
+CREATE INDEX idx_bookmarks_live ON bookmarks(source_id, page_path) WHERE deleted_at IS NULL;
+
+-- Sync state lives in its own table rather than a `sync_status` column, because a
+-- column cannot express "never synced" vs "pending" vs "in flight" vs "conflicted"
+-- vs "sync disabled", and because it must be cheap to clear without rewriting rows.
+CREATE TABLE sync_state (
+    entity_type TEXT NOT NULL,       -- bookmark | annotation | collection | position
+    entity_id   TEXT NOT NULL,
+    state       TEXT NOT NULL,       -- pending | in_flight | synced | conflicted
+    last_error  TEXT,
+    updated_at  TEXT NOT NULL,
+    PRIMARY KEY (entity_type, entity_id)
+);
+CREATE INDEX idx_sync_pending ON sync_state(state) WHERE state != 'synced';
 ```
+
+#### Why `device_id` left the uniqueness constraint
+
+The original key was `UNIQUE(source_id, page_path, device_id)`. That means the *same page*
+bookmarked on a laptop and a desktop produces **two rows**, and no amount of merge logic downstream
+can collapse them, because by definition they are distinct records. Sync would faithfully replicate
+both and the user would see every bookmark duplicated once per machine they own. A sync key must
+identify the thing, not the writer.
 
 ```rust
 #[derive(Debug, Clone)]
@@ -452,13 +503,17 @@ Build the UI for creating and managing collections.
 Enable users to highlight text passages in documentation.
 
 #### Acceptance Criteria
-- [ ] Select text and highlight via menu or keyboard
+- [ ] Select text and highlight via menu or keyboard (`Cmd+Shift+H` — `Cmd+H` is Hide Application)
 - [ ] Multiple highlight colors available
-- [ ] Highlights persist (stored as character offsets)
+- [ ] Highlights persist using quote/prefix/suffix anchoring; offsets are a hint only
 - [ ] Highlights render on page load
+- [ ] Overlapping and adjacent highlights render correctly (nested `<mark>` handled)
 - [ ] Click highlight to show actions (note, remove, copy)
-- [ ] Handle content changes (best effort preservation)
-- [ ] Keyboard shortcut for quick highlight
+- [ ] **Re-anchor pass runs when a page's content hash changes**; results classified
+      `exact` / `approximate` / `orphaned`
+- [ ] Orphaned highlights retain their quoted text and note, and appear in a "needs attention" view
+- [ ] Highlight colors meet the contrast requirement against both light and dark reader backgrounds
+      *and* against highlighted text — a yellow wash that makes text unreadable is not accessible
 
 #### Technical Notes
 ```javascript
@@ -494,13 +549,28 @@ class HighlightManager {
   }
 
   private applyHighlight(range: Range, id: string, color: string): void {
-    const mark = document.createElement('mark');
-    mark.dataset.highlightId = id;
-    mark.style.backgroundColor = color;
-    range.surroundContents(mark);
+    // `range.surroundContents()` throws InvalidStateError whenever the range
+    // partially selects a non-Text node -- which is the common case as soon as a
+    // selection crosses a <code>, <em>, or line break. The original sample would
+    // have failed on most real highlights.
+    //
+    // Walk the range's text nodes and wrap each one instead.
+    for (const textNode of this.textNodesIn(range)) {
+      const mark = document.createElement('mark');
+      mark.dataset.highlightId = id;
+      mark.className = `tome-hl tome-hl--${color}`;   // class, not inline style: the
+                                                       // reader CSP forbids inline styles
+      textNode.parentNode!.replaceChild(mark, textNode);
+      mark.appendChild(textNode);
+    }
   }
 }
 ```
+
+**Anchoring is not offsets.** Highlights are stored as quote + prefix + suffix with the offset kept
+only as a lookup hint, and are re-anchored whenever a page's `content_hash` changes. See
+[PRD § Annotation anchoring](../PRD.md#5-bookmarks--annotations). A highlight that cannot be
+re-anchored becomes `orphaned` and is surfaced for the user to re-place — **never deleted.**
 
 ```rust
 // Rust side
@@ -654,7 +724,7 @@ CREATE TABLE reading_positions (
 
 ---
 
-### P3-010: Design CloudKit sync architecture
+### P3-010: Design file-based iCloud sync architecture
 
 **Priority:** Critical
 **Complexity:** L (1-2 weeks)
@@ -662,71 +732,90 @@ CREATE TABLE reading_positions (
 **Blocks:** P3-011, P3-012
 
 #### Description
-Design the iCloud sync architecture using CloudKit.
+Design sync over an iCloud Drive ubiquity container using per-device append-only operation logs.
+
+**Why not CloudKit.** The original design used `CKRecord`s in a custom zone. Four problems, in
+order of severity:
+
+1. **CloudKit is Swift/Objective-C only.** The core engine is Rust. Adopting CloudKit means a Swift
+   sync layer talking to a Rust database — the most state-heavy, hardest-to-debug component in the
+   product, straddling a language boundary.
+2. **The CLI and MCP server run outside the app process.** They must see the same bookmarks. A
+   CloudKit-based engine living in the app cannot serve them without inventing an IPC protocol.
+3. **RISK-002 scores CloudKit sync 16 (Critical)** on "undocumented edge cases, rate limits, and
+   conflict scenarios" — and its recorded contingency is already "iCloud Drive file-based sync".
+4. Change tokens, zone subscriptions, and `CKError` partial-failure handling are a large surface to
+   learn for a single-user, low-write-volume workload.
+
+The file container gives the same guarantee that actually matters — data appears on the user's
+other Mac without a server — for a fraction of the surface.
 
 #### Acceptance Criteria
-- [ ] Define CKRecord types for all synced entities
-- [ ] Determine zone structure (private database)
-- [ ] Design sync protocol (push/pull, change tokens)
-- [ ] Plan conflict resolution strategy
-- [ ] Handle offline scenarios
-- [ ] Design rate limiting approach
-- [ ] Plan for backwards compatibility
+- [ ] Container layout defined, with each device writing **only** its own subdirectory
+- [ ] Operation log format defined and versioned
+- [ ] Convergence rules defined for every field type (scalar / set / tombstone)
+- [ ] Compaction policy defined (who may compact what, and when)
+- [ ] Behaviour defined for: iCloud disabled, signed out, out of quota, container unavailable,
+      file present but unreadable, partial download (iCloud evicts local copies)
+- [ ] Migration path defined for a schema-version bump seen from a *newer* device
+- [ ] Bounds documented: max ops before compaction, max container size, retention window
 
 #### Technical Notes
-```swift
-// CloudKit Record Types
-struct SyncSchema {
-    static let bookmarkType = "Bookmark"
-    static let collectionType = "Collection"
-    static let sourceMetaType = "SourceMeta"
-    static let readingPositionType = "ReadingPosition"
-}
 
-// Sync Architecture
-/*
-┌─────────────────────────────────────────────┐
-│                 Local SQLite                │
-│  (bookmarks, collections, positions)        │
-└─────────────────┬───────────────────────────┘
-                  │
-          ┌───────▼───────┐
-          │  Sync Engine  │
-          │  ───────────  │
-          │  - Change     │
-          │    detection  │
-          │  - Conflict   │
-          │    resolution │
-          │  - Queue mgmt │
-          └───────┬───────┘
-                  │
-┌─────────────────▼───────────────────────────┐
-│            CloudKit Private DB              │
-│  ┌─────────────────────────────────────┐    │
-│  │        Custom Zone: "TomeData"      │    │
-│  │  - Bookmarks                        │    │
-│  │  - Collections                      │    │
-│  │  - SourceMeta                       │    │
-│  │  - ReadingPositions                 │    │
-│  └─────────────────────────────────────┘    │
-└─────────────────────────────────────────────┘
-*/
+```
+Documents/
+├── schema-version                 # single integer; a newer version is read-only, never guessed at
+└── devices/
+    ├── 5C1F…-a/                   # this device writes ONLY here
+    │   ├── manifest.json          # device name, platform, last write, schema version
+    │   └── ops-000017.jsonl       # append-only, one op per line
+    └── 9B22…-b/                   # other devices: read-only to us
+        ├── manifest.json
+        └── ops-000004.jsonl
 ```
 
-**Sync Protocol:**
-1. On app launch: fetch server changes since last change token
-2. Apply remote changes to local database (with conflict detection)
-3. Push local pending changes to server
-4. Store new change token
+```jsonc
+// one line of ops-*.jsonl
+{
+  "op": "upsert",                  // upsert | delete
+  "entity": "bookmark",
+  "id": "6f1c…",
+  "lamport": 412,                  // monotonic per device, advanced past any value seen
+  "wall": "2026-07-28T09:14:02Z",  // tiebreak only; clocks are not trusted for ordering
+  "device": "5C1F…-a",
+  "fields": { "title": "Vec in std::vec", "note": null }
+}
+```
+
+**Why per-device directories.** Two devices never write the same file, so iCloud's own conflict
+machinery is never invoked. This removes the single largest source of failure in naive file-based
+sync — `.icloud` conflict copies appearing and silently diverging.
+
+**Convergence rules:**
+
+| Field kind | Rule | Rationale |
+|---|---|---|
+| Scalar (title, note, colour) | Highest `lamport`; tie → later `wall`; tie → higher `device` id | Deterministic on every device without coordination |
+| Set (collection membership) | Add-wins | Losing a bookmark from a collection is worse than an extra membership |
+| Delete | Tombstone, retained 90 days | A delete that arrives before the create it deletes must still win |
+| Annotation anchor state | Recomputed locally, never synced | It depends on locally cached content, which differs per device |
+
+**Reading is idempotent replay.** Local SQLite is a materialized view of the logs plus local ops.
+This makes "resync from scratch" a supported, testable operation rather than a recovery hack.
+
+**Failure posture.** Sync is never on the critical path of a user action. A bookmark is written to
+SQLite and to the local op log; whether iCloud has propagated it is a background concern. If the
+container is unavailable, everything continues working and ops queue on disk — there is no separate
+offline queue to get out of step (which is why P3-015 shrinks to a status/limits ticket).
 
 #### Success Metrics
-- Architecture handles 10,000+ records
-- Conflict resolution clearly defined
-- Offline-first guaranteed
+- Design handles 10 000 ops without pathological replay cost
+- Every convergence rule has a named test scenario before implementation starts
+- Two devices applying the same op set in different orders reach byte-identical state
 
 ---
 
-### P3-011: Implement CKRecord models
+### P3-011: Implement operation log and codec
 
 **Priority:** High
 **Complexity:** M (3-5 days)
@@ -734,63 +823,46 @@ struct SyncSchema {
 **Blocks:** P3-012
 
 #### Description
-Create the Swift CloudKit record models and conversion logic.
+Implement writing, reading, and compacting the per-device operation logs.
 
 #### Acceptance Criteria
-- [ ] CKRecord serialization for all entity types
-- [ ] CKRecord deserialization with validation
-- [ ] Handle optional fields gracefully
-- [ ] System fields (modifiedAt, createdBy) used correctly
-- [ ] Asset handling for future features
-- [ ] Type-safe field access
+- [ ] Serialize/deserialize every synced entity to an op record
+- [ ] Append is atomic and crash-safe (write to temp, fsync, rename)
+- [ ] Reader tolerates a truncated final line — a crash mid-append must not poison the log
+- [ ] **Unknown fields and unknown entity types are preserved and re-emitted, not dropped.** A newer
+      device's data must survive a round-trip through an older one.
+- [ ] Unknown `op` values are skipped with a warning rather than aborting replay
+- [ ] Lamport clock persists across restarts and advances past the maximum value ever observed
+- [ ] Compaction: replace this device's own logs with a state snapshot; never touch another
+      device's directory
+- [ ] Round-trip property test: arbitrary entity → op → entity is lossless
 
 #### Technical Notes
-```swift
-extension Bookmark {
-    static let recordType = "Bookmark"
-
-    enum Field: String {
-        case sourceId
-        case pagePath
-        case title
-        case scrollPosition
-        case highlightsJSON
-        case collectionsJSON
-        case deviceId
-    }
-
-    func toCKRecord() -> CKRecord {
-        let recordID = CKRecord.ID(recordName: id.uuidString)
-        let record = CKRecord(recordType: Self.recordType, recordID: recordID)
-
-        record[Field.sourceId.rawValue] = sourceId.uuidString
-        record[Field.pagePath.rawValue] = pagePath
-        record[Field.title.rawValue] = title
-        record[Field.scrollPosition.rawValue] = scrollPosition as NSNumber?
-        record[Field.highlightsJSON.rawValue] = encodeHighlights(highlights)
-        record[Field.collectionsJSON.rawValue] = encodeCollections(collections)
-        record[Field.deviceId.rawValue] = deviceId
-
-        return record
-    }
-
-    init(from record: CKRecord) throws {
-        guard record.recordType == Self.recordType else {
-            throw SyncError.invalidRecordType
-        }
-
-        self.id = UUID(uuidString: record.recordID.recordName)!
-        self.sourceId = UUID(uuidString: record[Field.sourceId.rawValue] as! String)!
-        self.pagePath = record[Field.pagePath.rawValue] as! String
-        // ...
-    }
+```rust
+#[derive(Serialize, Deserialize)]
+pub struct Op {
+    pub op: OpKind,
+    pub entity: EntityType,
+    pub id: Uuid,
+    pub lamport: u64,
+    pub wall: DateTime<Utc>,
+    pub device: DeviceId,
+    pub fields: serde_json::Map<String, Value>,  // open map: forward compatible by construction
 }
 ```
 
+Deliberately **not** typed as a fixed struct per entity. A closed enum of fields would drop data
+written by a future version, which is the classic way file-based sync corrupts a user's library
+after they upgrade one machine.
+
+Deserialization must not use `unwrap()` / `as!`-style forced conversions anywhere. These records
+arrive from another machine; treat them as untrusted input. The earlier CloudKit sample used
+`record[...] as! String` and `UUID(uuidString:)!`, either of which turns one malformed record into
+a crash loop on launch.
+
 #### Success Metrics
-- Round-trip serialization lossless
-- Handles all field types
-- Error handling comprehensive
+- Fuzzed/truncated logs never panic
+- 10 000 ops written in < 1 s, replayed in < 2 s
 
 ---
 
@@ -802,65 +874,46 @@ extension Bookmark {
 **Blocks:** P3-013, P3-014, P3-015
 
 #### Description
-Implement the core sync engine that coordinates local and cloud data.
+Coordinate local state and the iCloud container: emit local ops, discover and replay remote logs,
+materialize into SQLite.
 
 #### Acceptance Criteria
-- [ ] Fetch remote changes (CKFetchRecordZoneChangesOperation)
-- [ ] Push local changes (CKModifyRecordsOperation)
-- [ ] Track sync state (change tokens per zone)
-- [ ] Handle partial failures
-- [ ] Retry failed operations with backoff
-- [ ] Merge remote changes into local database
-- [ ] Emit sync events for UI updates
+- [ ] Every local mutation writes SQLite **and** appends an op, in one transaction
+- [ ] Watch the container for changes (`NSMetadataQuery` semantics / file watching) with polling fallback
+- [ ] **Request download of evicted files before reading.** iCloud may keep only a placeholder
+      locally; reading it without downloading yields spurious "empty log".
+- [ ] Replay remote logs incrementally: track the byte offset consumed per remote log file
+- [ ] Materialize into SQLite idempotently — replaying the same op twice is a no-op
+- [ ] Full rebuild from logs is a supported operation, not an error path
+- [ ] Emit sync events for the UI
+- [ ] Never block a user action on sync
+- [ ] Sync is disabled cleanly: no container access, no errors, local-only operation
 
 #### Technical Notes
-```swift
-class SyncEngine {
-    private let container: CKContainer
-    private let database: CKDatabase
-    private var changeTokens: [CKRecordZone.ID: CKServerChangeToken] = [:]
+```rust
+pub struct SyncEngine { paths: Paths, db: SqlitePool, device: DeviceId, clock: LamportClock }
 
-    func sync() async throws {
-        // 1. Fetch remote changes
-        let remoteChanges = try await fetchRemoteChanges()
-
-        // 2. Apply remote changes locally
-        let conflicts = try await applyRemoteChanges(remoteChanges)
-
-        // 3. Resolve conflicts
-        let resolved = try await resolveConflicts(conflicts)
-
-        // 4. Push local changes
-        let pendingChanges = try await getPendingLocalChanges()
-        try await pushChanges(pendingChanges + resolved)
-
-        // 5. Mark as synced
-        try await markSynced(pendingChanges)
-    }
-
-    private func fetchRemoteChanges() async throws -> [CKRecord] {
-        let zone = CKRecordZone(zoneName: "TomeData")
-        let operation = CKFetchRecordZoneChangesOperation(
-            recordZoneIDs: [zone.zoneID],
-            configurationsByRecordZoneID: [
-                zone.zoneID: CKFetchRecordZoneChangesOperation.ZoneConfiguration(
-                    previousServerChangeToken: changeTokens[zone.zoneID]
-                )
-            ]
-        )
-        // Configure operation callbacks
-        // ...
+impl SyncEngine {
+    /// Idempotent. Safe to call on a timer, on file-change notification, and at launch.
+    pub async fn tick(&self) -> Result<SyncReport> {
+        self.ensure_downloaded().await?;          // materialize evicted placeholders
+        let remote = self.discover_remote_logs()?; // every dir except our own
+        for log in remote {
+            let ops = self.read_since(&log).await?;  // resumes from stored byte offset
+            self.apply(ops).await?;                  // convergence rules from P3-010
+        }
+        self.maybe_compact_own_log().await?;
+        Ok(report)
     }
 }
 ```
 
 #### Success Metrics
-- Full sync < 5s for 1000 records (good network)
-- Incremental sync < 1s for 10 changes
-- Zero data loss
+- Two-device convergence within 30 s on a normal connection
+- Simulated 3-device, 1 000-op, randomized-order replay converges to identical state, 1 000 runs
+- Zero lost writes under simulated crash at every await point
 
 ---
-
 ### P3-013: Add conflict resolution handling
 
 **Priority:** High
@@ -872,12 +925,19 @@ class SyncEngine {
 Implement conflict detection and resolution strategies.
 
 #### Acceptance Criteria
-- [ ] Detect conflicts (same record modified on multiple devices)
-- [ ] Last-write-wins for simple fields
-- [ ] Merge strategy for collections (union)
-- [ ] User notification for significant conflicts
-- [ ] Conflict log for debugging
-- [ ] Manual resolution UI (future)
+- [ ] Deterministic resolution: Lamport counter, then wall clock, then device id — so **every
+      device independently reaches the same answer** without coordination
+- [ ] Set fields (collection membership) merge add-wins
+- [ ] Deletes are tombstones and win over concurrent edits within the retention window
+- [ ] Never destroy user-authored text: if two devices edited the same note concurrently, keep both
+      (the loser is appended under a "conflicted copy" marker) rather than discarding one
+- [ ] Conflict log for debugging, capped and rotated
+- [ ] No modal conflict dialogs in v1 — resolution is automatic
+- [ ] Property test: applying any permutation of an op set yields identical final state
+
+> Plain last-write-wins on a free-text note silently deletes something a person typed. Wall-clock
+> ordering across machines is also unreliable — a device with a skewed clock wins every conflict.
+> Both are why the Lamport counter is primary and why notes are preserved rather than overwritten.
 
 #### Technical Notes
 ```rust
@@ -921,11 +981,21 @@ impl ConflictResolver {
 
                 merged
             }
-            _ => unimplemented!(),
+            ConflictResolution::LocalWins  => local.clone(),
+            ConflictResolution::RemoteWins => remote.clone(),
+            ConflictResolution::Manual => {
+                // v1 has no manual-resolution UI. Rather than panic, fall back to the
+                // deterministic default and record the conflict for inspection.
+                tracing::warn!(id = %local.id, "manual resolution unavailable; using merge");
+                Self::merge(local, remote)
+            }
         }
     }
 }
 ```
+
+> The original sample ended in `_ => unimplemented!()`, i.e. a panic reachable from remote data.
+> Anything driven by another device's input must degrade, not abort.
 
 #### Success Metrics
 - No data loss in conflicts
@@ -1011,83 +1081,36 @@ Build the UI to show sync status and progress.
 
 ---
 
-### P3-015: Implement offline queue system
+### P3-015: Sync limits, backpressure and status surface
 
-**Priority:** High
-**Complexity:** M (3-5 days)
+**Priority:** Medium
+**Complexity:** S (1-2 days)
 **Dependencies:** P3-012
 **Blocks:** None
 
 #### Description
-Build the offline queue to handle changes when network is unavailable.
+Bound the growth of the operation log and surface sync state honestly.
+
+**This ticket shrank from M to S because the separate offline queue is gone.** Under the file-based
+design, the operation log *is* the queue: local mutations always append locally and are replayed
+whenever the container is reachable. A second queue on top of an append-only log is a second source
+of truth that can disagree with the first — the original design would have needed reconciliation
+logic between `sync_queue` and the record state, which is exactly the kind of avoidable complexity
+that causes lost writes.
 
 #### Acceptance Criteria
-- [ ] Queue changes when offline
-- [ ] Persist queue to disk
-- [ ] Replay queue when online
-- [ ] Handle queue conflicts
-- [ ] Limit queue size (with warning)
-- [ ] Show queued changes count
-- [ ] Clear queue option (with warning)
-
-#### Technical Notes
-```rust
-pub struct OfflineQueue {
-    db: SqlitePool,
-}
-
-impl OfflineQueue {
-    pub async fn enqueue(&self, change: SyncChange) -> Result<()> {
-        sqlx::query!(
-            r#"
-            INSERT INTO sync_queue (id, change_type, entity_type, entity_id, payload, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-            "#,
-            change.id,
-            change.change_type,
-            change.entity_type,
-            change.entity_id,
-            change.payload,
-            change.created_at,
-        )
-        .execute(&self.db)
-        .await?;
-        Ok(())
-    }
-
-    pub async fn dequeue_batch(&self, limit: usize) -> Result<Vec<SyncChange>> {
-        // Get oldest N changes
-    }
-
-    pub async fn mark_completed(&self, ids: &[Uuid]) -> Result<()> {
-        // Remove from queue
-    }
-
-    pub async fn count(&self) -> Result<usize> {
-        // Count pending
-    }
-}
-```
-
-```sql
-CREATE TABLE sync_queue (
-    id TEXT PRIMARY KEY,
-    change_type TEXT NOT NULL, -- create, update, delete
-    entity_type TEXT NOT NULL, -- bookmark, collection, etc.
-    entity_id TEXT NOT NULL,
-    payload TEXT NOT NULL, -- JSON
-    created_at TEXT NOT NULL,
-    attempts INTEGER DEFAULT 0,
-    last_error TEXT
-);
-
-CREATE INDEX idx_sync_queue_created ON sync_queue(created_at);
-```
+- [ ] Log growth bounded: compact this device's log past a threshold (ops count or bytes)
+- [ ] Warn when the container is unreachable for longer than a configurable window (default 7 days)
+- [ ] Surface pending-op count, last successful replay, and per-device last-seen time
+- [ ] Detect and report the states users actually hit: iCloud signed out, iCloud Drive disabled,
+      out of quota, container not yet provisioned
+- [ ] A stale device (not seen in 90 days) can be forgotten by the user, dropping its logs
+- [ ] Refuse to grow unboundedly: past a hard cap, stop appending and raise a visible error rather
+      than filling the user's disk
 
 #### Success Metrics
-- Queue persists across restarts
-- Replay in order
-- No lost changes
+- Log stays under the size cap across a 10 000-op soak
+- Every failure state above renders a specific, actionable message — not "sync failed"
 
 ---
 
@@ -1108,9 +1131,9 @@ P3-001 (Data Model) ────────────────────
     │         ▼               │                   │
     │    P3-006 (Collection UI)                   │
     │                                              │
-    └──── P3-010 (CloudKit Design) ◄──────────────┘
+    └──── P3-010 (Sync Design, file-based) ◄──────┘
               │
-              ├──── P3-011 (CKRecord)
+              ├──── P3-011 (Op log + codec)
               │         │
               ▼         ▼
          P3-012 (Sync Engine) ─────┬──── P3-013 (Conflicts)
@@ -1139,10 +1162,17 @@ P1-016 (WebView)
 - [ ] Collections organize bookmarks
 - [ ] Text can be highlighted with multiple colors
 - [ ] Notes can be attached to highlights
-- [ ] Reading position remembered per page
-- [ ] CloudKit sync configured and working
-- [ ] Bookmarks sync between two Macs
-- [ ] Sync status visible in UI
-- [ ] Offline changes queued and replayed
-- [ ] Conflicts resolved automatically (last-write-wins)
-- [ ] Sync reliability > 99.5%
+- [ ] **Highlights survive a re-sync that changes the page**, or are marked `orphaned` — verified by
+      a test that edits fixture content between syncs
+- [ ] Reading position remembered per page, restored by heading then percentage
+- [ ] iCloud Drive container sync configured and working
+- [ ] Bookmarks sync between two Macs; **the same page bookmarked on both produces one bookmark**
+- [ ] Sync status visible in UI, with specific messages for signed-out / disabled / quota states
+- [ ] Offline changes replay on reconnect
+- [ ] **Convergence property test passes**: any permutation of a 1 000-op set across 3 simulated
+      devices yields identical state
+- [ ] **Zero lost writes** under simulated crash at each await point
+
+> "Sync reliability > 99.5 %" was removed. There is no telemetry to measure it against, and the
+> number is not meaningful without defining the unit of an "operation". Convergence and
+> zero-loss under fault injection are testable; a percentage is not.

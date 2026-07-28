@@ -1,0 +1,30 @@
+name: Documentation source request
+description: Ask for a documentation site to be added to the registry
+labels: [registry]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The registry contains **scraper configurations, never documentation content**.
+        Tome fetches from the origin on the user's machine; it does not host or redistribute.
+  - type: input
+    id: name
+    attributes:
+      label: Documentation name
+      placeholder: "Polars"
+    validations: { required: true }
+  - type: input
+    id: url
+    attributes:
+      label: Documentation URL
+      placeholder: "https://docs.pola.rs/"
+    validations: { required: true }
+  - type: checkboxes
+    id: permission
+    attributes:
+      label: Access
+      options:
+        - label: I have checked the site's robots.txt and it permits automated access
+          required: true
+        - label: I have checked the site's terms of service for a prohibition on scraping
+          required: true

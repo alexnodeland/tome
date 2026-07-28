@@ -2,8 +2,19 @@
 
 **Goal:** Programmable access and developer tool integration
 **Tickets:** 18
+**Effort:** ~71.5 person-days
 **Prerequisites:** Phase 2 complete (can run parallel with Phase 3)
 **Exit Criteria:** Claude Code can add and search docs; MCP tools work with AI agents
+
+> **Two corrections shape this whole phase.**
+>
+> 1. **The local HTTP API was open to every web page the user visits.** `CorsLayer::permissive()`
+>    plus "localhost is always trusted" means any site could read the user's library and drive
+>    `POST /sources` — an SSRF primitive into their private network. It also contradicted
+>    `12-security-considerations.md`, which specified no CORS. Fixed in P4-009 and P4-012.
+> 2. **MCP over a Unix socket is not a thing.** MCP defines stdio and Streamable HTTP. As
+>    originally specified, the flagship Claude Code integration could not have connected. Fixed in
+>    P4-013 and P4-014.
 
 ---
 
@@ -66,15 +77,26 @@ Global Options:
 
 Commands:
   add <url|path>     Add documentation source
-  pull [source]      Fetch/update documentation (--all for all sources)
+  pull [source]      Fetch/update documentation (--all, --force, --parallel)
   search <query>     Search documentation (--scope, --limit)
   list               List all sources (--category, --json)
   remove <source>    Remove a source (--confirm)
-  config [source]    View/edit configuration
+  config [source]    View/edit configuration; `config rotate-token`
+  registry           Browse/install from the source registry (list, search, add)
   serve              Start local API server (--port)
-  mcp                Start MCP server (--socket, --port)
-  status             Show sync and index status
-  export             Export bookmarks/annotations (--format)
+  mcp                Start MCP server (stdio; --http --port for Streamable HTTP)
+  status             Show sync and index status (--show-token)
+  export             Export bookmarks/annotations (--format, --output)
+  import <path>      Import previously exported bookmarks/annotations
+  debug <sub>        Diagnostics and recovery; hidden from top-level --help
+                     check-integrity | rebuild-index | reset-sync
+                     rollback-migration --version N | reset --confirm
+
+There is deliberately no `tome sync`: `pull` fetches documentation content, and
+bookmark sync is automatic and not user-invoked. Earlier drafts used `tome sync`,
+`tome import`, `tome rebuild-index` and `tome debug ...` in examples across three
+other documents without ever adding them here -- a CLI defined by whoever wrote the
+most recent example. This list is now the complete surface.
 
 Exit Codes:
   0: Success
@@ -200,7 +222,7 @@ Implement the command to add new documentation sources.
 - [ ] Accept URL or local path
 - [ ] Auto-detect platform type
 - [ ] Interactive confirmation (unless --yes)
-- [ ] Create config file in ~/.tome/sources/
+- [ ] Create config file in the sources directory (path via P1-006)
 - [ ] Trigger initial pull after adding
 - [ ] Show progress during pull
 - [ ] Handle duplicate detection
@@ -255,7 +277,7 @@ Suggested name: python-3
 
 Add this source? [Y/n] y
 
-Created: ~/.tome/sources/python-3.yaml
+Created: ~/Library/Application Support/Tome/sources/python-3.yaml
 Fetching documentation...
   [=====>                    ] 234/1847 pages
 
@@ -741,13 +763,17 @@ Build the HTTP server using Axum framework.
 
 #### Acceptance Criteria
 - [ ] Axum server setup
-- [ ] Configurable port (default 7431)
-- [ ] Localhost binding by default
+- [ ] **Server does not start unless explicitly enabled** (preference or `tome serve`)
+- [ ] Configurable port (default 7431); clear error if the port is in use
+- [ ] Binds `127.0.0.1` only; any other bind address requires an explicit flag and logs a warning
+- [ ] **Bearer token required on every route except `GET /api/v1/status`** — including loopback
+- [ ] **No CORS headers by default.** Allowlist opt-in only; `*` is rejected at config load
+- [ ] `Host` and `Origin` validated (DNS-rebinding defence)
+- [ ] All routes under `/api/v1/`
+- [ ] Uniform JSON error envelope (see PRD Appendix B)
+- [ ] Per-token rate limiting
+- [ ] Request logging that never records query strings or page paths (they are user content)
 - [ ] Graceful shutdown
-- [ ] Request logging
-- [ ] Error handling middleware
-- [ ] CORS middleware
-- [ ] Health check endpoint
 
 #### Technical Notes
 ```rust
@@ -778,20 +804,52 @@ pub async fn run_server(config: ServerConfig) -> Result<()> {
         // Status
         .route("/api/status", get(handlers::status))
 
-        // Middleware
-        .layer(CorsLayer::permissive())
+        // Middleware. Order matters: outermost runs first.
+        .layer(middleware::from_fn(guard_origin_and_host)) // DNS-rebinding defence
+        .layer(middleware::from_fn_with_state(state.clone(), require_bearer_token))
+        .layer(cors_layer(&config))                        // strict allowlist; NEVER permissive
         .layer(TraceLayer::new_for_http())
         .layer(Extension(app_state));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], config.port));
     tracing::info!("Starting server on {}", addr);
 
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 
     Ok(())
+}
+
+/// No allowlist configured => emit no CORS headers at all, so browsers cannot
+/// read responses cross-origin. `CorsLayer::permissive()` is never correct for a
+/// localhost service holding user data.
+fn cors_layer(config: &ServerConfig) -> CorsLayer {
+    match config.allowed_origins.as_slice() {
+        [] => CorsLayer::new(),
+        origins => CorsLayer::new()
+            .allow_origin(origins.iter().map(|o| o.parse().unwrap()).collect::<Vec<_>>())
+            .allow_methods([Method::GET, Method::POST, Method::DELETE])
+            .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE]),
+    }
+}
+
+/// Binding to 127.0.0.1 does not stop a hostile page: an attacker-controlled name
+/// can resolve to 127.0.0.1 (DNS rebinding) and the request still arrives here.
+/// Rejecting unexpected Host/Origin values is what actually closes that door.
+async fn guard_origin_and_host(req: Request, next: Next) -> Result<Response, ApiError> {
+    let host = req.headers().get(header::HOST).and_then(|h| h.to_str().ok());
+    match host.map(|h| h.split(':').next().unwrap_or(h)) {
+        Some("localhost") | Some("127.0.0.1") | Some("[::1]") => {}
+        _ => return Err(ApiError::Forbidden("unexpected Host header")),
+    }
+    if let Some(origin) = req.headers().get(header::ORIGIN) {
+        if !is_allowed_origin(origin) {
+            return Err(ApiError::Forbidden("origin not allowed"));
+        }
+    }
+    Ok(next.run(req).await)
 }
 
 async fn shutdown_signal() {
@@ -832,14 +890,22 @@ pub async fn search(
     Query(params): Query<SearchParams>,
     Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<SearchResponse>, ApiError> {
-    let results = state.search_engine
-        .search(&params.q, params.scope.as_deref(), params.limit.unwrap_or(10))
+    let limit = params.limit.unwrap_or(10).min(MAX_LIMIT);   // bound it: `limit=1000000` is a DoS
+    let started = Instant::now();
+
+    // `total_hits` is the count of matching documents, which is NOT `results.len()`
+    // once a limit is applied. The original returned the page size as the total, so
+    // every paginated response reported the wrong number.
+    let hits = state.search_engine
+        .search(&params.q, params.scope.as_deref(), limit)
         .await?;
 
     Ok(Json(SearchResponse {
-        results,
-        total: results.len(),
-        query_time_ms: 0, // TODO: measure
+        returned: hits.results.len(),
+        total_hits: hits.total,
+        // Originally `0, // TODO: measure` -- a placeholder in the published API contract.
+        query_time_ms: started.elapsed().as_millis() as u64,
+        results: hits.results,   // moved last: the original read `results.len()` after moving it
     }))
 }
 
@@ -847,11 +913,20 @@ pub async fn add_source(
     Extension(state): Extension<Arc<AppState>>,
     body: String, // Accept YAML or JSON
 ) -> Result<Json<Source>, ApiError> {
-    let config: SourceConfig = if body.trim().starts_with('{') {
-        serde_json::from_str(&body)?
-    } else {
-        serde_yaml::from_str(&body)?
-    };
+    if body.len() > MAX_CONFIG_BYTES {
+        return Err(ApiError::PayloadTooLarge);
+    }
+
+    // Sniffing on a leading '{' is fragile -- leading whitespace, a BOM, or a JSON
+    // array all defeat it. Prefer the Content-Type header and fall back to trying
+    // JSON then YAML.
+    let config: SourceConfig = parse_source_config(&body, content_type)?;
+
+    // THE critical check. Without it this endpoint is a server-side request forgery
+    // primitive: any local process -- or any web page, before the CORS fix -- could
+    // make Tome fetch http://169.254.169.254/ or an internal admin host and then read
+    // the result back through GET /pages.
+    validate_source_url(config.url())?;
 
     let source = state.source_manager.add(config).await?;
     Ok(Json(source))
@@ -951,40 +1026,45 @@ pub async fn create_bookmark(
 
 ### P4-012: Add API authentication (optional token)
 
-**Priority:** Medium
+**Priority:** Critical
 **Complexity:** S (1-2 days)
 **Dependencies:** P4-009
 **Blocks:** None
 
 #### Description
-Add optional token-based authentication for API access.
+Implement mandatory token authentication for API access.
+
+**Priority raised from Medium to Critical.** Authentication was specified as optional and
+Medium-priority for a service that exposes the user's entire reading history and can be made to
+fetch arbitrary URLs. It is the control that makes the rest of the API safe to ship.
 
 #### Acceptance Criteria
-- [ ] Localhost access always allowed
-- [ ] Token required for non-localhost (when enabled)
-- [ ] Token in Authorization header (Bearer)
-- [ ] Token generated and stored securely
-- [ ] Token rotation command
-- [ ] Clear error for missing/invalid token
+- [ ] **Token required for every request, loopback included.** No bypass, no opt-out.
+- [ ] Token generated on first run from a CSPRNG (≥ 256 bits), stored in the macOS Keychain
+- [ ] Token in `Authorization: Bearer` header; compared in constant time
+- [ ] `tome status --show-token` prints it; `tome config rotate-token` replaces it
+- [ ] Token never written to logs, never included in error messages, never in the config YAML
+- [ ] `GET /api/v1/status` is the only unauthenticated route and returns only status + version
+- [ ] Clear, non-leaky error for missing/invalid token (401, no hint about why)
+- [ ] Test asserts that a request with no token, a wrong token, and a token from a previous
+      rotation are all rejected
 
 #### Technical Notes
 ```rust
-pub async fn auth_middleware(
+pub async fn require_bearer_token(
     headers: HeaderMap,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Extension(state): Extension<Arc<AppState>>,
     request: Request<Body>,
     next: Next<Body>,
 ) -> Result<Response, ApiError> {
-    // Always allow localhost
-    if addr.ip().is_loopback() {
-        return Ok(next.run(request).await);
-    }
-
-    // Check if auth is enabled
-    if !state.config.require_auth {
-        return Ok(next.run(request).await);
-    }
+    // NOTE: there is deliberately no loopback bypass and no `require_auth` opt-out.
+    //
+    // The original middleware returned early for `addr.ip().is_loopback()`. On a
+    // desktop machine loopback is not a trust boundary: every other process on the
+    // system, and every web page in the user's browser, can originate a loopback
+    // request. The bypass exempted precisely the attacker we care about.
+    //
+    // Unauthenticated status is routed around this layer, not special-cased here.
 
     // Validate token
     let token = headers
@@ -993,9 +1073,9 @@ pub async fn auth_middleware(
         .and_then(|v| v.strip_prefix("Bearer "));
 
     match token {
-        Some(t) if state.validate_token(t) => {
-            Ok(next.run(request).await)
-        }
+        // Constant-time comparison: a naive `==` on a secret leaks its prefix
+        // through timing to any local process willing to measure.
+        Some(t) if state.validate_token(t) => Ok(next.run(request).await),
         _ => Err(ApiError::Unauthorized),
     }
 }
@@ -1019,12 +1099,16 @@ pub async fn auth_middleware(
 Design the Model Context Protocol server architecture.
 
 #### Acceptance Criteria
-- [ ] MCP protocol specification review
-- [ ] Tool definitions (functions AI can call)
-- [ ] Transport options (Unix socket, TCP)
-- [ ] State management approach
-- [ ] Error handling for AI clients
-- [ ] Resource limits and timeouts
+- [ ] MCP specification reviewed against the **current** protocol revision (SPIKE-008)
+- [ ] Tool definitions with JSON Schema inputs and documented outputs
+- [ ] Transport: stdio default, Streamable HTTP optional
+- [ ] Concurrency model defined for multiple simultaneous server processes
+- [ ] Error handling that returns actionable tool errors rather than JSON-RPC transport errors
+- [ ] Result size budget and truncation semantics defined per tool
+- [ ] Timeouts on every tool call
+- [ ] **Write-capable tools (`tome_bookmark`) are opt-in**, disabled by default. An agent that can
+      silently mutate the user's library on a prompt injection from a scraped documentation page
+      is a genuine attack path — the docs Tome ingests are untrusted text that agents will read.
 
 #### Technical Notes
 ```typescript
@@ -1090,18 +1174,39 @@ interface TomeTools {
 }
 ```
 
-**Transport:**
-```
-Default: Unix socket at ~/.tome/mcp.sock
-Optional: TCP on configurable port
+**Transport: stdio by default.**
 
-Configuration:
-mcp:
-  enabled: true
-  socket: ~/.tome/mcp.sock
-  # or
-  port: 7432
+> **Correction.** The original design specified a Unix domain socket. MCP does not define a raw
+> Unix socket transport — it defines **stdio** and **Streamable HTTP**. No MCP client, including
+> Claude Code, can connect to `~/.tome/mcp.sock`. The headline integration of this entire phase
+> would not have worked with its headline client. There is no `mcp.sock`.
+
+| Transport | Status | How it is used |
+|-----------|--------|----------------|
+| **stdio** | Default | The client spawns `tome mcp`; JSON-RPC framed over stdin/stdout |
+| **Streamable HTTP** | Opt-in | `tome mcp --http --port 7432`; same bearer token, same Host/Origin guard as the HTTP API |
+
+What the user actually configures:
+
+```json
+{ "mcpServers": { "tome": { "command": "tome", "args": ["mcp"] } } }
 ```
+
+**Consequences of stdio that the design must account for:**
+
+- The server is **spawned per client and is short-lived**. It cannot hold an exclusive lock on the
+  index or the database: open Tantivy read-only, and let SQLite's normal locking handle writes.
+  Multiple MCP clients plus the app may run concurrently.
+- **Nothing may be written to stdout except protocol messages.** A stray `println!` corrupts the
+  stream and the client disconnects with an opaque parse error. Logging goes to stderr, always.
+  This deserves a lint or a wrapper type around stdout.
+- Startup must be fast — the client waits on `initialize`. Defer index opening until the first
+  tool call.
+
+**Tool result sizing.** A documentation page can be enormous. Results are truncated to a token
+budget with `truncated: true`, and `tome_get_page` accepts a `section` argument so an agent can
+fetch a TOC subtree instead of the whole document. Returning 200 KB into an agent's context window
+is a defect.
 
 #### Success Metrics
 - All tools defined clearly
@@ -1121,18 +1226,20 @@ mcp:
 Implement the MCP protocol server.
 
 #### Acceptance Criteria
-- [ ] JSON-RPC 2.0 protocol handling
-- [ ] Tool registration with MCP
-- [ ] Request/response handling
-- [ ] Error responses per spec
-- [ ] Unix socket listener
-- [ ] TCP listener (optional)
-- [ ] Concurrent request handling
-- [ ] Graceful shutdown
+- [ ] JSON-RPC 2.0 over stdio, correctly framed
+- [ ] `initialize` handshake with version negotiation; accepts the client's version when supported
+- [ ] `notifications/initialized` handled
+- [ ] `tools/list` and `tools/call` implemented
+- [ ] Error responses per spec, distinguishing protocol errors from tool errors
+- [ ] Optional Streamable HTTP listener behind `--http`, reusing the API's auth and Host/Origin guard
+- [ ] **Nothing but protocol messages on stdout**; all logging to stderr (enforced by a test that
+      asserts stdout is pure JSON-RPC for a scripted session)
+- [ ] Concurrent request handling within a session
+- [ ] Clean exit when stdin closes — the client going away must not leave orphaned processes
 
 #### Technical Notes
 ```rust
-use tokio::net::UnixListener;
+use tokio::io::{stdin, stdout, AsyncBufReadExt, BufReader, BufWriter};
 
 pub struct McpServer {
     tools: HashMap<String, Box<dyn McpTool>>,
@@ -1140,44 +1247,33 @@ pub struct McpServer {
 }
 
 impl McpServer {
-    pub async fn run(self, socket_path: &Path) -> Result<()> {
-        // Remove existing socket
-        let _ = fs::remove_file(socket_path);
+    /// One process, one client, stdio. No listener, no accept loop, no `self.clone()`
+    /// (the original sample cloned a struct that is not Clone).
+    pub async fn run_stdio(self) -> Result<()> {
+        let mut reader = BufReader::new(stdin());
+        let mut writer = BufWriter::new(stdout());
 
-        let listener = UnixListener::bind(socket_path)?;
-        tracing::info!("MCP server listening on {:?}", socket_path);
+        // Everything diagnostic goes to stderr. A single stray write to stdout
+        // corrupts the JSON-RPC stream and the client disconnects.
+        tracing::info!(target: "stderr", "MCP server ready (stdio)");
 
-        loop {
-            let (stream, _) = listener.accept().await?;
-            let server = self.clone();
-            tokio::spawn(async move {
-                if let Err(e) = server.handle_connection(stream).await {
-                    tracing::error!("MCP connection error: {}", e);
-                }
-            });
-        }
-    }
-
-    async fn handle_connection(&self, stream: UnixStream) -> Result<()> {
-        let (reader, writer) = stream.into_split();
-        let mut reader = BufReader::new(reader);
-        let mut writer = BufWriter::new(writer);
-
-        loop {
-            let request: JsonRpcRequest = read_message(&mut reader).await?;
-
+        while let Some(request) = read_message(&mut reader).await? {   // None => stdin closed
             let response = match request.method.as_str() {
-                "initialize" => self.handle_initialize(&request).await,
-                "tools/list" => self.handle_list_tools(&request).await,
-                "tools/call" => self.handle_call_tool(&request).await,
+                "initialize"              => self.handle_initialize(&request).await,
+                "notifications/initialized" => { continue }            // notification: no reply
+                "tools/list"              => self.handle_list_tools(&request).await,
+                "tools/call"              => self.handle_call_tool(&request).await,
                 _ => JsonRpcResponse::error(request.id, -32601, "Method not found"),
             };
-
-            write_message(&mut writer, &response).await?;
+            write_message(&mut writer, &response).await?;              // flush every message
         }
+        Ok(())   // stdin closed: exit cleanly rather than looping on EOF
     }
 }
 ```
+
+Note the original loop had no EOF handling: `read_message` on a closed stream would either error
+every iteration or spin forever, leaving orphaned processes behind every disconnected client.
 
 #### Success Metrics
 - Handles MCP initialize handshake
@@ -1366,10 +1462,10 @@ slash_commands:
     usage: /tome list
     handler: tome_list
 
-  - name: sync
-    description: Sync documentation sources
-    usage: /tome sync [source]
-    handler: tome_sync
+  - name: pull
+    description: Fetch/update documentation sources
+    usage: /tome pull [source]
+    handler: tome_pull   # matches the CLI; `sync` means bookmark sync, which is automatic
 
   - name: remove
     description: Remove documentation source
@@ -1377,7 +1473,8 @@ slash_commands:
     handler: tome_remove
 
 mcp:
-  server: ~/.tome/mcp.sock
+  command: tome
+  args: ["mcp"]          # stdio; there is no socket
   tools:
     - tome_search
     - tome_get_page
@@ -1430,11 +1527,15 @@ Implement the configurable sync strategy system.
 #### Acceptance Criteria
 - [ ] Manual sync (only when triggered)
 - [ ] On-launch sync (check at app start)
-- [ ] Scheduled sync (daily, weekly, monthly)
-- [ ] Watch sync (monitor package registry)
+- [ ] Scheduled sync (daily, weekly, monthly), with missed schedules coalesced — not replayed —
+      after the app has been closed
+- [ ] Watch sync: registry checked at most daily per source, jittered, conditional requests
+- [ ] Per DEC-006, `watch` **notifies by default rather than fetching**, honouring the NFR
+      "no background network activity without user action"
 - [ ] Version pinning (ignore updates)
-- [ ] Background sync execution
-- [ ] Sync state persistence
+- [ ] Background sync is cancellable and yields to user-initiated work
+- [ ] Sync state persisted across restarts
+- [ ] Concurrency capped: a `--all` pull must not open 50 simultaneous crawls
 
 #### Technical Notes
 ```rust
@@ -1458,42 +1559,47 @@ pub struct SyncScheduler {
 
 impl SyncScheduler {
     pub async fn start(&self) {
-        let mut interval = tokio::time::interval(Duration::from_secs(60));
+        // The tick only decides what is DUE. It must never make a network call
+        // itself -- the original design polled every watched package's registry on
+        // a 60-second interval, which for 30 watched crates is ~43,000 requests a
+        // day to crates.io for information that changes weekly. That is both abusive
+        // and a direct contradiction of the non-functional requirement "no background
+        // network activity without user action".
+        let mut interval = tokio::time::interval(Duration::from_secs(15 * 60));
 
         loop {
             interval.tick().await;
-
-            for source in &self.sources {
-                if self.should_sync(&source) {
-                    if let Err(e) = self.sync_source(&source).await {
-                        tracing::error!("Sync failed for {}: {}", source.name, e);
-                    }
-                }
+            for source in self.sources.iter().filter(|s| self.is_due(s)) {
+                self.enqueue(source).await;     // bounded worker pool does the work
             }
         }
     }
 
-    fn should_sync(&self, source: &SourceConfig) -> bool {
+    fn is_due(&self, source: &SourceConfig) -> bool {
         if source.sync.pin_version {
             return false;
         }
 
         match &source.sync.strategy {
-            SyncStrategy::Manual => false,
-            SyncStrategy::OnLaunch => false, // Handled separately
+            SyncStrategy::Manual   => false,
+            SyncStrategy::OnLaunch => false, // handled at startup
             SyncStrategy::Scheduled(schedule) => {
-                let last_sync = source.last_synced;
                 let threshold = match schedule {
-                    Schedule::Daily => Duration::from_secs(24 * 60 * 60),
-                    Schedule::Weekly => Duration::from_secs(7 * 24 * 60 * 60),
-                    Schedule::Monthly => Duration::from_secs(30 * 24 * 60 * 60),
+                    Schedule::Daily   => ChronoDuration::days(1),
+                    Schedule::Weekly  => ChronoDuration::weeks(1),
+                    Schedule::Monthly => ChronoDuration::days(30),
                 };
-                last_sync.elapsed() > threshold
+                // `last_synced` is an Option<DateTime<Utc>>, not an Instant: it is
+                // persisted across restarts. The original called `.elapsed()` on it,
+                // which does not compile, and treated "never synced" as unhandled.
+                match source.last_synced {
+                    None => true,                                   // never synced => due
+                    Some(t) => Utc::now() - t > threshold,
+                }
             }
-            SyncStrategy::Watch { source: pkg } => {
-                // Check package registry for new version
-                self.check_registry_update(pkg)
-            }
+            // Registry checks are rate-limited per source (at most daily, jittered),
+            // and are decided here, not performed here.
+            SyncStrategy::Watch { .. } => self.registry_check_due(source),
         }
     }
 }
@@ -1501,21 +1607,33 @@ impl SyncScheduler {
 
 **Package Registry Watching:**
 ```rust
-async fn check_registry_update(package: &str) -> bool {
-    let (registry, name) = package.split_once(':').unwrap();
+async fn check_registry_update(package: &str) -> Result<bool, WatchError> {
+    // `split_once(':').unwrap()` panicked on any malformed watch spec -- and the
+    // spec comes from a user-edited YAML file.
+    let (registry, name) = package
+        .split_once(':')
+        .ok_or_else(|| WatchError::MalformedSpec(package.to_string()))?;
+
     match registry {
+        // Each of these must send a User-Agent identifying Tome with contact info
+        // (crates.io rejects requests without one), use conditional requests, and
+        // honour Retry-After. Results are cached for at least 24h.
         "crates" => check_crates_io(name).await,
-        "npm" => check_npm(name).await,
-        "pypi" => check_pypi(name).await,
-        _ => false,
+        "npm"    => check_npm(name).await,
+        "pypi"   => check_pypi(name).await,
+        other    => Err(WatchError::UnknownRegistry(other.to_string())),
     }
 }
 ```
 
 #### Success Metrics
 - All strategies working
-- Schedule accuracy within 1 hour
-- Watch detects updates < 1 hour after publish
+- Schedule accuracy within 1 hour of the due time
+- **Watch detects a new version within 24 hours of publish.** The original target of "< 1 hour"
+  could only be met by polling registries aggressively, which is unfriendly and buys the user
+  nothing — documentation for a release published an hour ago is rarely urgent.
+- A malformed `watch_source` produces a config validation error, not a panic
+- Registry request volume stays under 1 request per watched source per day
 
 ---
 
@@ -1576,10 +1694,16 @@ P2-001 (Search Engine)
 - [ ] `tome search` returns relevant results
 - [ ] `tome list` shows all sources
 - [ ] All CLI commands support --json
-- [ ] HTTP API server runs on localhost:7431
+- [ ] HTTP API server runs on `127.0.0.1:7431`, **off by default**, all routes under `/api/v1/`
 - [ ] API endpoints work (search, sources, pages, bookmarks)
-- [ ] MCP server runs on Unix socket
-- [ ] MCP tools callable (tome_search, tome_get_page, etc.)
+- [ ] **A request without a bearer token is rejected, including from loopback**
+- [ ] **A cross-origin `fetch()` from a web page cannot read any API response** — verified by an
+      actual browser test, not by reading the config
+- [ ] `POST /api/v1/sources` rejects private, loopback, and link-local targets, including via redirect
+- [ ] **MCP server runs over stdio and Claude Code connects to it** — this is the exit criterion
+      that the original Unix-socket design could not have satisfied
+- [ ] MCP tools callable (tome_search, tome_get_page, etc.); write tools disabled by default
+- [ ] `tome mcp` emits nothing on stdout but JSON-RPC
 - [ ] Claude Code can invoke `/tome` commands
-- [ ] Sync strategies work (manual, scheduled, watch)
-- [ ] Documentation complete for all integrations
+- [ ] Sync strategies work (manual, scheduled, watch) within their rate budgets
+- [ ] Every command, route, and tool that exists is present in its specification document

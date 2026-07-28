@@ -17,16 +17,26 @@ This document outlines the post-launch support model and maintenance practices f
 ### No Dedicated Support
 
 As an open-source project:
-- No SLAs or guaranteed response times
+- **No SLAs or guaranteed response times**
 - No paid support tiers
 - Community-driven support via GitHub Discussions
 - Maintainer(s) triage issues as time permits
+
+> **This must stay consistent with `17-rollback-recovery.md`**, which specified P0 "Immediate",
+> P1 "< 4 hours", P2 "< 24 hours". Those are SLAs, and they directly contradict this section — and
+> they are not achievable by one person who also has a job. The incident levels there are now
+> framed as **internal prioritization**, not commitments to users. Publishing a response time you
+> cannot honour is worse than publishing none.
 
 ---
 
 ## Issue Management
 
 ### Issue Templates
+
+Committed at `.github/ISSUE_TEMPLATE/`. Prefer **YAML issue forms** over the Markdown-with-
+frontmatter style shown below: forms can mark fields required, which is what actually stops bug
+reports arriving without a version number.
 
 **Bug Report:**
 ```markdown
@@ -54,8 +64,10 @@ about: Report a bug in Tome
 - macOS version:
 - Chip: M1 / M2 / M3 / M4
 
-## Logs
-[Attach relevant logs from ~/.tome/logs/ if applicable]
+## Diagnostics
+[Help → Copy Debug Info. This is redacted automatically — it contains no page
+paths, search queries, or note text. Please do not paste raw log files, which
+are not redacted.]
 
 ## Screenshots
 [If applicable]
@@ -152,30 +164,12 @@ New Issue
 
 ### Release Process
 
-```bash
-# 1. Ensure main is stable
-git checkout main
-git pull
-cargo test && npm test
+**Authoritative procedure:
+[`10-cicd-devops.md` § Creating a Release](./10-cicd-devops.md#creating-a-release).**
 
-# 2. Update version numbers
-# - Cargo.toml
-# - package.json
-# - tauri.conf.json
-
-# 3. Update CHANGELOG.md
-# 4. Commit
-git add -A
-git commit -m "chore: release v1.1.0"
-
-# 5. Tag
-git tag v1.1.0
-git push origin main --tags
-
-# 6. CI builds, signs, notarizes, publishes
-# 7. Write release notes on GitHub
-# 8. Announce (if significant)
-```
+Restated here, it had already drifted into the same defect: `git push origin main --tags` is a
+direct push to a branch that branch protection makes unpushable (required reviews, required
+checks, linear history). Version bumps go through a PR.
 
 ### Release Notes Template
 
@@ -217,32 +211,27 @@ SHA256: abc123...
 
 | Task | Frequency | Description |
 |------|-----------|-------------|
-| Dependency updates | Weekly | Review Dependabot PRs |
-| Security audit | Monthly | Run `cargo audit`, `npm audit` |
+| Dependency updates | Weekly | Review Dependabot PRs (grouped patch/minor; majors reviewed individually) |
+| Security audit | **Every CI run** | `cargo audit`, `cargo deny`, `npm audit`, secret scan — automated, not a calendar reminder |
+| **Registry source verification** | Weekly, automated | CI re-runs each registry config against the live site and opens an issue on breakage |
 | Issue triage | Weekly | Review and label new issues |
-| Documentation review | Monthly | Update outdated docs |
-| Performance check | Quarterly | Run benchmarks, profile |
+| Documentation review | Per release | Tied to shipping, not to the calendar — calendar-based doc reviews are the first thing to lapse |
+| Performance check | Per release + nightly benchmarks | Regression alerts, not a manual quarterly ritual |
+
+> **Cadence was stated three different ways** — weekly here, weekly via a separate `cargo update`
+> cron in `10-cicd-devops.md`, and monthly in `09-non-functional-requirements.md`. One mechanism
+> (Dependabot), one cadence (weekly). The cron workflow is superseded.
+>
+> **Automate rather than schedule.** The registry verification job is the highest-value item in
+> this table: it converts RISK-003 (scrapers silently rotting) from something discovered by
+> frustrated users into a CI failure with a name attached.
 
 ### Dependency Updates
 
-```yaml
-# Dependabot config (.github/dependabot.yml)
-version: 2
-updates:
-  - package-ecosystem: "cargo"
-    directory: "/src-tauri"
-    schedule:
-      interval: "weekly"
-    reviewers:
-      - "maintainer"
-
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    reviewers:
-      - "maintainer"
-```
+**Authoritative Dependabot config:
+[`10-cicd-devops.md` § Dependency Updates](./10-cicd-devops.md#dependency-updates).** It adds the
+`github-actions` ecosystem — actions drift too, and they are the components that hold signing
+secrets.
 
 **Update policy:**
 - Patch versions: Auto-merge if CI passes
@@ -282,6 +271,8 @@ Since Tome has no telemetry, monitoring is external:
 - Critical bugs fixed within 1 week
 - Regular releases (at least quarterly)
 - Dependencies reasonably up to date
+- **Registry verification job green** — if scraper configs are failing, the product is quietly
+  breaking for new users even while existing installs look fine
 
 **Warning signs:**
 - Issue backlog growing
