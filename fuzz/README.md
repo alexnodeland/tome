@@ -41,7 +41,7 @@ in a pre-commit gate.
 | `model_ids` | `SourceId`/`PagePath`/`ContentHash` never panic, and whatever constructs cannot traverse (no separators, no dot segments) | Live |
 | `html_parser` | Zero panics parsing any byte sequence (P1-012's acceptance criterion, otherwise unverified) | S1-7 |
 | `sanitizer` | No input yields output containing script-capable markup | S1-9 |
-| `source_config` | No panic on any YAML, valid or not | S1-3 |
+| `source_config` | No panic on any YAML; whatever parses honours the validated invariants (rate ≤ cap, https-or-allow_insecure, …) | Live |
 | `annotation_anchor` | Re-anchoring resolves or reports `orphaned`, never lands on the wrong text | S3 |
 
 The properties in the right-hand column are the point. A fuzz target that only

@@ -35,3 +35,10 @@ path = "fuzz_targets/model_ids.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "source_config"
+path = "fuzz_targets/source_config.rs"
+test = false
+doc = false
+bench = false
