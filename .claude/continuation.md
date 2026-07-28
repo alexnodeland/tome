@@ -12,8 +12,9 @@ Tome was a docs-only repo: a PRD plus 18 planning documents, no code. The plan w
 (PR #4, **merged**). **Stage 0 is complete** — the scaffold plus S0-6 (fixture HTTP server), S0-7
 (golden-corpus harness) and S0-8 (property + fuzz scaffolding), so agent output on the ingestion
 path is verifiable *before* it is written. The app builds, launches, and creates its library at the
-right paths; the CLI is a stub except `tome status`. **No ingestion, no reader, no search — Stage 1
-is where the product starts existing.**
+right paths; the CLI is a stub except `tome status`. **SPIKE-002 (reader bridge) has run for real — the Stage 1
+entry gate is met.** No ingestion, no reader, no search — Stage 1 is where the product starts
+existing.
 
 ```
 main   ← everything below is merged; branch from here
@@ -97,24 +98,28 @@ loader. The property test says so in a comment rather than asserting something t
 be weakened to pass. When S1 lands path validation, that assertion belongs in
 `crates/tome-core/tests/paths_properties.rs` and in the `paths` fuzz target.
 
-### Immediately: SPIKE-002, the entry gate for Stage 1
+### Done: SPIKE-002 — the Stage 1 entry gate is met
 
-**It must actually run, not be reasoned about.** The original plan's Unix-socket MCP design is what
-happens when an agent answers a question about an external system from memory, and it survived
-review because it read plausibly. Paste real output into the spike write-up; an agent's summary of
-what a WebView bridge does is not evidence.
+Ran 2026-07-28, three times, against the built debug app. **Read
+`docs/spikes/002-reader-iframe-bridge.md` before touching S1-13** — raw output, eight findings,
+and the protocol S1-13 inherits. The short version: one postMessage carries a full 500 KB page in
+~0.1 ms (no streaming protocol, ever); the srcdoc frame inherits the app CSP and a meta CSP
+stacks on top (violations log twice, once per policy); the bootstrap must be an external script
+and `'self'` is meaningless in the opaque origin; `__TAURI_INTERNALS__` is unreachable from the
+frame; `getSelection()` works for quote+prefix/suffix anchoring. Two traps found: **Tauri's event
+API is deny-by-default** — no `src-tauri/capabilities/` file means `listen()` rejects, silently
+if unawaited (`capabilities/default.json` now grants `core:event:default` and nothing else); and
+**occluded windows suspend rAF and clamp timers to ~230 ms**, so frame pacing went unmeasured
+headlessly and is an S1-13 interactive acceptance item instead. The spike harness
+(`src-tauri/src/spike002.rs`, `src/spike/spike002.ts`, `public/spike002-frame.js`, the
+`spike002_mode` hook in `src/main.ts`) comes out when S1-13 lands.
 
-SPIKE-002 is the reader's IPC bridge: a sandboxed `<iframe>` inside Tauri's primary webview, page
-HTML in, selection and scroll events out. What has to come back with real output attached:
+### Immediately: SPIKE-010, then Stage 1
 
-- Can the iframe be given a restrictive CSP *and* still receive page HTML from the Rust side?
-- What is the actual message shape and cost for a 500 KB page — one postMessage, or streamed?
-- Does `window.getSelection()` inside the sandboxed iframe give ranges usable for annotation
-  anchoring (quote + prefix/suffix), or does sandboxing break it?
-
-Also worth running early: **SPIKE-010** (legal posture, ~1 day) — it gates committing real fetched
-pages to the golden corpus, which S1-8 needs. `crates/tome-core/corpus/README.md` already says the
-question is open; the corpus should not fill up before it is answered.
+**SPIKE-010** (legal posture, ~1 day) gates committing real fetched pages to the golden corpus,
+which S1-8 needs. `crates/tome-core/corpus/README.md` already says the question is open; the
+corpus should not fill up before it is answered. Stage 1 can start regardless — S1-1 (freeze core
+types) does not touch the corpus, and the which-site-first question below only bites at S1-7/S1-8.
 
 ### Then: Stage 1 — the vertical slice
 
@@ -159,6 +164,17 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 - A proptest generator for "arbitrary absolute root" will happily generate `/~`, which fails the
   no-literal-tilde property for a reason that is not a bug. The generator excludes `~`; the
   property is about what Tome constructs, not about what a user may name a directory.
+
+**App shell (from SPIKE-002 — details in `docs/spikes/002-reader-iframe-bridge.md`)**
+
+- **Tauri core APIs are deny-by-default and fail silently when the rejection is not awaited.**
+  No `src-tauri/capabilities/` directory meant `listen()` rejected and 180 events vanished with
+  no error. `capabilities/default.json` grants `core:event:default` only; extend it deliberately.
+- **An occluded window suspends rAF entirely and clamps timers to ~230 ms** (WKWebView). Nothing
+  in the reader may gate correctness on rAF, and headless runs cannot measure frame pacing.
+- **`'self'` in a CSP inside the sandboxed frame matches nothing** — the origin is opaque. Name
+  the app origin explicitly (from `location.origin`), and keep the frame bootstrap external:
+  the srcdoc document inherits the app CSP, which has no `unsafe-inline` for scripts.
 
 **Build / tooling**
 
