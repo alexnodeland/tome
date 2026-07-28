@@ -260,7 +260,7 @@ This is the stage that answers whether the product is possible.
 
 | # | Work | Spec | Model | Parallel |
 |---|------|------|-------|----------|
-| S1-1 | Freeze core types: `Source`, `Page`, `Node` (AST), `DocSet` | P1-004/012 | **Opus** | serial — everything depends on it |
+| S1-1 ✅ | Freeze core types: `Source`, `Page`, `Node` (AST), `DocSet` | P1-004/012 | **Opus** | done 2026-07-28 — `tome-core/src/model/`; serde shape pinned by test |
 | S1-2 | SQLite schema + migrations + repos | P1-004/021 | Fable | ∥ S1-3, S1-4 |
 | S1-3 | Source config YAML parser + validation | P1-005 | Fable | ∥ |
 | S1-4 | HTTP client: rate limit, robots.txt, retry, conditional GET | P1-008 | Fable | ∥ |

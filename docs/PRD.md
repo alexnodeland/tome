@@ -719,8 +719,15 @@ incompatible with the design as drawn (see [File System Layout](#file-system-lay
 **Source:**
 
 ```rust
+// As frozen by S1-1 (crates/tome-core/src/model/), with one correction to
+// this sketch: `id` is a validated slug (`SourceId`), NOT a Uuid. The slug
+// is the config file name, the on-disk directory name, what the CLI takes,
+// and what the registry ships — and ADR-0001's bookmark sync needs the SAME
+// source added on two devices to be the SAME identity, which per-device
+// UUIDs would break. tome-core's `model` module is authoritative for the
+// exact shapes; this sketch shows intent.
 struct Source {
-    id: Uuid,
+    id: SourceId,       // validated slug, e.g. "python" — see correction above
     name: String,
     source_type: SourceType,  // ReadTheDocs, Rustdoc, Man, Generic...
     url: Option<String>,
@@ -740,13 +747,19 @@ struct Source {
 **Page:**
 
 ```rust
+// Corrected by S1-1: a page's identity is (source, path) — the natural key
+// this document's own Bookmark and Annotation types already reference — and
+// there is no surrogate Uuid. `path` and `content_hash` are validated
+// newtypes; the fetch validators (ETag / Last-Modified) live here so re-sync
+// can be conditional.
 struct Page {
-    id: Uuid,
-    source_id: Uuid,
-    path: String,           // Relative path within source
+    source: SourceId,
+    path: PagePath,             // relative path within source, validated
     title: String,
-    content_hash: String,   // For change detection
-    last_modified: DateTime,
+    content_hash: ContentHash,  // SHA-256 of normalized content
+    fetched_at: DateTime<Utc>,
+    etag: Option<String>,
+    last_modified: Option<String>,
 }
 ```
 

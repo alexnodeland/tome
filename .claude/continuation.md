@@ -126,10 +126,33 @@ published guidelines (< 4 req/s, self-identifying UA — stay well under). One n
 remembering at S1-6: **nodejs.org disallows `/docs/` but allows `/api/`** — crawl the current
 API docs, never the versioned tree.
 
-### Immediately: Stage 1 — start with S1-1
+### Done: S1-1 — the core types are frozen
 
-S1-1 (freeze `Source`/`Page`/`Node`/`DocSet`) is serial, blocks the whole stage, and is Opus
-work. The which-site-first question below only bites at S1-7/S1-8.
+`crates/tome-core/src/model/` (2026-07-28). What later stages need to know:
+
+- **The serde shape is a contract.** `tests/model_serde_shape.rs` pins exact JSON; failing it
+  means stored data and IPC break — migration territory, never an accident. Additive changes
+  (new variant, new field with a default) pass it untouched.
+- **`SourceId` is a validated slug, not a Uuid; `Page` has no surrogate id** (identity =
+  `(source, path)`). Both are PRD corrections with the reasoning in `model/mod.rs` — the short
+  version is ADR-0001: bookmark sync needs the same source on two devices to be the same
+  identity. The PRD data-model sketches carry corrective comments.
+- **`SourceId`/`PagePath` validation is the containment story.** No separators, no dot
+  segments, rejected not normalized; the `model_ids` fuzz target asserts it. **Follow-up that
+  belongs to S1-2/S1-4:** migrate `Paths` accessors from `&str` to `&SourceId`, then add the
+  containment assertion to `paths_properties.rs` and the `paths` fuzz target (the deliberate
+  S0 gap closes then).
+- **The `Node` AST has no raw-HTML variant, on purpose** — a `Raw(String)` node would be a
+  sanitizer bypass by construction. `DefinitionList` exists because Sphinx renders every API
+  entry as a `<dl>`. Unknown admonition kinds render as notes, never dropped.
+- S1-3 maps the flat YAML sync fields into `SyncStrategy` (the enum makes
+  `schedule`-without-`scheduled` unrepresentable); S1-2 owns the DB mapping.
+
+### Immediately: the S1 fan-out
+
+S1-2 (SQLite schema + repos), S1-3 (config parser), S1-4 (HTTP client) are parallel behind
+S1-1 and all Fable-shaped. S1-7 (HTML→AST, Opus) can also start — its output type is frozen.
+The which-site-first question below bites at S1-7/S1-8.
 
 ### Then: Stage 1 — the vertical slice
 
@@ -230,9 +253,10 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 - **DEC-005** docset import priority · **DEC-006** `watch` fetch vs notify · **DEC-007** note format ·
   **DEC-008** export targets. All non-blocking.
 - **PR #2** — the stale scaffolding branch, superseded. Left open; ask before closing.
-- **Which docs site S1 targets first.** The plan's exit gate names `docs.python.org` (Sphinx). If
-  they would rather see rustdoc or mdBook render first, that changes S1-7/S1-8 fixture priorities
-  and nothing else — worth one question before starting S1, not a blocker.
+- ~~Which docs site S1 targets first~~ — **answered 2026-07-28: `docs.python.org`**, as the
+  plan's exit gate names. S1-7/S1-8 fixtures and the first corpus suite are Sphinx-first;
+  the `<dl>`-based API entries are the hard case, and `DefinitionList` in the frozen AST
+  exists for exactly them.
 - **Going public + Actions billing.** They said they'll flip to public "once we're pretty much done
   and ready to release". Until then CI stays red-but-meaningless.
 - **Suggested to them, no response yet:** backport the macOS 15 Gatekeeper caveats fix to

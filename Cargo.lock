@@ -3602,12 +3602,15 @@ dependencies = [
 name = "tome-core"
 version = "0.0.0"
 dependencies = [
+ "chrono",
  "directories",
  "proptest",
  "serde",
+ "serde_json",
  "tempfile",
  "thiserror 2.0.19",
  "tracing",
+ "url",
 ]
 
 [[package]]

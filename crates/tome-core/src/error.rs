@@ -31,6 +31,20 @@ pub enum Error {
     #[error("Invalid configuration in {file}: {message}")]
     Config { file: PathBuf, message: String },
 
+    // The three validation errors below deliberately do not echo the
+    // rejected value (rule 2 above): source ids arrive in config files and
+    // registry entries, page paths are reading history. The message states
+    // the rule that was violated; the caller that has the value decides
+    // whether its context is safe enough to log it.
+    #[error("Invalid source id: {message}.")]
+    InvalidSourceId { message: &'static str },
+
+    #[error("Invalid page path: {message}.")]
+    InvalidPagePath { message: &'static str },
+
+    #[error("Invalid content hash: expected 64 lowercase hex characters.")]
+    InvalidContentHash,
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }

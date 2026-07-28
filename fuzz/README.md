@@ -38,6 +38,7 @@ in a pre-commit gate.
 | Target | Property | Status |
 |--------|----------|--------|
 | `paths` | No `Paths` accessor panics on any input | Live |
+| `model_ids` | `SourceId`/`PagePath`/`ContentHash` never panic, and whatever constructs cannot traverse (no separators, no dot segments) | Live |
 | `html_parser` | Zero panics parsing any byte sequence (P1-012's acceptance criterion, otherwise unverified) | S1-7 |
 | `sanitizer` | No input yields output containing script-capable markup | S1-9 |
 | `source_config` | No panic on any YAML, valid or not | S1-3 |
