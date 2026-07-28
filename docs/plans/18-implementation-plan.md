@@ -267,7 +267,7 @@ This is the stage that answers whether the product is possible.
 | S1-4 ✅ | HTTP client: rate limit, robots.txt, retry, conditional GET | P1-008 | Fable | done 2026-07-28 — `tome-core/src/fetch/`; sync client, manual redirects (per-hop robots + the S1-5 seam); `robots` fuzz target live |
 | S1-5 | **SSRF filter** | P1-008 / security | **Opus + adversarial verify** | after S1-4 |
 | S1-6 | BFS crawl + URL filter | P1-010/011 | Fable | after S1-4 |
-| S1-7 | HTML → AST parser (html5ever) | P1-012 | Opus | ∥ S1-2..S1-6 |
+| S1-7 ✅ | HTML → AST parser (html5ever) | P1-012 | Opus | done 2026-07-28 — `tome-core/src/parse.rs`; `html_parser` fuzz target live from day one |
 | S1-8 | Normalization pipeline | P1-013 | Opus + golden corpus | after S1-7 |
 | S1-9 | **Sanitizer** | security | **Opus + adversarial verify** | after S1-7 |
 | S1-10 | Asset localization | P1-023 | Fable | after S1-8 |

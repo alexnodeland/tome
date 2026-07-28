@@ -39,7 +39,7 @@ in a pre-commit gate.
 |--------|----------|--------|
 | `paths` | No `Paths` accessor panics on any input; every constructible `SourceId` resolves to exactly one component under the right root | Live |
 | `model_ids` | `SourceId`/`PagePath`/`ContentHash` never panic, and whatever constructs cannot traverse (no separators, no dot segments) | Live |
-| `html_parser` | Zero panics parsing any byte sequence (P1-012's acceptance criterion, otherwise unverified) | S1-7 |
+| `html_parser` | Zero panics parsing any byte sequence (P1-012's criterion); root always a Document; AST serde round-trips; links http(s)-only | Live |
 | `sanitizer` | No input yields output containing script-capable markup | S1-9 |
 | `source_config` | No panic on any YAML; whatever parses honours the validated invariants (rate ≤ cap, https-or-allow_insecure, …) | Live |
 | `robots` | robots.txt parser/matcher never panics and never goes exponential; `/robots.txt` always fetchable | Live |
