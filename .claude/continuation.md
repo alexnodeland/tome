@@ -253,9 +253,10 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 - **DEC-005** docset import priority · **DEC-006** `watch` fetch vs notify · **DEC-007** note format ·
   **DEC-008** export targets. All non-blocking.
 - **PR #2** — the stale scaffolding branch, superseded. Left open; ask before closing.
-- **Which docs site S1 targets first.** The plan's exit gate names `docs.python.org` (Sphinx). If
-  they would rather see rustdoc or mdBook render first, that changes S1-7/S1-8 fixture priorities
-  and nothing else — worth one question before starting S1, not a blocker.
+- ~~Which docs site S1 targets first~~ — **answered 2026-07-28: `docs.python.org`**, as the
+  plan's exit gate names. S1-7/S1-8 fixtures and the first corpus suite are Sphinx-first;
+  the `<dl>`-based API entries are the hard case, and `DefinitionList` in the frozen AST
+  exists for exactly them.
 - **Going public + Actions billing.** They said they'll flip to public "once we're pretty much done
   and ready to release". Until then CI stays red-but-meaningless.
 - **Suggested to them, no response yet:** backport the macOS 15 Gatekeeper caveats fix to
