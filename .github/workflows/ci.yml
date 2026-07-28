@@ -58,6 +58,13 @@ jobs:
       - name: Frontend lint and formatting
         run: npm run lint
 
+      - name: Design token contrast and light/dark parity
+        # docs/plans/15-design-system.md § "Automated contrast checking".
+        # Colour is the one part of a design system that cannot be reviewed by
+        # looking at it: the two failures the plan review found both looked
+        # fine and neither passed 4.5:1.
+        run: node scripts/check-contrast.mjs
+
   audit:
     name: Security audit
     runs-on: ubuntu-latest

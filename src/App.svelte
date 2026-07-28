@@ -97,6 +97,8 @@
     font-size: var(--text-sm);
   }
   .error {
-    color: #ff3b30;
+    /* Token, not a literal: #FF3B30 measures 3.4:1 on the page background and
+       is an indicator fill, not a text colour. See scripts/check-contrast.mjs. */
+    color: var(--color-error-text);
   }
 </style>

@@ -24,6 +24,14 @@ export default [
     },
   },
   {
+    // Build/gate scripts run under Node, not in a webview, so their globals
+    // are Node's. `scripts/` is not shipped and is not bundled.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { console: 'readonly', process: 'readonly' },
+    },
+  },
+  {
     // Test fixtures are data. `searchindex.js` is a miniature of Sphinx's own
     // output and calls a global the real page defines; linting it as project
     // source reports that global as undefined, which is true and irrelevant.

@@ -12,6 +12,7 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test": "vitest run",
+    "check:contrast": "node scripts/check-contrast.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "tauri": "tauri"

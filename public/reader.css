@@ -1,0 +1,495 @@
+/* The reader's stylesheet — implementation plan S1-12, tickets P1-015/P1-014.
+   Loaded by the sandboxed reader iframe (S1-13) alongside `tokens.css`, both
+   from the app origin.
+
+   Two things about this file are not obvious:
+
+   1. **It is the only styling the page gets.** Documentation HTML arrives as
+      a typed AST with no `style` attributes, no `<style>`, and no classes of
+      its own except the ones the renderer emits (S1-13) and the highlighter
+      emits (S1-11). Nothing here is defending against a page's own CSS,
+      because a page cannot bring any.
+   2. **It must not need JavaScript.** The frame runs under a CSP with no
+      `unsafe-inline`, and the reader has to render with the network off.
+      Light/dark, line numbers, and print are all pure CSS for that reason. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* The app owns the scroll container's background so that overscroll and
+     the rubber-band area match the chrome rather than flashing white. */
+  background: var(--color-bg-primary);
+}
+
+body {
+  margin: 0;
+  padding: var(--space-6) var(--space-5) var(--space-12);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  -webkit-font-smoothing: antialiased;
+  /* Documentation is full of long identifiers and URLs. Without this a
+     `std::collections::hash_map::DefaultHasher` pushes a horizontal
+     scrollbar onto the whole document. */
+  overflow-wrap: break-word;
+}
+
+::selection {
+  background: var(--color-selection);
+}
+
+/* ---- Measure ------------------------------------------------------------
+
+   70ch is the readable measure, and everything in the flow honours it except
+   the things that are unreadable when squeezed: code blocks and tables get
+   the full column and scroll inside themselves. A `<pre>` wrapped to 70ch
+   re-wraps code that was formatted to 100. */
+
+.tome-page {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+.tome-page > pre,
+.tome-page > .tome-table-scroll,
+.tome-page > figure {
+  max-width: min(100%, var(--content-max-width));
+  /* Centre the wider element on the same axis as the 70ch column. */
+  margin-inline: auto;
+}
+
+/* ---- Headings ----------------------------------------------------------- */
+
+.tome-page h1,
+.tome-page h2,
+.tome-page h3,
+.tome-page h4,
+.tome-page h5,
+.tome-page h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  /* A heading must not be separated from what it introduces. */
+  margin: 2em 0 0.5em;
+  /* So an in-page `#fragment` jump does not tuck the heading under the
+     window edge. Harmless when the frame is not the scroll container. */
+  scroll-margin-top: var(--space-5);
+}
+
+.tome-page h1 {
+  font-size: var(--text-3xl);
+  letter-spacing: -0.022em;
+  margin-top: 0;
+}
+.tome-page h2 {
+  font-size: var(--text-2xl);
+  letter-spacing: -0.015em;
+}
+.tome-page h3 {
+  font-size: var(--text-xl);
+}
+.tome-page h4 {
+  font-size: var(--text-lg);
+}
+.tome-page h5,
+.tome-page h6 {
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+}
+
+/* ---- Flow --------------------------------------------------------------- */
+
+.tome-page p {
+  margin: 0 0 1em;
+}
+
+.tome-page a {
+  color: var(--color-link);
+  /* Underline offset and thickness, not `text-decoration: none`. An
+     unstyled-looking link in a wall of prose is a link nobody finds. */
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.15em;
+  text-decoration-color: color-mix(in srgb, var(--color-link) 45%, transparent);
+}
+.tome-page a:hover {
+  color: var(--color-link-hover);
+  text-decoration-color: var(--color-link-hover);
+}
+
+.tome-page ul,
+.tome-page ol {
+  margin: 0 0 1em;
+  padding-left: 1.4em;
+}
+.tome-page li {
+  margin-bottom: 0.35em;
+}
+.tome-page li > ul,
+.tome-page li > ol {
+  margin-top: 0.35em;
+  margin-bottom: 0;
+}
+
+.tome-page blockquote {
+  margin: 1.5em 0;
+  padding: 0 0 0 var(--space-4);
+  border-left: 3px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+.tome-page blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.tome-page hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-8) 0;
+}
+
+.tome-page img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Definition lists ---------------------------------------------------
+
+   Not decoration. Sphinx renders every API entry -- every function, class,
+   and method on docs.python.org -- as a `<dl>`, so this block styles the
+   single most common structure on the Stage 1 target site. The term is the
+   signature and wants the monospace treatment a signature deserves. */
+
+.tome-page dl {
+  margin: 1.5em 0;
+}
+.tome-page dt {
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-tertiary);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  scroll-margin-top: var(--space-5);
+  overflow-x: auto;
+}
+.tome-page dd {
+  margin: 0.75em 0 1.75em;
+  padding-left: var(--space-4);
+}
+.tome-page dd > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---- Tables -------------------------------------------------------------
+
+   A wide table scrolls inside its own container. It must never widen the
+   document -- a body that scrolls horizontally makes every paragraph on the
+   page harder to read to fix one table. */
+
+.tome-page .tome-table-scroll {
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+.tome-page table {
+  border-collapse: collapse;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  min-width: 100%;
+}
+.tome-page th,
+.tome-page td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.tome-page th {
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border-strong);
+  white-space: nowrap;
+}
+
+/* ---- Code ---------------------------------------------------------------
+
+   15px per the PRD, not --text-sm. Inline code is sized in `em` so it tracks
+   whatever it sits inside (a heading, a table cell); block code is sized
+   absolutely because it is its own context. */
+
+.tome-page code,
+.tome-page kbd,
+.tome-page samp {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  font-variant-ligatures: none;
+}
+
+.tome-page :not(pre) > code {
+  padding: 0.1em 0.3em;
+  background: var(--color-code-bg);
+  border: 1px solid var(--color-code-border);
+  border-radius: var(--radius-sm);
+  /* Otherwise a long path in inline code is the one thing that overflows. */
+  overflow-wrap: break-word;
+}
+
+.tome-page pre {
+  margin: 1.5em 0;
+  padding: var(--space-4);
+  background: var(--color-code-bg);
+  border: 1px solid var(--color-code-border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  /* Code is pre-formatted by its author. Wrapping it silently changes what
+     the page says, so it scrolls instead. */
+  white-space: pre;
+  tab-size: 4;
+}
+
+.tome-page pre code {
+  font-size: var(--text-code);
+  line-height: var(--leading-normal);
+  color: var(--color-code-text);
+  background: none;
+  border: 0;
+  padding: 0;
+  /* The highlighter emits one `<span class="line">` per line; making them
+     blocks is what lets a line number, a highlight, or a hover target
+     address a line. */
+  display: block;
+}
+
+.tome-page pre .line {
+  display: block;
+  min-height: 1lh;
+}
+
+/* ---- Line numbers -------------------------------------------------------
+
+   A CSS counter over the line spans the highlighter already emits, so
+   turning numbers on adds no markup, no second rendering path, and no
+   re-highlighting -- one attribute on the root of the frame. Off by default.
+
+   `user-select: none` matters more than it looks: without it, selecting a
+   code block copies the line numbers along with the code. */
+
+:root[data-line-numbers='true'] .tome-page pre code {
+  counter-reset: tome-line;
+}
+:root[data-line-numbers='true'] .tome-page pre .line::before {
+  counter-increment: tome-line;
+  content: counter(tome-line);
+  display: inline-block;
+  width: 2.5em;
+  margin-right: var(--space-3);
+  text-align: right;
+  color: var(--color-text-tertiary);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- Syntax tokens ------------------------------------------------------
+
+   The highlighter (S1-11) flattens each scope to its atoms, prefixed:
+   `keyword.control.rust` becomes `tok-keyword tok-control tok-rust`. So
+   these are single-class selectors of equal specificity, and **source order
+   decides**: the later rule wins on a span carrying several atoms. The order
+   below is deliberate -- a token inside a comment reads as a comment, and a
+   quote around a string reads as the string, not as punctuation.
+
+   `tok-meta` and `tok-source` are deliberately unstyled: they wrap whole
+   regions rather than tokens, and colouring them would tint everything. */
+
+.tome-page .tok-punctuation {
+  color: var(--tok-punctuation);
+}
+.tome-page .tok-variable,
+.tome-page .tok-parameter {
+  color: var(--tok-variable);
+}
+.tome-page .tok-support,
+.tome-page .tok-type,
+.tome-page .tok-class {
+  color: var(--tok-support);
+}
+.tome-page .tok-entity,
+.tome-page .tok-tag {
+  color: var(--tok-entity);
+}
+.tome-page .tok-storage,
+.tome-page .tok-keyword {
+  color: var(--tok-keyword);
+}
+.tome-page .tok-constant,
+.tome-page .tok-numeric {
+  color: var(--tok-constant);
+}
+.tome-page .tok-string {
+  color: var(--tok-string);
+}
+.tome-page .tok-comment {
+  color: var(--tok-comment);
+  font-style: italic;
+}
+.tome-page .tok-invalid {
+  color: var(--tok-invalid);
+  background: var(--tok-invalid-bg);
+  border-radius: 2px;
+}
+
+/* ---- Admonitions --------------------------------------------------------
+
+   The renderer emits `class="tome-admonition tome-admonition--<kind>"` with
+   the kind already restricted to `[a-z0-9-]` by the sanitizer. An unknown
+   kind gets the base treatment rather than being dropped -- the AST's own
+   rule, honoured here so a `.. seealso::` block still looks like a block. */
+
+.tome-page .tome-admonition {
+  margin: 1.5em 0;
+  padding: var(--space-4);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--color-bg-tertiary);
+  font-size: 0.95em;
+}
+.tome-page .tome-admonition > :last-child {
+  margin-bottom: 0;
+}
+.tome-page .tome-admonition-title {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-2);
+  color: var(--color-link);
+}
+
+.tome-page .tome-admonition--warning,
+.tome-page .tome-admonition--caution,
+.tome-page .tome-admonition--attention {
+  border-left-color: var(--color-warning);
+}
+.tome-page .tome-admonition--warning .tome-admonition-title,
+.tome-page .tome-admonition--caution .tome-admonition-title,
+.tome-page .tome-admonition--attention .tome-admonition-title {
+  color: var(--color-warning-text);
+}
+
+.tome-page .tome-admonition--danger,
+.tome-page .tome-admonition--error {
+  border-left-color: var(--color-error);
+}
+.tome-page .tome-admonition--danger .tome-admonition-title,
+.tome-page .tome-admonition--error .tome-admonition-title {
+  color: var(--color-error-text);
+}
+
+.tome-page .tome-admonition--tip,
+.tome-page .tome-admonition--hint {
+  border-left-color: var(--color-success);
+}
+.tome-page .tome-admonition--tip .tome-admonition-title,
+.tome-page .tome-admonition--hint .tome-admonition-title {
+  color: var(--color-success-text);
+}
+
+/* ---- Focus and motion --------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* An occluded WKWebView window suspends rAF entirely and clamps timers to
+   ~230ms (SPIKE-002 finding 8). Nothing here may gate correctness on motion,
+   and a user who asked for less of it gets none. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ---- Print --------------------------------------------------------------
+
+   Printing a documentation page should produce a document, not a screenshot
+   of an app. Force the light palette (a dark page prints as a black
+   rectangle), drop the measure limit for paper's own column, and expand code
+   blocks rather than clipping them at a scroll boundary that does not exist
+   on paper. */
+
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  html,
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+  body {
+    padding: 0;
+    font-size: 11pt;
+  }
+  .tome-page {
+    max-width: none;
+  }
+  .tome-page a {
+    color: inherit;
+  }
+  /* The destination of a link is invisible on paper unless it is written
+     out. Only external ones -- printing every in-page `#fragment` would be
+     noise. */
+  .tome-page a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    word-break: break-all;
+  }
+  .tome-page pre,
+  .tome-page .tome-table-scroll {
+    overflow: visible;
+    border: 1px solid #cccccc;
+  }
+  .tome-page pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  /* Never orphan a heading at the foot of a page, and never split a code
+     block or a table row across one. */
+  .tome-page h1,
+  .tome-page h2,
+  .tome-page h3,
+  .tome-page h4 {
+    break-after: avoid;
+  }
+  .tome-page pre,
+  .tome-page tr,
+  .tome-page img,
+  .tome-page .tome-admonition {
+    break-inside: avoid;
+  }
+}

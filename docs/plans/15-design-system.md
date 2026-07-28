@@ -122,7 +122,9 @@ This document defines the visual language, components, and patterns for Tome's u
 
 | Name | Light | Dark | Usage |
 |------|-------|------|-------|
-| Accent | `#5856D6` | `#5E5CE6` | Links, buttons, active states |
+| Accent | `#5856D6` | `#5E5CE6` | Button and indicator **fills**, active states. **Not link text and not the focus ring** -- see the contrast findings below |
+| Link | `#5856D6` | `#9D9BF5` | Link text, in the chrome and in the reader |
+| Focus | `#5856D6` | `#9D9BF5` | The focus ring, on every surface it can appear over |
 | Background | `#FAFAFA` | `#1C1C1E` | App background |
 | Surface | `#FFFFFF` | `#2C2C2E` | Cards, panels |
 | Text Primary | `#1D1D1F` | `#F5F5F7` | Body text |
@@ -926,27 +928,45 @@ Applied at review time. Each item exists because the original components missed 
 - [ ] Dialogs: `aria-modal`, focus trap, Escape, focus restored to the trigger on close
 - [ ] Focus is visible against **every** background the element can sit on
 - [ ] Colour is never the only carrier of meaning (sync state needs an icon shape, not just red)
-- [ ] Text and its background meet 4.5:1; UI borders meet 3:1; **verified against the tokens, not
-      by eye**
+- [ ] Text and its background meet 4.5:1; **boundaries that carry meaning** -- focus rings, input
+      outlines, control edges -- meet 3:1; **verified against the tokens, not by eye**. A hairline
+      between two panels that are already distinguished by their fills is decoration, not a
+      boundary WCAG 1.4.11 governs; the earlier "UI borders meet 3:1" was too broad to be true of
+      any palette this project would ship. `scripts/check-contrast.mjs` enumerates which pairs are
+      asserted and, just as importantly, which are not and why
 - [ ] Component is reachable and operable with the pointer unplugged
 
 ### Automated contrast checking
 
-The failures corrected above (two token pairs below 4.5:1, in a document that names accessibility
-as a principle) would have been caught by five lines of CI. Every foreground/background token pair
-that can legitimately combine is enumerated and asserted:
+**Built in S1-12. `scripts/check-contrast.mjs` runs in `scripts/check.sh` and in CI, and fails the
+build.** It parses `public/tokens.css` -- the file these token blocks now *are* -- and asserts
+three things:
 
-```js
-// scripts/check-contrast.mjs — runs in CI, fails the build
-const PAIRS = [
-  ['--color-text-primary',   '--color-bg-primary',   4.5],
-  ['--color-text-secondary', '--color-bg-primary',   4.5],
-  ['--color-text-tertiary',  '--color-bg-primary',   4.5],
-  ['--color-text-inverse',   '--color-accent',       4.5],
-  ['--color-border',         '--color-bg-primary',   3.0],
-  // ...for both themes, and for text over each highlight colour
-];
-```
+1. Every foreground/background pair that can legitimately combine meets its ratio, in both themes.
+2. Light and dark define the same set of colour tokens. A token with no dark variant silently uses
+   its light value on a dark background, which is what the original block did with the status
+   colours.
+3. The `@media (prefers-color-scheme: dark)` block and the `:root[data-theme="dark"]` override are
+   byte-identical. They must be duplicated (a media query cannot honour an explicit choice), and
+   duplication nothing checks is duplication that drifts.
+
+Its first run found three real defects in the palette this document specified, none of which are
+visible by eye:
+
+| Defect | Measured | Fix |
+|---|---|---|
+| Dark `--color-accent` used as link text | 3.36:1 on `--color-bg-primary` | new `--color-link`, `#9D9BF5` in dark |
+| Dark `--color-accent` used as a focus ring | 2.70:1 on `--color-bg-secondary` | new `--color-focus`, same value |
+| Status colours used as *text* (admonition titles, error messages) | 1.96:1 for `--color-warning` on a panel | new `--color-success-text` / `--color-warning-text` / `--color-error-text` |
+
+`--color-accent` keeps its documented value: it is correct for a *fill*, and the three defects were
+all uses of it as something other than a fill. `--color-text-inverse` is `#FFFFFF` in **both**
+themes for the same reason -- white on the accent fill measures 5.6:1 light and 5.1:1 dark, while
+the "obvious" dark-mode value of dark-on-accent measures 3.3:1.
+
+The pairs the script deliberately does **not** assert are listed in it with reasons, which matters
+as much as the ones it does: panel dividers (~1.2:1, decoration under 1.4.11) and status *fills*
+(2.2:1, legitimate only because this document forbids colour as the sole carrier of meaning).
 
 ### Screen Reader Utilities
 

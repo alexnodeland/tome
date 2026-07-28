@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tome</title>
+    <!-- Design tokens, linked rather than bundled. The sandboxed reader
+         iframe has an opaque origin and its own document, so it cannot
+         inherit this cascade and links the same file itself — one source of
+         truth for both. Bundling it into the app's CSS would make a second
+         copy inevitable. See public/tokens.css. -->
+    <link rel="stylesheet" href="/tokens.css" />
   </head>
   <body>
     <div id="app"></div>
