@@ -268,8 +268,13 @@ impl Golden {
             let Some(name) = path.file_stem().and_then(|s| s.to_str()) else {
                 continue;
             };
-            // Editor droppings and per-directory READMEs are not cases.
-            if name.starts_with('.') || name.eq_ignore_ascii_case("readme") {
+            // Editor droppings, per-directory READMEs, and the SOURCES.md
+            // provenance file (the corpus convention places it in input/) are
+            // documentation, not cases.
+            if name.starts_with('.')
+                || name.eq_ignore_ascii_case("readme")
+                || name.eq_ignore_ascii_case("sources")
+            {
                 continue;
             }
 

@@ -1,0 +1,41 @@
+{
+  "title": "User guide",
+  "description": "This page exists to be reached as/guide/with no file name, so that the directory-index and trailing-slash redirect behaviour is covered.",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "anchor",
+        "id": "user-guide"
+      },
+      {
+        "type": "heading",
+        "level": 1,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "User guide"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This page exists to be reached as"
+          },
+          {
+            "type": "inline_code",
+            "code": "/guide/"
+          },
+          {
+            "type": "text",
+            "value": "with no file name, so that the directory-index and trailing-slash redirect behaviour is covered."
+          }
+        ]
+      }
+    ]
+  }
+}
