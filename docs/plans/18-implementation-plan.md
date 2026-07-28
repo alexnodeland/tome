@@ -271,7 +271,7 @@ This is the stage that answers whether the product is possible.
 | S1-8 ✅ | Normalization pipeline | P1-013 | Opus + golden corpus | done 2026-07-28 — `tome-core/src/normalize.rs` + `corpus/normalization` (seeded; ≥20 real sites is the remaining acceptance) |
 | S1-9 ✅ | **Sanitizer** | security | **Opus + adversarial verify** | done 2026-07-28 — `tome-core/src/sanitize.rs`; two corpora (XSS + anchors); refute-panel ran; `sanitizer` fuzz target live |
 | S1-10 ✅ | Asset localization | P1-023 | Fable | done 2026-07-28 — `tome-core/src/assets.rs`; AST `Image.src` localized, content-addressed, offline-gate test passes; srcset/video/SVG-sanitize/GC flagged (not in typed AST) |
-| S1-11 | Syntax highlighting | P1-014 | Fable | ∥ |
+| S1-11 ✅ | Syntax highlighting | P1-014 | Fable | done 2026-07-28 — `tome-core/src/highlight.rs` + `html.rs` (the one escaping helper S1-9's contract delegates to); syntect without themes or oniguruma, CSS classes not inline styles; `highlight` fuzz target + proptest properties live. **TypeScript aliases to JavaScript and TOML/Dockerfile/Kotlin/Swift render plain** — syntect's bundled set stops at Sublime's shipped packages; `two-face` is the upgrade path and is a licence decision |
 | S1-12 | Typography + design tokens | P1-015 / design system | Fable | ∥ |
 | S1-13 | Reader iframe + IPC bridge | P1-016 | **Opus** | after S1-12 |
 | S1-14 | Three-panel layout, library sidebar, TOC | P1-017/018/019 | Fable | after S1-13 |

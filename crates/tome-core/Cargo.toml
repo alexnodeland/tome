@@ -20,6 +20,7 @@ serde = { workspace = true }
 # frozen serde shape, so the same contract covers storage, IPC, and the API.
 serde_json.workspace = true
 serde_yaml_ng.workspace = true
+syntect.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 ureq.workspace = true
