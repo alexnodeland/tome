@@ -166,6 +166,78 @@ pub fn read_page(
     })
 }
 
+/// Open an external link in the user's browser.
+///
+/// The reader intercepts every click and routes it here rather than letting
+/// the frame navigate — the frame has no `allow-top-navigation` and no
+/// `allow-popups`, so a click would otherwise do nothing at all.
+///
+/// # Why this is hand-rolled rather than a plugin
+///
+/// `tauri-plugin-opener` would work, but it brings a dependency, a
+/// capability grant, and a scope syntax to get right — for a call that is
+/// three lines once the URL is validated. Hand-rolling keeps the **validation
+/// visible**, which is the part that matters: this hands a string from page
+/// content to the operating system's "open whatever this is" facility.
+///
+/// Three things make it safe, and all three are needed:
+///
+/// 1. **The URL is parsed, not pattern-matched.** `url::Url` is the same
+///    parser the crawler uses, so `java\tscript:` and friends collapse the
+///    way a browser would (see `sanitize.rs` for why that matters).
+/// 2. **The scheme is allowlisted** to `http`, `https`, and `mailto`. Not a
+///    denylist: macOS resolves *any* registered scheme to an application, and
+///    which schemes a given machine has registered is unknowable from here.
+/// 3. **No shell.** `Command` passes argv directly, so quoting cannot be
+///    escaped. And because the scheme allowlist runs first, the string always
+///    begins with a letter and so can never be read by `open` as a flag.
+#[tauri::command]
+pub fn open_external(url: String) -> Result<(), String> {
+    let parsed = validate_external(&url)?;
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("/usr/bin/open")
+            .arg(parsed.as_str())
+            .spawn()
+            .map_err(|e| format!("Could not open the link: {e}"))?;
+        Ok(())
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = parsed;
+        Err("Opening links is only implemented on macOS.".to_owned())
+    }
+}
+
+/// The validation half of [`open_external`], separated from the side effect.
+///
+/// Not only for tidiness: a test of `open_external` itself would *actually
+/// launch a browser* on the machine running it, which is both antisocial and
+/// a test that cannot assert what it wants to. Splitting the decision from
+/// the act makes the allowlist exhaustively testable and leaves the spawn as
+/// three unconditional lines.
+fn validate_external(url: &str) -> Result<url::Url, String> {
+    let parsed = url::Url::parse(url).map_err(|_| "That is not a link.".to_owned())?;
+
+    match parsed.scheme() {
+        "http" | "https" => {
+            // A scheme with no host is not a page anyone can visit. The
+            // parser rejects `http://` outright; this catches whatever else
+            // reaches here without one.
+            if parsed.host_str().is_none_or(str::is_empty) {
+                return Err("That link has no site to open.".to_owned());
+            }
+            Ok(parsed)
+        }
+        "mailto" => Ok(parsed),
+        // The message names the scheme — which is the actionable part — and
+        // never the URL, per `error.rs` rule 2: a link someone followed is
+        // reading history.
+        other => Err(format!("Tome will not open {other}: links.")),
+    }
+}
+
 /// The URL prefix a source's assets are served under.
 pub fn asset_base(source: &SourceId) -> String {
     format!("{ASSET_SCHEME}://localhost/{source}/")
@@ -396,6 +468,55 @@ mod tests {
         let url = format!("{base}assets/deadbeef.svg");
         let uri_path = url.trim_start_matches("tome://localhost");
         assert!(resolve_asset(&paths, uri_path).is_some(), "{url}");
+    }
+
+    #[test]
+    fn external_links_are_restricted_to_three_schemes() {
+        // macOS resolves ANY registered scheme to an application, and which
+        // schemes a machine has registered is unknowable from here — so this
+        // is an allowlist, and these are the ways past one.
+        for url in [
+            "javascript:alert(1)",
+            "file:///etc/passwd",
+            "vbscript:msgbox(1)",
+            "x-apple-systempreferences://",
+            "ms-msdt:/id",
+            "data:text/html,<script>alert(1)</script>",
+            "JavaScript:alert(1)",
+            "\u{1}javascript:alert(1)",
+            "not a url at all",
+            "/relative/path",
+            "//protocol-relative/x",
+            "http://",
+        ] {
+            assert!(validate_external(url).is_err(), "{url:?} should be refused");
+        }
+    }
+
+    #[test]
+    fn ordinary_links_are_allowed() {
+        for url in [
+            "https://docs.python.org/3/",
+            "http://example.org/a?b=c#d",
+            "mailto:someone@example.org",
+            // `https:///path` parses as the host `path` — an odd but real
+            // URL, not a bypass. Listed here rather than in the refusal set
+            // above, where it was wrong.
+            "https:///path",
+        ] {
+            assert!(validate_external(url).is_ok(), "{url:?} should be allowed");
+        }
+    }
+
+    #[test]
+    fn a_refused_link_says_so_without_echoing_it() {
+        // `error.rs` rule 2: a link someone followed is reading history. The
+        // message names the scheme, which is the actionable part, and not the
+        // URL.
+        let message =
+            validate_external("file:///Users/someone/secret.txt").expect_err("file: is refused");
+        assert!(!message.contains("secret"), "{message}");
+        assert!(message.contains("file"), "{message}");
     }
 
     #[test]

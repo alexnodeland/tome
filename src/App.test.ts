@@ -9,6 +9,14 @@ import { invoked, mockResponses } from './test/setup';
  * with what arguments — not Rust's behaviour, which Tier B integration tests
  * cover (`crates/tome-core/tests/reader_offline.rs`).
  */
+const READ_PAGE = {
+  source_id: 'fixture',
+  path: 'index.html',
+  title: 'Widget',
+  html: '<div class="tome-page"><h1 id="widget">Widget</h1></div>',
+  outline: [{ id: 'widget', title: 'Widget', level: 1, children: [] }],
+};
+
 describe('App', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -27,13 +35,7 @@ describe('App', () => {
       { path: 'index.html', title: 'Widget' },
       { path: 'api/reference.html', title: 'API reference' },
     ];
-    mockResponses.read_page = {
-      source_id: 'fixture',
-      path: 'index.html',
-      title: 'Widget',
-      html: '<div class="tome-page"><h1 id="widget">Widget</h1></div>',
-      outline: [{ id: 'widget', title: 'Widget', level: 1, children: [] }],
-    };
+    mockResponses.read_page = { ...READ_PAGE };
   });
 
   it('loads the first source and its first page on launch', async () => {
@@ -140,6 +142,81 @@ describe('App', () => {
     expect(await screen.findByRole('searchbox', { name: /filter/i })).toBeInTheDocument();
     expect(screen.getByRole('complementary', { name: 'Library' })).toBeInTheDocument();
     expect(screen.getByRole('complementary', { name: 'On this page' })).toBeInTheDocument();
+  });
+
+  it('starts with both history buttons disabled', async () => {
+    render(App);
+    await screen.findByTitle('Documentation');
+
+    expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Forward' })).toBeDisabled();
+  });
+
+  it('goes back and forward through visited pages', async () => {
+    const user = userEvent.setup();
+    render(App);
+    await screen.findByTitle('Documentation');
+
+    await user.click(screen.getByRole('button', { name: 'API reference' }));
+    mockResponses.read_page = { ...READ_PAGE, path: 'api/reference.html', title: 'API reference' };
+    const back = screen.getByRole('button', { name: 'Back' });
+    expect(back).toBeEnabled();
+
+    invoked.length = 0;
+    await user.click(back);
+    expect(invoked).toContainEqual(['read_page', { sourceId: 'fixture', path: 'index.html' }]);
+    expect(screen.getByRole('button', { name: 'Forward' })).toBeEnabled();
+
+    invoked.length = 0;
+    await user.click(screen.getByRole('button', { name: 'Forward' }));
+    expect(invoked).toContainEqual([
+      'read_page',
+      { sourceId: 'fixture', path: 'api/reference.html' },
+    ]);
+  });
+
+  it('binds back and forward to the documented shortcuts', async () => {
+    // PRD Appendix C: Cmd+[ and Cmd+]. Dispatched directly rather than
+    // through userEvent.keyboard, whose mini-language reserves `[` and `]`
+    // for key codes — escaping them would obscure which keys are meant.
+    const user = userEvent.setup();
+    render(App);
+    await screen.findByTitle('Documentation');
+    await user.click(screen.getByRole('button', { name: 'API reference' }));
+
+    const press = async (key: string) => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key, metaKey: true, bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    };
+
+    invoked.length = 0;
+    await press('[');
+    expect(invoked).toContainEqual(['read_page', { sourceId: 'fixture', path: 'index.html' }]);
+
+    invoked.length = 0;
+    await press(']');
+    expect(invoked).toContainEqual([
+      'read_page',
+      { sourceId: 'fixture', path: 'api/reference.html' },
+    ]);
+  });
+
+  it('hands an external link to Rust rather than deciding itself', async () => {
+    // The frontend classifies; `open_external` validates against an
+    // allowlist. Nothing here judges whether a URL is safe to hand to the OS.
+    render(App);
+    await screen.findByTitle('Documentation');
+    mockResponses.open_external = null;
+
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { type: 'navigate', href: 'https://example.com/x', modified: false },
+        source: (document.querySelector('iframe') as HTMLIFrameElement).contentWindow,
+      }),
+    );
+    await Promise.resolve();
+
+    expect(invoked).toContainEqual(['open_external', { url: 'https://example.com/x' }]);
   });
 
   it('titles the window bar with the page, not with the app name', async () => {
