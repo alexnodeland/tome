@@ -16,6 +16,8 @@ pub mod db;
 pub mod error;
 pub mod fetch;
 pub mod hash;
+pub mod highlight;
+pub mod html;
 pub mod model;
 pub mod normalize;
 pub mod parse;

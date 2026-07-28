@@ -50,6 +50,20 @@ ureq = "3"
 # the schema uses STRICT tables (3.37+) and behaviour must not vary by OS
 # point release.
 rusqlite = { version = "0.40", features = ["bundled"] }
+# Syntax highlighting (S1-11). Deliberately NOT the default feature set:
+#   * `regex-fancy` instead of `regex-onig` — oniguruma is a C library, and
+#     this workspace is otherwise pure Rust (`unsafe_code = "forbid"`, a
+#     single `cargo build` with no C toolchain assumptions).
+#   * no `default-themes` / `plist-load` / `yaml-load` — the reader uses
+#     `ClassedHTMLGenerator`, which emits CSS classes rather than inline
+#     colours, so themes are S1-12's stylesheet and light/dark switches
+#     without re-highlighting. Loading syntect's theme dumps would pull
+#     `plist` and `yaml-rust` in to produce colours we then throw away.
+syntect = { version = "5", default-features = false, features = [
+    "default-syntaxes",
+    "html",
+    "regex-fancy",
+] }
 
 # Test-only. `similar` produces the unified diffs the golden-corpus harness
 # prints; `proptest` and `tempfile` are used by tests across several crates.
