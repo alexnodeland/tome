@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- JavaScriptCore in WKWebView needs JIT. -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- Fetching documentation. -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- User-chosen local documentation directories (source type: local). -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- DELIBERATELY ABSENT, and why:
+
+         com.apple.security.app-sandbox
+           Incompatible with this design: the Homebrew-installed `tome` CLI is
+           not sandboxed, so a sandboxed app would resolve a different data
+           directory and the two would observe different libraries.
+           App Sandbox is only mandatory for Mac App Store distribution, and
+           Tome ships via DMG and Homebrew.
+           See docs/decisions/0002-no-app-sandbox.md.
+
+         com.apple.security.cs.allow-unsigned-executable-memory
+         com.apple.security.cs.disable-library-validation
+           Both materially weaken the hardened runtime -- the second permits
+           loading unsigned third-party libraries into the process -- and
+           neither is required by a Rust + Tauri app. Adding hardened-runtime
+           exceptions "just in case" is how an app ends up with a weaker
+           posture than the thing it replaced.
+
+         com.apple.security.network.server
+           The local API binds loopback only; no inbound entitlement needed.
+
+         iCloud / keychain-access-groups
+           Added when Phase 3 (sync) and the API token land. Not yet used, so
+           not yet requested.
+    -->
+</dict>
+</plist>

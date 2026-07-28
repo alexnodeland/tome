@@ -11,13 +11,13 @@ body:
     id: name
     attributes:
       label: Documentation name
-      placeholder: "Polars"
+      placeholder: 'Polars'
     validations: { required: true }
   - type: input
     id: url
     attributes:
       label: Documentation URL
-      placeholder: "https://docs.pola.rs/"
+      placeholder: 'https://docs.pola.rs/'
     validations: { required: true }
   - type: checkboxes
     id: permission

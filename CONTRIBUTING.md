@@ -77,7 +77,8 @@ Do not open a public issue for a vulnerability. See [`SECURITY.md`](SECURITY.md)
 
 ## Licensing of contributions
 
-The project licence is **not yet chosen** (DEC-001). Until it is, contributions cannot be accepted
-under a defined licence — which is itself a reason DEC-001 is urgent. Contributions are made under
-the [Developer Certificate of Origin](https://developercertificate.org/); sign off with
-`git commit -s`.
+Tome is dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at the user's
+option. Unless you state otherwise, contributions you submit are dual-licensed on the same terms.
+
+Contributions are made under the [Developer Certificate of Origin](https://developercertificate.org/);
+sign off with `git commit -s`.

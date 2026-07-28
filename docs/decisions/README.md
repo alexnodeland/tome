@@ -17,18 +17,18 @@ scattered across documents, contradicting each other, with no record of who chos
 
 | ID | Decision | Blocks | Notes |
 |----|----------|--------|-------|
-| **DEC-001** | Licence: MIT vs Apache-2.0 | Any public release; accepting contributions | No `LICENSE` file exists. The Phase-5 landing-page copy asserted MIT while the NFR document said "TBD". Apache-2.0 adds an explicit patent grant; MIT is shorter and more common in this space. Either is fine — **not choosing is not.** |
-| **DEC-002** | Bundle identifier and domain | Notarization, iCloud container, Keychain service, Homebrew zap | `com.example.tome` is currently threaded through the release pipeline. Needs a domain you control. |
 | **DEC-003** | Funding model | Distribution | The Apple Developer Program is $99/yr and is required for **both** notarization and iCloud. This is a standing cost, not a one-off task, and nothing in the plan accounted for it. |
-| **DEC-004** | Team size | **Every date in the roadmap** | The plan is ~381 person-days against 30 weeks ≈ 2.5 FTE. `06-dependency-map.md` assumes three developers; RISK-010 assumes one. See below. |
 | **DEC-005** | Dash docset import: v1.0 or v1.2? | Cold-start strategy | Currently v1.2. Importing existing docsets may be the cheapest possible answer to an empty library (RISK-013) and is worth reconsidering. |
 | **DEC-006** | `watch` strategy: fetch eagerly or notify? | P4-018 | Leaning **notify**, to honour "no background network activity the user did not configure". |
 | **DEC-007** | Annotation notes: plain text or Markdown? | P3-008 | Leaning Markdown, rendered read-only (rendering user Markdown in the reader frame must not become an injection path). |
 | **DEC-008** | Export destinations | Post-v1 | Plain Markdown files first — they satisfy most of Obsidian and Notion without an integration. |
 
-### DEC-004 in more detail
+### DEC-004 — resolved 2026-07-28
 
-This is the decision that changes the most, so it deserves more than a table row.
+**Answer: solo maintainer directing Fable + Opus agent workflows.** Scope cut to Stages 0–4 of
+[`18-implementation-plan.md`](../plans/18-implementation-plan.md); cross-device sync deferred.
+Recorded as [ADR-0005](./0005-agent-driven-build.md). The analysis that led there is kept below,
+because the reasoning still applies if capacity changes again.
 
 | Scenario | Duration | Recommended scope |
 |----------|----------|-------------------|
@@ -53,6 +53,9 @@ material pointed at the answer.
 |----|----------|--------|
 | [ADR-0001](./0001-file-based-icloud-sync.md) | Sync via an iCloud Drive container, not CloudKit | Accepted |
 | [ADR-0002](./0002-no-app-sandbox.md) | Ship without App Sandbox; Developer ID + hardened runtime | Accepted |
+| [ADR-0003](./0003-dual-mit-apache-licence.md) | Dual-licence MIT OR Apache-2.0 (**DEC-001**) | Accepted 2026-07-28 |
+| [ADR-0004](./0004-bundle-identifier.md) | Bundle identifier `com.alexnodeland.tome` (**DEC-002**) | Accepted 2026-07-28 |
+| [ADR-0005](./0005-agent-driven-build.md) | Solo maintainer directing agent workflows; scope cut (**DEC-004**) | Accepted 2026-07-28 |
 
 ---
 

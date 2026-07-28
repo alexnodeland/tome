@@ -1,0 +1,23 @@
+# cargo-deny. Enforced in CI (see .github/workflows/ci.yml).
+
+[licenses]
+# Must stay compatible with BOTH arms of our dual licence (ADR-0003).
+allow = [
+    "MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause", "BSD-3-Clause", "ISC", "Zlib",
+    "Unicode-3.0", "MPL-2.0", "CC0-1.0",
+]
+confidence-threshold = 0.9
+
+[bans]
+# A dependency pulled in twice at different versions is usually an agent
+# adding a crate that duplicates one already present.
+multiple-versions = "warn"
+wildcards = "deny"
+
+[advisories]
+yanked = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

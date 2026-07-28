@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Batch the noise; review majors individually.
+      patch-and-minor:
+        update-types: [patch, minor]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      patch-and-minor:
+        update-types: [patch, minor]
+
+  # Actions drift too, and they are the components that hold signing secrets.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

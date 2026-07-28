@@ -1,0 +1,411 @@
+# Implementation Plan
+
+**Build model:** solo maintainer directing Fable + Opus agent workflows
+**Created:** 2026-07-28
+**Supersedes:** the phase *sequencing* in `00-project-overview.md`. Ticket detail in `01`–`05`
+remains the specification; this document changes the order they are executed in and how they are
+verified.
+
+---
+
+## Why this is not just the old plan with dates
+
+The original plan is sized in person-days and sequenced horizontally: build all of the storage
+layer, then all of the scraping layer, then all of the UI. That is the right shape when the
+constraint is **how long a human takes to type correct code**.
+
+That is not the constraint here.
+
+With agents doing the implementation, three things change, and they change the plan structurally:
+
+| | Human-typed | Agent-written |
+|---|---|---|
+| **Scarce resource** | Time to write code | **Confidence that the code is right** |
+| **Cost of parallelism** | High — needs more people | Near zero — needs more *interfaces* |
+| **Cost of a wrong turn** | Noticed while typing | Noticed much later, after it has propagated |
+| **What review catches** | Most defects | Only defects you can still afford to read for |
+
+**The binding constraint becomes verification bandwidth.** An agent will produce 400 lines of
+confident, plausible, well-formatted Rust for the SSRF filter in two minutes. Whether it is correct
+is a separate question, and reading it carefully costs you roughly what writing it would have. If
+verification is manual, agents buy you nothing and cost you vigilance.
+
+So the whole plan reorganizes around one rule:
+
+> **Nothing gets implemented before the thing that proves it works.**
+
+That single inversion drives most of what follows: fixture corpora before scrapers, eval sets
+before ranking, property tests before sync, the path module before anything that touches disk.
+
+### The second inversion: interfaces before implementations
+
+Parallelism is cheap, but only across **stable boundaries**. Ten agents editing overlapping code
+produce merge conflicts and incoherent abstractions. Ten agents implementing ten traits that were
+frozen beforehand produce ten working modules.
+
+Every stage below therefore has the same internal shape:
+
+```
+freeze the interface  →  fan out implementations  →  adversarially verify  →  integrate
+   (Opus, serial)         (Fable, parallel)          (Opus, parallel)         (serial)
+```
+
+### What this does *not* change
+
+Effort estimates in `01`–`05` are kept as-is. They are still the honest human-equivalent size of
+each ticket, and they remain the best available proxy for *complexity* — which is what determines
+how much verification a ticket needs. A 7.5-day ticket does not become a 20-minute ticket because
+an agent writes it; it becomes a 20-minute *draft* that needs a 7.5-day-ticket's worth of scrutiny,
+most of which should be automated.
+
+---
+
+## Stage structure
+
+Six stages. Each has an entry gate that must pass before work starts and an exit gate that must
+pass before the next begins. Gates are machine-checked wherever possible.
+
+```
+S0  Foundations         make agent output verifiable at all
+S1  Vertical slice      one real docs site, fetched → rendered → offline
+S2  Search              plus the eval set that says whether it is any good
+S3  Agent access        CLI + MCP — the differentiated feature
+S4  Hardening & release notarized, distributed, documented
+S5  Sync                deferred; only if S1–S4 shipped and users asked
+```
+
+**Why a vertical slice before breadth.** The riskiest assumption in this product is not "can we
+build a scraper" — it is **"can arbitrary documentation sites be normalized into one consistent
+reading experience?"** If that is false, or only 60% true, everything downstream is worth less. The
+original Phase 1 would not answer it until week 8. S1 answers it in the first working chunk, on
+real sites, and the answer is a rendered page you can look at.
+
+---
+
+## Ticket format for agent execution
+
+Existing tickets in `01`–`05` are specifications. Before an agent runs one, it is restated in this
+shape. The additions are the last four fields, and they are the ones that make the difference.
+
+```markdown
+### T-042 · Implement the URL filter
+
+**Spec:** P1-011
+**Contract:** `pub struct UrlFilter { … }` with `fn matches(&self, url: &Url) -> bool`
+              — frozen in `crates/tome-core/src/scraper/mod.rs`, do not change it
+**Files:** `crates/tome-core/src/scraper/filter.rs` (create), `filter/tests.rs` (create)
+            Touch nothing else.
+
+**Done when:**
+  - [ ] `cargo test -p tome-core scraper::filter` passes
+  - [ ] `cargo clippy -- -D warnings` clean
+  - [ ] The table-driven cases in `fixtures/url-filter-cases.toml` all pass
+  - [ ] No new dependency added
+
+**Verification:** table-driven tests (committed BEFORE this ticket runs)
+**Model:** Fable — mechanically specified, fully covered by fixtures
+**Isolation:** none — single new file, no shared state
+**Parallel with:** T-040, T-041, T-043
+```
+
+Four rules that make this work, each learned from a specific way agent work goes wrong:
+
+1. **State the contract, don't describe it.** "Implement a filter that matches URLs" invites the
+   agent to invent a signature that then conflicts with three other tickets. Paste the exact
+   signature; it was frozen in the interface step for this reason.
+2. **Name the files it may touch.** Unscoped agents refactor adjacent code helpfully and
+   destructively. Scope is a correctness control, not tidiness.
+3. **"Done when" must be a command, not a judgement.** `cargo test X passes` is checkable.
+   "Handles edge cases gracefully" is not, and will be reported as done regardless.
+4. **The verification artifact is committed first**, by a different task, ideally by a different
+   model. An agent that writes both the implementation and the test that proves it will write a
+   test that passes.
+
+---
+
+## Model routing
+
+Routing is by **task shape**, not by importance. The question is always: *what does being subtly
+wrong here cost, and would the failure be visible?*
+
+| Route to Fable | Route to Opus |
+|---|---|
+| Contract is exact and fixtures already exist | The contract itself has to be designed |
+| Failure is loud (test fails, build breaks) | Failure is **silent** (wrong data, subtly weak check) |
+| Mechanical breadth: one scraper per platform, one component per design spec, CRUD, glue | Security-critical: sanitizer, SSRF, path validation, auth |
+| Well-trodden patterns with an obvious right answer | Concurrency, sync convergence, anything with ordering |
+| Test and fixture authoring from a spec | **Adversarial verification** of anything Fable wrote |
+| Docs, changelog, boilerplate | Anything touching an external system's real behaviour |
+
+**Always Opus, regardless of apparent size:** `sanitize/`, `ssrf/`, `paths/`, `sync/`, the auth
+middleware, and every verification pass. These are the places where "looks right" and "is right"
+diverge, and where the plan review already found the original human-written specs were wrong.
+
+**Never an agent alone — these need real execution against the real system:** the P0 spikes. An
+agent asked "does Claude Code connect to an MCP server over a Unix socket?" will produce a
+confident answer from pattern-matching. The original plan's Unix-socket MCP design is exactly what
+that failure looks like. Spikes must **run** and paste real output.
+
+---
+
+## Orchestration patterns
+
+Which workflow shape to use for which work. These are the shapes worth reaching for; most stages
+use two or three.
+
+**Interface-freeze → fan-out → verify.** The default. One Opus agent designs and freezes the trait
+or schema; N Fable agents implement behind it in parallel; N Opus agents adversarially verify.
+Used for: scrapers, UI components, CLI subcommands, API handlers.
+
+**Adversarial verification.** For every security-critical or silent-failure module, spawn
+verifiers *prompted to refute*, not to confirm — "find an input that defeats this filter" beats
+"review this filter". Majority-refute kills the change. Used for: sanitizer, SSRF, auth, path
+validation.
+
+**Perspective-diverse verification.** Where a module can fail in several unrelated ways, give each
+verifier a distinct lens rather than running identical reviewers: correctness / security /
+performance / does-it-actually-reproduce. Redundancy catches less than diversity.
+
+**Golden-corpus regression.** For anything whose output is judged rather than asserted —
+normalization, rendering, snippet generation. Commit the corpus, diff the output, review the diff.
+This is what makes normalization quality tractable at all.
+
+**Loop-until-dry.** For unbounded discovery — bug hunts, edge-case sweeps before a release gate.
+Keep spawning finders until K consecutive rounds surface nothing new, deduping against everything
+already seen.
+
+**Judge panel.** For genuinely open design questions with a wide solution space (the normalization
+pipeline shape, the reader's IPC protocol): generate N independent approaches from different
+angles, score them with independent judges, synthesize from the winner while grafting the best
+ideas from the runners-up. Better than iterating one attempt.
+
+---
+
+## Stage 0 — Foundations
+
+**Goal:** make it possible to tell whether agent output is correct.
+**Gate to leave S0:** CI is green, an empty app launches, and `cargo test` runs a real test.
+
+**Status: partially done.** S0-1..S0-5 and S0-9 are complete — the workspace builds, the app
+bundles and launches, `paths` has 9 unit tests plus a cross-binary integration test, and CI runs
+fmt / clippy `-D warnings` / tests / cargo-audit / cargo-deny / gitleaks / npm audit. Remaining:
+**S0-6 fixture server, S0-7 golden-corpus harness, S0-8 property-test scaffolding** — all three are
+prerequisites for S1 and should land before any ingestion code.
+
+Nothing in S0 is a feature. All of it is leverage — everything after it moves faster and more
+safely because it exists.
+
+| # | Work | Model | Notes |
+|---|------|-------|-------|
+| ✅ S0-1 | Cargo workspace: `tome-core` (lib), `tome-cli` (bin), `src-tauri` (app) | Opus | **`tome-core` shared by CLI and app is the architecture** (ADR-0002) — get this boundary right on day one; it is expensive to retrofit |
+| ✅ S0-2 | Svelte + Vite + TS frontend, app launches | Fable | |
+| ✅ S0-3 | `paths` module + tests | **Opus** | P1-006. The first real code. A test asserts the app and CLI binaries resolve byte-identical paths |
+| ✅ S0-4 | Error taxonomy (`Error`) | Opus | Frozen early; every later ticket returns into it |
+| ✅ S0-5 | CI: fmt, clippy `-D warnings`, test, audit, deny, gitleaks | Fable | The audit job the old plan claimed to have |
+| S0-6 | Fixture HTTP server (serves committed doc-site fixtures offline) | Fable | **Prerequisite for S1.** Every scraper test needs it |
+| S0-7 | Golden-corpus harness (snapshot + diff normalized output) | Opus | Makes normalization quality reviewable |
+| S0-8 | Property-test + fuzz scaffolding (`proptest`, `cargo-fuzz`) | Fable | Targets added per-module later |
+| ✅ S0-9 | `LICENSE-MIT` + `LICENSE-APACHE`, bundle id threaded through one constant | Fable | DEC-001, DEC-002 — now resolved |
+
+**S0-3 deserves its own note.** Every path in the codebase comes from this module; nothing else
+constructs one. The plan review found four different data locations across documents and several
+samples passing a literal `~` to APIs that do not expand it. A single module with a test that both
+binaries agree makes that class of bug impossible rather than merely discouraged.
+
+---
+
+## Stage 1 — Vertical slice
+
+**Goal:** one real documentation site, fetched, normalized, sanitized, asset-localized, indexed for
+nothing yet, and **rendered offline in the reader**.
+**Entry gate:** S0 exit + **SPIKE-002** (WebView bridge) has run for real.
+**Exit gate:** the app renders `docs.python.org` with the network off, images included, anchors
+working, and the golden corpus is committed.
+
+This is the stage that answers whether the product is possible.
+
+| # | Work | Spec | Model | Parallel |
+|---|------|------|-------|----------|
+| S1-1 | Freeze core types: `Source`, `Page`, `Node` (AST), `DocSet` | P1-004/012 | **Opus** | serial — everything depends on it |
+| S1-2 | SQLite schema + migrations + repos | P1-004/021 | Fable | ∥ S1-3, S1-4 |
+| S1-3 | Source config YAML parser + validation | P1-005 | Fable | ∥ |
+| S1-4 | HTTP client: rate limit, robots.txt, retry, conditional GET | P1-008 | Fable | ∥ |
+| S1-5 | **SSRF filter** | P1-008 / security | **Opus + adversarial verify** | after S1-4 |
+| S1-6 | BFS crawl + URL filter | P1-010/011 | Fable | after S1-4 |
+| S1-7 | HTML → AST parser (html5ever) | P1-012 | Opus | ∥ S1-2..S1-6 |
+| S1-8 | Normalization pipeline | P1-013 | Opus + golden corpus | after S1-7 |
+| S1-9 | **Sanitizer** | security | **Opus + adversarial verify** | after S1-7 |
+| S1-10 | Asset localization | P1-023 | Fable | after S1-8 |
+| S1-11 | Syntax highlighting | P1-014 | Fable | ∥ |
+| S1-12 | Typography + design tokens | P1-015 / design system | Fable | ∥ |
+| S1-13 | Reader iframe + IPC bridge | P1-016 | **Opus** | after S1-12 |
+| S1-14 | Three-panel layout, library sidebar, TOC | P1-017/018/019 | Fable | after S1-13 |
+| S1-15 | Navigation + history | P1-020 | Fable | after S1-14 |
+
+**Verification that matters here:**
+
+- **S1-9 sanitizer** runs against two corpora, and must pass both: an XSS payload set (nothing
+  survives) *and* an anchor set (nothing breaks). The original sanitizer stripped `id` and would
+  have silently disabled the TOC — a security control breaking a headline feature. One corpus
+  alone cannot catch that.
+- **S1-8 normalization** is judged by golden-corpus diff across ≥ 20 real sites spanning all target
+  platforms. This is where "does the product work?" is actually answered.
+- **S1-7 parser** gets a fuzz target from day one. "Zero panics on any input" is in the spec and is
+  otherwise unverified.
+- **Offline is an assertion, not a vibe:** a test shuts the fixture server down and asserts the
+  rendered HTML contains no `http` references.
+
+---
+
+## Stage 2 — Search
+
+**Goal:** fast, relevant search, with a number attached to "relevant".
+**Entry gate:** S1 exit + **SPIKE-003** (Tantivy at 100k pages) has run.
+**Exit gate:** relevance eval ≥ 0.90 recall@3, P95 < 100 ms on the benchmark corpus.
+
+| # | Work | Spec | Model |
+|---|------|------|-------|
+| S2-1 | **Relevance eval set + harness** | P2-019 | Opus — **first, before any ranking work** |
+| S2-2 | Tantivy integration + schema | P2-001/002 | Opus |
+| S2-3 | Incremental indexing | P2-003 | Fable |
+| S2-4 | Ranking + boosts | P2-006 | Fable, scored by S2-1 |
+| S2-5 | Fuzzy matching | P2-009 | Fable, scored by S2-1 |
+| S2-6 | Symbol-aware search | P2-015 | Fable |
+| S2-7 | Search UI, results, scoping, history, keyboard | P2-004/005/008/016/017 | Fable ∥ |
+| S2-8 | In-page search | P2-007 | Fable |
+| S2-9 | Detection corpus + harness | P2-020 | Fable |
+| S2-10 | Platform detection | P2-014 | Fable, scored by S2-9 |
+| S2-11 | Scrapers: ReadTheDocs, rustdoc, mdBook, man | P2-010..013 | **Fable ∥ ×4, Opus verify** |
+| S2-12 | Benchmarks + regression alerts | P2-018 | Fable |
+
+**S2-1 before S2-4 is not negotiable.** Tuning ranking without an eval set is guesswork, and with
+agents it is *fast* guesswork — you will get twenty confident boost-factor changes and no way to
+tell which helped. The eval set is what converts search from an opinion into a gradient.
+
+**S2-11 is the canonical fan-out**: four scrapers, one interface, four parallel Fable agents, four
+Opus verifiers, all scored against the same detection corpus. This is the shape agent workflows
+are best at, and it is why breadth of platform support gets cheaper under this build model — one of
+the few places where "agents help" is straightforwardly true.
+
+---
+
+## Stage 3 — Agent access
+
+**Goal:** `tome` on the command line, and Claude Code reading your docs.
+**Entry gate:** S2 exit + **SPIKE-008** run against a real MCP client.
+**Exit gate:** Claude Code connects over stdio and answers a question from a locally indexed page.
+
+| # | Work | Spec | Model |
+|---|------|------|-------|
+| S3-1 | CLI scaffolding + all subcommands | P4-001..007 | Fable |
+| S3-2 | **MCP stdio server** | P4-013/014 | **Opus** |
+| S3-3 | MCP tools | P4-015/016 | Fable |
+| S3-4 | Result truncation + `section` selection | new | Fable |
+| S3-5 | HTTP API + **auth middleware** | P4-009..012 | **Opus for auth**, Fable for handlers |
+| S3-6 | Claude Code plugin | P4-017 | Fable |
+| S3-7 | Sync strategies (fetch scheduling) | P4-018 | Fable |
+| S3-8 | Source registry + CI verification job | PRD | Fable |
+
+**Verification specific to this stage:**
+
+- **A test asserts `tome mcp` writes nothing but JSON-RPC to stdout.** One stray `println!` breaks
+  every client with an opaque parse error, and it is exactly the kind of thing an agent adds while
+  debugging.
+- **A real browser test** confirms a cross-origin `fetch()` cannot read an API response. Reading the
+  CORS config and concluding it is fine is how the original plan got this wrong.
+- **The MCP handshake is tested against an actual client**, not a mock. The original design failed
+  precisely because nobody tried it.
+
+---
+
+## Stage 4 — Hardening and release
+
+**Entry gate:** S3 exit.
+**Exit gate:** notarized DMG installs from a clean machine and passes `spctl`.
+
+| # | Work | Spec | Model |
+|---|------|------|-------|
+| S4-1 | Loop-until-dry bug hunt across the codebase | — | Opus fleet |
+| S4-2 | Performance profiling + lazy loading | P5-001/002/003 | Opus |
+| S4-3 | Error taxonomy audit + recovery | P5-004/005 | Fable |
+| S4-4 | Onboarding (registry-first) | P5-006 | Fable |
+| S4-5 | Preferences UI | P5-007 | Fable |
+| S4-6 | Menu bar + global shortcut *(conditional on SPIKE-001)* | P5-008/009 | Fable |
+| S4-7 | Accessibility pass: contrast CI, keyboard, VoiceOver | design system | Opus |
+| S4-8 | Signing, notarization, DMG, own Homebrew tap | P5-010..012 | **Human + Fable** |
+| S4-9 | User docs + landing page | P5-013/014 | Fable |
+
+**S4-8 cannot be fully automated and should not be attempted blind.** Signing identities, the Apple
+Developer Program enrolment (DEC-003), and app-specific passwords involve credentials and a real
+Apple account. Agents can write the workflow; a human runs the first release and verifies the
+artifact on a clean machine.
+
+---
+
+## Stage 5 — Sync (deferred)
+
+**Not scheduled.** Per DEC-004 and the plan review, sync is the largest single chunk (68
+person-equivalent days), carries the highest-scoring technical risk (RISK-002), and is the least
+painful thing to lose — bookmarks work fine on one machine.
+
+**Revisit when:** v1.0 has shipped, and more than a handful of users have actually asked. Design is
+already specified (ADR-0001, P3-010..015) and does not decay while waiting.
+
+Bookmarks and annotations are still built in S1–S4 as **local** features — the personal layer is
+part of the product, only its propagation between machines is deferred.
+
+---
+
+## Definition of done, revised for agent work
+
+Replaces the global DoD in `00-project-overview.md` for tickets executed this way.
+
+1. All contract signatures match the frozen interface exactly
+2. `cargo test --workspace` and `npm run test` pass
+3. `cargo clippy --all-targets -- -D warnings` and `npm run lint` clean
+4. **The verification artifact existed before the implementation** and was authored by a different
+   task
+5. **For security-critical modules:** an adversarial verification pass, prompted to refute, did not
+   find a defeating input
+6. No files touched outside the ticket's declared scope
+7. No new dependency without an explicit line in the ticket authorizing it
+8. Specification updated in the same change if an external surface changed
+9. `git diff --stat` is within an order of magnitude of the ticket's expected size — **a 40-line
+   ticket that produced 900 lines did something else**, and that is worth looking at before merging
+
+Rule 9 is cheap and catches a surprising amount. Scope drift is the most common failure mode of
+otherwise-correct agent output.
+
+---
+
+## Risks specific to this build model
+
+These are additional to `11-risk-register.md`, which covers the product's risks. These are the
+risks of *building it this way*.
+
+| Risk | Why it bites | Mitigation |
+|---|---|---|
+| **Plausible-but-wrong code merged** | Agent output is confident, well-formatted, and idiomatic whether or not it is correct — the strongest signals humans use to judge code are exactly the ones agents produce regardless | Verification artifacts first; adversarial passes on silent-failure modules; rule 9 |
+| **Verification theatre** | Tests written by the same task as the implementation will pass. They always pass. | Different task, ideally different model, ideally authored first |
+| **Interface drift** | Parallel agents each invent a slightly different signature; integration becomes a rewrite | Freeze interfaces in a serial Opus step; paste exact signatures into tickets |
+| **Silent scope creep** | An agent "helpfully" refactors three adjacent modules | Declared file scope; rule 9 |
+| **Confident answers about external systems** | The original Unix-socket MCP design is what this failure looks like in the wild | Spikes must execute and paste real output; never accept a recalled API shape |
+| **Reviewer fatigue** | The human stops reading carefully somewhere around the fifth large diff of the day, and that is when something lands | Keep tickets small; automate the checkable; batch review by module, not by chronology |
+| **Dependency sprawl** | Every agent adds a crate to solve its local problem | Explicit authorization per ticket; `cargo deny` in CI |
+
+**The honest summary of this build model:** it makes breadth cheap and depth no cheaper. Four
+scrapers in parallel is a genuine win. The sanitizer, the SSRF filter, and sync convergence are
+exactly as hard as they were, and the main thing agents change about them is how quickly you can
+generate something that *looks* finished.
+
+---
+
+## Immediate next actions
+
+1. ✅ **DEC-001** — dual MIT OR Apache-2.0
+2. ✅ **DEC-002** — `com.alexnodeland.tome`
+3. ✅ **DEC-004** — solo + agent workflows; scope cut to S0–S4, sync deferred
+4. **S0 scaffold** — workspace, frontend, paths module, CI *(in progress)*
+5. **SPIKE-002** — WebView bridge, run for real before S1
+6. **SPIKE-010** — legal posture, one day, before the registry has entries
+7. **DEC-003** — Apple Developer Program enrolment. Lead-time item; start it long before S4.

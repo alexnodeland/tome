@@ -1,0 +1,21 @@
+[package]
+name = "tome-core"
+description = "Shared core for the Tome documentation reader: paths, config, ingestion, search."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+directories.workspace = true
+thiserror.workspace = true
+serde = { workspace = true }
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

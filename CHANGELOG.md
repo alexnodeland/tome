@@ -7,8 +7,29 @@ This project will follow [Semantic Versioning](https://semver.org/) once it has 
 
 ## [Unreleased]
 
-Nothing released yet. The project is in planning; see
-[`docs/plans/00-project-overview.md`](docs/plans/00-project-overview.md).
+Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18-implementation-plan.md).
+
+### Added — 2026-07-28 — implementation plan and Stage 0 scaffold
+
+- **Implementation plan** restructured for agent-driven execution: six stages with machine-checked
+  gates, verification artifacts required before the code they verify, model routing by task shape,
+  and a vertical slice ahead of breadth
+- **Decisions resolved:** DEC-001 dual MIT OR Apache-2.0 (ADR-0003), DEC-002
+  `com.alexnodeland.tome` (ADR-0004), DEC-004 solo + agent workflows with sync deferred (ADR-0005)
+- **Cargo workspace:** `tome-core` (shared library), `tome-cli` (`tome` binary), `src-tauri`
+  (desktop app). The app and CLI share one library, which is the constraint ADR-0002 exists to
+  protect
+- **`tome-core::paths`** — the only place a data path is constructed. State in
+  `~/Library/Application Support/Tome`, cache in `~/Library/Caches/Tome`, `$TOME_HOME` override,
+  `0700` directories. 9 unit tests plus a cross-binary integration test that runs the real `tome`
+  binary and asserts it resolves the same paths the app links
+- **Error taxonomy** frozen early, with user-facing messages that carry no user content
+- **Svelte 5 + Vite + TypeScript frontend**, with the Tauri IPC boundary isolated behind one module
+  so tests stub a single seam
+- **CI:** fmt, clippy `-D warnings`, tests, `cargo-audit`, `cargo-deny`, gitleaks, `npm audit`,
+  svelte-check, and an unsigned macOS build — with least-privilege token permissions
+- **Hardened-runtime entitlements** with `allow-jit` as the only exception, and comments recording
+  what is deliberately absent
 
 ### Changed — 2026-07-28 — plan audit
 

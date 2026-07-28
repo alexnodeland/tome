@@ -1,0 +1,15 @@
+target/
+node_modules/
+dist/
+src-tauri/gen/
+src-tauri/icons/
+package-lock.json
+
+# Markdown is excluded deliberately. The documentation in this repo is the
+# product right now: tables are hand-aligned, prose is hand-wrapped, and
+# reflowing it produces enormous diffs that bury real changes. Formatting is
+# enforced by review, not by Prettier.
+*.md
+LICENSE
+LICENSE-MIT
+LICENSE-APACHE

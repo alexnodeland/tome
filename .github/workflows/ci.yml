@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege by default. Jobs opt in to more if they need it.
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  lint:
+    name: Lint
+    # Linting needs no macOS. GitHub bills macOS runners at 10x Linux.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Rust formatting
+        run: cargo fmt --all --check
+
+      - name: Rust lints
+        # tome-app is excluded: it needs macOS system frameworks to build.
+        run: cargo clippy -p tome-core -p tome-cli --all-targets -- -D warnings
+
+      - name: Frontend types
+        run: npm run check
+
+      - name: Frontend lint and formatting
+        run: npm run lint
+
+  audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Rust advisories
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Licences, bans, sources
+        uses: EmbarkStudios/cargo-deny-action@v2
+
+      - run: npm ci
+      - name: npm advisories
+        run: npm audit --audit-level=high
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-rust:
+    name: Test Rust
+    # Tome is macOS-only, and the path module asserts macOS conventions.
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Unit and integration tests
+        run: cargo test -p tome-core -p tome-cli
+
+  test-js:
+    name: Test frontend
+    # jsdom-based; no macOS needed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test
+
+  build:
+    name: Build app
+    runs-on: macos-14
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build (unsigned)
+        run: npm run tauri build -- --target aarch64-apple-darwin --bundles app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tome-unsigned
+          path: target/aarch64-apple-darwin/release/bundle/macos/
+          retention-days: 7

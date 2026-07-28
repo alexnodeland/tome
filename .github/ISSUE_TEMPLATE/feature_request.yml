@@ -21,8 +21,8 @@ body:
     id: nongoal
     attributes:
       label: Have you checked the non-goals?
-      description: "`docs/PRD.md` § Non-Goals lists what Tome deliberately will not do."
+      description: '`docs/PRD.md` § Non-Goals lists what Tome deliberately will not do.'
       options:
-        - "Yes, and this is not one of them"
+        - 'Yes, and this is not one of them'
         - "This is arguably a non-goal, and here's why it should change"
     validations: { required: true }

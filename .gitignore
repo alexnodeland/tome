@@ -48,3 +48,14 @@ lcov*.info
 
 # Claude Code local settings (shared settings.json IS committed)
 .claude/settings.local.json
+
+# App icons MUST be committed — the bundle will not build without them.
+#
+# macOS global gitignores commonly contain `Icon?` (for the Finder's "Icon\r"
+# resource file). Because git is case-insensitive on macOS by default, `Icon?`
+# also matches the directory `icons/`, silently excluding the entire icon set.
+# Re-include the directory first, then its contents: git cannot re-include a
+# file whose parent directory is excluded.
+!src-tauri/icons/
+!src-tauri/icons/*.png
+!src-tauri/icons/*.icns
