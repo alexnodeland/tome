@@ -269,7 +269,7 @@ This is the stage that answers whether the product is possible.
 | S1-6 ✅ | BFS crawl + URL filter | P1-010/011 | Fable | done 2026-07-28 — `tome-core/src/crawl/`; links discovered from whole doc (nav is discovery), politeness+SSRF inherited from Fetcher |
 | S1-7 ✅ | HTML → AST parser (html5ever) | P1-012 | Opus | done 2026-07-28 — `tome-core/src/parse.rs`; `html_parser` fuzz target live from day one |
 | S1-8 ✅ | Normalization pipeline | P1-013 | Opus + golden corpus | done 2026-07-28 — `tome-core/src/normalize.rs` + `corpus/normalization` (seeded; ≥20 real sites is the remaining acceptance) |
-| S1-9 | **Sanitizer** | security | **Opus + adversarial verify** | after S1-7 |
+| S1-9 ✅ | **Sanitizer** | security | **Opus + adversarial verify** | done 2026-07-28 — `tome-core/src/sanitize.rs`; two corpora (XSS + anchors); refute-panel ran; `sanitizer` fuzz target live |
 | S1-10 | Asset localization | P1-023 | Fable | after S1-8 |
 | S1-11 | Syntax highlighting | P1-014 | Fable | ∥ |
 | S1-12 | Typography + design tokens | P1-015 / design system | Fable | ∥ |

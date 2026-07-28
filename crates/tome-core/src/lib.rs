@@ -18,6 +18,7 @@ pub mod model;
 pub mod normalize;
 pub mod parse;
 pub mod paths;
+pub mod sanitize;
 
 pub use error::{Error, Result};
 pub use paths::Paths;
