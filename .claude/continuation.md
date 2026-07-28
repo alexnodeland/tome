@@ -7,32 +7,46 @@
 
 ## Where things stand, in one paragraph
 
-Tome was a docs-only repo: a PRD plus 18 planning documents, no code. The plan was audited
-(PR #3, **merged**), then an agent-driven implementation plan and the Stage 0 scaffold landed
-(PR #4, **merged**). **Stage 0 is complete** — the scaffold plus S0-6 (fixture HTTP server), S0-7
-(golden-corpus harness) and S0-8 (property + fuzz scaffolding), so agent output on the ingestion
-path is verifiable *before* it is written. The app builds, launches, and creates its library at the
-right paths; the CLI is a stub except `tome status`. **Both Stage 1 gate spikes have run for real
-(SPIKE-002 reader bridge, SPIKE-010 legal posture) and S1-1 froze the core model.** No ingestion,
-no reader, no search yet — the S1 fan-out (S1-2/3/4/7) is where those start.
+Stage 0 is complete (scaffold + fixture server + golden harness + fuzz). Both Stage 1 gate spikes
+ran for real (SPIKE-002 reader bridge, SPIKE-010 legal posture). **The entire Stage 1 ingestion
+backend is now built and merged: S1-1 through S1-10.** `tome-core` runs the whole pipeline —
+config → fetch (robots/rate-limit/SSRF) → crawl → parse → normalize → sanitize → asset-localize —
+all tested against the fixture server, and the **offline guarantee (Stage 1's exit gate) is proven**
+by the asset-localization test that shuts the server down and asserts no `http` reference survives.
+What's left of Stage 1 is the **reader half (S1-11..S1-15)**: syntax highlighting, typography, the
+reader iframe (S1-13, the SPIKE-002 bridge — Opus), layout, navigation. The app still launches to
+the scaffold UI; the reader is not wired yet.
 
 ```
-main   ← everything below is merged; branch from here
-  499d5d0  S1-1: core types frozen; Python-first decision            (#16)
-  3a4461d  SPIKE-010: legal posture; corpus gate; 2 req/s default    (#17, replaced #15)
-  628b2cd  SPIKE-002: reader bridge measured; capabilities file      (#14)
-  8eda146  fixture server, golden corpus harness, fuzz scaffolding   (S0-6/7/8)
-  e3ddbca  unsigned distribution via own tap; local verification gate
-  2acc9a2  implementation plan and Stage 0 scaffold
-  8306422  plan audit                                                (#3)
+main   ← everything below is merged; branch from here (newest first)
+  #27  S1-10 asset localization + offline gate; hash module
+  #26  S1-9  sanitizer (refute-panel: 5 defects fixed, held R2)
+  #25  S1-8  normalization + seeded golden corpus
+  #24  S1-6  BFS crawl + URL filter
+  #23  S1-5  SSRF filter (refute-panel: 4 defects fixed, held R2)
+  #22  S1-7  HTML→AST parser
+  #21  S1-4  HTTP client (robots, rate-limit, retry, conditional GET)
+  #20  S1-2  SQLite schema + repos
+  #19  S1-3  source config parser
+  #18       Paths → &SourceId (closed the S0 containment gap)
+  #16  S1-1  core types frozen (serde shape pinned)
+  #17  SPIKE-010 legal posture   ·   #14 SPIKE-002 reader bridge
+  (Stage 0: fixture server, golden harness, fuzz, scaffold, plan audit)
 ```
+
+**Pipeline order** (each stage a pure function over the previous, all in `tome-core`):
+`SourceConfig::parse` → `Crawler::crawl` (→ `DocSet` of parsed AST) → per page:
+`normalize::normalize` → `sanitize::sanitize` → `assets::localize_assets`. Persistence (`db.rs`)
+and the reader consume the result. The AST (`model::Node`) is frozen; its serde shape is a storage
+contract (`tests/model_serde_shape.rs`).
 
 **Merge trap, learned on #15:** merging a stacked PR with `--delete-branch` does not retarget the
-child PR — GitHub **closes** it, unrecoverably (cannot reopen, cannot change base of a closed PR).
-Merge the parent *keeping* the branch, `gh pr edit <child> --base main`, then merge the child and
-delete branches at the end. #17 is #15 recreated because of this.
+child PR — GitHub **closes** it unrecoverably. For a stack, merge the parent *keeping* its branch,
+`gh pr edit <child> --base main`, then merge the child. (All S1 tickets were merged un-stacked
+straight to main, which sidesteps this.)
 
-**71 Rust tests + 3 Vitest tests pass; the full gate is green including the app build.**
+**~141 Rust tests (tome-core) + 3 Vitest + 7 fuzz targets; the full gate is green including the app
+build.** Every fuzz target asserts an invariant, not just no-panic.
 `crates/tome-testkit` holds the fixture server and golden harness (**dev-dependency only** — if it
 ever appears under `[dependencies]`, that is a bug); `fuzz/` is a separate workspace, type-checked
 by `check.sh` on stable, run with `cargo +nightly fuzz`.
@@ -217,12 +231,42 @@ is the standing lesson for any future security-critical work.
 **Stage 1 backend done: S1-1..S1-9.** config → fetch (robots/rate-limit/SSRF) → crawl → parse →
 normalize → sanitize, all fixture-tested. ~135 tome-core tests, 7 fuzz targets.
 
-### Then: the reader half (S1-10..S1-15)
+### Done: S1-10 (asset localization) — the offline guarantee is real
 
-S1-10 (asset localization — the offline gate needs it), S1-11 (syntax highlighting), S1-12
-(typography/tokens), **S1-13 (reader iframe + IPC bridge — inherits everything from SPIKE-002:
-one postMessage per page, external bootstrap, capabilities file already exists, frame-pacing is
-the interactive acceptance item)**, S1-14 (layout), S1-15 (navigation). S1-13 is Opus.
+`tome-core/src/assets.rs` (#27). `AssetStore` trait splits the AST rewrite from fetch/store;
+`FetchingAssetStore` content-addresses `assets/<sha256>.<ext>` through the shared Fetcher, dedups,
+caps. Failed assets become inline "unavailable offline" notes, never live remote refs. **The
+offline exit-gate test passes.** SHA-256 now lives in `crate::hash` (shared by crawl + assets).
+Deferred + flagged: srcset/video/inline-style `url()` aren't in the typed AST (nothing to smuggle);
+SVG byte-sanitization and asset GC are noted follow-ups.
+
+### Next: the reader half (S1-11..S1-15) — a different mode of work
+
+The backend is a pure Rust pipeline tested against a fixture server. The reader is
+Rust-renders-to-HTML **plus the Svelte/iframe frontend**, so it needs a running app to verify, not
+just `cargo test`. Remaining tickets:
+
+- **S1-11 (syntax highlighting).** Architecture call to make first: highlighting is a **render
+  concern, not an AST mutation** — the `CodeBlock` node stays `{language, code}`, and highlighting
+  happens when the AST is rendered to reader HTML. Build it as a standalone
+  `highlight(code, language) -> classed HTML` (syntect with `ClassedHTMLGenerator`, so themes are
+  CSS the S1-12 tokens supply and light/dark switch without re-highlighting — offline-friendly, no
+  client JS, works under the strict CSP). S1-13 calls it during render. syntect is a heavy dep
+  (bundled syntax/theme dumps) — confirm that's acceptable or pick a lighter highlighter.
+- **S1-12 (typography + design tokens).** CSS variables per `docs/plans/15-design-system.md` and
+  P1-015 (New York serif body, SF Mono code, 17px/1.6, 70ch measure, light/dark). Frontend CSS.
+- **S1-13 (reader iframe + IPC bridge) — Opus, the big one.** Inherits everything from SPIKE-002:
+  one postMessage per page, external bootstrap script, `capabilities/default.json` already exists,
+  CSP names the app origin, `__TAURI_INTERNALS__` unreachable from the frame. **It must honour the
+  sanitizer's renderer contract: quote every attribute and HTML-escape every attribute value and
+  text node** (S1-9 depends on this — it is why title/alt aren't charset-stripped). The
+  AST→HTML renderer lives here (or in a `render` module it calls). Frame-pacing is the interactive
+  acceptance item SPIKE-002 couldn't measure headlessly.
+- **S1-14 (three-panel layout, sidebar, TOC)** and **S1-15 (navigation + history).** Frontend.
+
+**Stage 1 exit gate** (`docs/plans/18` § Stage 1): the app renders `docs.python.org` with the
+network off, images included, anchors working, golden corpus committed. The pipeline half of that
+is done and offline-proven; the reader half makes it visible.
 
 ### Then: Stage 1 — the vertical slice
 
