@@ -37,7 +37,8 @@ describes intent, not behaviour.
 
 `crates/tome-core` (shared library), `crates/tome-cli` (`tome` binary), `crates/tome-testkit`
 (test infrastructure), `src-tauri` (the app), `src/` (Svelte frontend). The app builds and
-launches; of the product itself, only the path layer is implemented.
+launches; of the product itself, the path layer and the frozen core model (`tome-core/src/model/`,
+S1-1 — its serde shape is pinned by test and is a storage/IPC contract) are implemented.
 
 **`./scripts/check.sh` is the gate — CI cannot run** (private repo, and Actions is blocked at the
 account level). It runs exactly what `.github/workflows/ci.yml` runs. Change one, change the other.
