@@ -332,6 +332,15 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 
 ---
 
+## Standing decisions (owner, 2026-07-28)
+
+- **Refute-panel is the standing method for security-critical tickets** — run the Workflow
+  automatically (no re-ask) for S1-9 and any future SSRF/auth/sync work; majority-refute gates the
+  merge. This is a durable opt-in, not per-ticket.
+- **Keep merging green PRs ticket-by-ticket** through the rest of Stage 1.
+- **Real golden-corpus expansion is deferred until the reader renders** — validate real pages
+  visually then, not as JSON diffs now.
+
 ## Working with this user
 
 - They want **costs stated, not glossed**. The ADRs say plainly that Gatekeeper friction will lose
