@@ -202,16 +202,22 @@ hardened code to confirm the fixes held; see the plan's S1-5 row / the PR for it
 records the gate; the real pages (Python PSF-2.0, Go/K8s CC-BY, Rust/Node MIT/Apache) are cleared
 by SPIKE-010 but not yet fetched+committed — deliberately deferred, not forgotten.
 
-### Immediately: S1-9 (sanitizer) — the SECOND refute-panel ticket
+### Done: S1-9 (sanitizer) — the whole ingestion backend is complete
 
-Same treatment as S1-5, and the owner opted into the Workflow refute-panel for these. **Two
-corpora, both must pass**: XSS payloads (nothing script-capable survives) AND anchors (nothing
-breaks — the `id`-stripping trap that silently kills the TOC is the canonical example). The lesson
-from S1-5 stands: the first draft will look correct and pass its own tests; run the panel and let
-majority-refute gate the merge. Sanitizer input is the normalized AST (no raw-HTML node exists —
-that was the first wall); its output feeds the reader (S1-13). Add a `sanitizer` fuzz target.
+`tome-core/src/sanitize.rs` (#26). Refute-panel confirmed 5 defects round 1 (interior `\t\n\r`
+scheme bypass, non-ASCII ids emptied, rustdoc anchors broken, id/fragment desync, unguarded
+`language`/free-text fields), all fixed; round 2 held. **`sanitize_id` is a denylist, not an
+allowlist** — keeps unicode + rustdoc/Sphinx punctuation, strips only whitespace/quotes/control.
+Free-text attribute fields (`title`/`alt`) are the **renderer's escaping job — a documented hard
+contract S1-13 must honour** (quote every attribute, escape every value + text node).
 
-### Then: the reader half
+**Both refute-panel tickets (S1-5, S1-9) found real bugs the author's green tests missed.** That
+is the standing lesson for any future security-critical work.
+
+**Stage 1 backend done: S1-1..S1-9.** config → fetch (robots/rate-limit/SSRF) → crawl → parse →
+normalize → sanitize, all fixture-tested. ~135 tome-core tests, 7 fuzz targets.
+
+### Then: the reader half (S1-10..S1-15)
 
 S1-10 (asset localization — the offline gate needs it), S1-11 (syntax highlighting), S1-12
 (typography/tokens), **S1-13 (reader iframe + IPC bridge — inherits everything from SPIKE-002:
