@@ -238,11 +238,12 @@ constructs one. The plan review found four different data locations across docum
 samples passing a literal `~` to APIs that do not expand it. A single module with a test that both
 binaries agree makes that class of bug impossible rather than merely discouraged.
 
-**One thing S0 did *not* settle, deliberately.** `Paths::pages_dir("../../etc")` still escapes the
-cache directory lexically — path *validation* is S1 work, next to the page loader that consumes
-user-supplied ids. The property tests say so in a comment rather than asserting a containment
-invariant that does not hold yet, because the alternative is a property that gets quietly weakened
-until it passes.
+**One thing S0 did *not* settle, deliberately — and S1 then did.** The S0 scaffold's
+`Paths::pages_dir("../../etc")` escaped the cache directory lexically, and the property tests said
+so in a comment rather than asserting a containment invariant that did not hold. After S1-1 froze
+`SourceId`, the accessors moved from `&str` to `&SourceId` (2026-07-28): hostile ids now fail
+construction rather than being caught at call sites, and the containment assertion lives in the
+property tests and the `paths` fuzz target, as promised.
 
 ---
 

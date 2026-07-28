@@ -37,7 +37,7 @@ in a pre-commit gate.
 
 | Target | Property | Status |
 |--------|----------|--------|
-| `paths` | No `Paths` accessor panics on any input | Live |
+| `paths` | No `Paths` accessor panics on any input; every constructible `SourceId` resolves to exactly one component under the right root | Live |
 | `model_ids` | `SourceId`/`PagePath`/`ContentHash` never panic, and whatever constructs cannot traverse (no separators, no dot segments) | Live |
 | `html_parser` | Zero panics parsing any byte sequence (P1-012's acceptance criterion, otherwise unverified) | S1-7 |
 | `sanitizer` | No input yields output containing script-capable markup | S1-9 |
