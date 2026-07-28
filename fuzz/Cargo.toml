@@ -65,3 +65,10 @@ path = "fuzz_targets/ssrf.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "sanitizer"
+path = "fuzz_targets/sanitizer.rs"
+test = false
+doc = false
+bench = false
