@@ -191,12 +191,32 @@ The lesson worth keeping: **the first draft looked correct and passed its own te
 found what the author's tests could not.** Do the same for S1-9. Round 2 re-ran against the
 hardened code to confirm the fixes held; see the plan's S1-5 row / the PR for its verdict.
 
-- **S1-9 (sanitizer)** — same treatment: Opus + refute-panel, two corpora (XSS: nothing survives;
-  anchors: nothing breaks). The `id`-stripping trap (breaks the TOC) is in the plan's notes.
-- **S1-6 (BFS crawl + URL filter)** behind S1-4/S1-5; nodejs.org trap recorded above.
-- **S1-8 (normalization + golden corpus)** — the corpus licence gate is in
-  `crates/tome-core/corpus/README.md`; Python-first per the owner's call.
-- Then S1-10..15 (assets, highlighting, typography, reader, layout, navigation).
+### Done: S1-6 (crawl) and S1-8 (normalization), merged 2026-07-28
+
+| | Where | Worth knowing |
+|---|---|---|
+| S1-6 | `tome-core/src/crawl/` (#24) | BFS over Fetcher+parser; politeness/SSRF inherited, not re-done. **Link discovery is whole-document, not content-root** — nav is how a site advertises pages (caught by a failing test). Errors per-page, never fatal; `hit_page_cap` explicit. Entry = depth 1. nodejs.org trap handled in `UrlFilter` (`include: ^/api/`). Dependency-free SHA-256 lands here for `ContentHash`. |
+| S1-8 | `tome-core/src/normalize.rs` + `corpus/normalization` (#25) | URLs→absolute, headings shifted so shallowest=h1, code langs aliased, empties pruned, title/description extracted. Functional transforms over the typed AST (not the PRD's `dyn Transform`). **Golden corpus is SEEDED** with the repo's Sphinx fixture (licence-clean) — the `<dl>` API case comes through with its permalink id. `NormalizedPage` is now Serialize (part of the freeze). |
+
+**S1-8's remaining acceptance:** the golden corpus is ≥20 real sites, not 3 fixtures. `SOURCES.md`
+records the gate; the real pages (Python PSF-2.0, Go/K8s CC-BY, Rust/Node MIT/Apache) are cleared
+by SPIKE-010 but not yet fetched+committed — deliberately deferred, not forgotten.
+
+### Immediately: S1-9 (sanitizer) — the SECOND refute-panel ticket
+
+Same treatment as S1-5, and the owner opted into the Workflow refute-panel for these. **Two
+corpora, both must pass**: XSS payloads (nothing script-capable survives) AND anchors (nothing
+breaks — the `id`-stripping trap that silently kills the TOC is the canonical example). The lesson
+from S1-5 stands: the first draft will look correct and pass its own tests; run the panel and let
+majority-refute gate the merge. Sanitizer input is the normalized AST (no raw-HTML node exists —
+that was the first wall); its output feeds the reader (S1-13). Add a `sanitizer` fuzz target.
+
+### Then: the reader half
+
+S1-10 (asset localization — the offline gate needs it), S1-11 (syntax highlighting), S1-12
+(typography/tokens), **S1-13 (reader iframe + IPC bridge — inherits everything from SPIKE-002:
+one postMessage per page, external bootstrap, capabilities file already exists, frame-pacing is
+the interactive acceptance item)**, S1-14 (layout), S1-15 (navigation). S1-13 is Opus.
 
 ### Then: Stage 1 — the vertical slice
 
