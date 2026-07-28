@@ -114,12 +114,22 @@ headlessly and is an S1-13 interactive acceptance item instead. The spike harnes
 (`src-tauri/src/spike002.rs`, `src/spike/spike002.ts`, `public/spike002-frame.js`, the
 `spike002_mode` hook in `src/main.ts`) comes out when S1-13 lands.
 
-### Immediately: SPIKE-010, then Stage 1
+### Done: SPIKE-010 — the corpus is unblocked
 
-**SPIKE-010** (legal posture, ~1 day) gates committing real fetched pages to the golden corpus,
-which S1-8 needs. `crates/tome-core/corpus/README.md` already says the question is open; the
-corpus should not fill up before it is answered. Stage 1 can start regardless — S1-1 (freeze core
-types) does not touch the corpus, and the which-site-first question below only bites at S1-7/S1-8.
+Ran 2026-07-28. `docs/spikes/010-legal-posture.md` has the evidence (real robots.txt and ToS
+text, fetched and quoted). The operative outcomes: **the corpus licence gate** is now in
+`crates/tome-core/corpus/README.md` (only alteration-and-redistribution licences may be
+committed; `SOURCES.md` per suite); the README gained the plain-language posture section;
+RISK-011 dropped to probability 2 / score 8 with the per-host opt-out list mitigation removed
+(nothing to put on it); S1-4's rate-limit spec gets an external bound from Read the Docs'
+published guidelines (< 4 req/s, self-identifying UA — stay well under). One nuance worth
+remembering at S1-6: **nodejs.org disallows `/docs/` but allows `/api/`** — crawl the current
+API docs, never the versioned tree.
+
+### Immediately: Stage 1 — start with S1-1
+
+S1-1 (freeze `Source`/`Page`/`Node`/`DocSet`) is serial, blocks the whole stage, and is Opus
+work. The which-site-first question below only bites at S1-7/S1-8.
 
 ### Then: Stage 1 — the vertical slice
 

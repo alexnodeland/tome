@@ -170,7 +170,7 @@ following are defaults that a user may loosen only for hosts they control:
 | Rule | Default | Override |
 |------|---------|----------|
 | `robots.txt` | Obeyed, including `Crawl-delay` | Only for `localhost` and user-declared owned hosts |
-| Rate limit | 5 req/s per host, single connection | Configurable down; capped above |
+| Rate limit | 2 req/s per host, single connection | Configurable down; capped at 4 |
 | User-Agent | `Tome/<version> (+https://<project-url>)` — identifies the tool | Not overridable |
 | Conditional fetch | `If-None-Match` / `If-Modified-Since` on every re-sync | Not overridable |
 | Backoff | Honour `Retry-After`; exponential backoff on 429/5xx | Not overridable |
@@ -1334,7 +1334,10 @@ source:
 # Fetch etiquette — see "Crawl etiquette" above. Defaults are the safe values.
 fetch:
   respect_robots: boolean       # default: true. false only for hosts you own.
-  rate_limit_rps: number        # default: 5, capped at 10
+  rate_limit_rps: number        # default: 2, capped at 4. Read the Docs publishes "< 4 req/s"
+                                # as its crawler ceiling (SPIKE-010) — the default stays well
+                                # under the strictest host's published limit, and the cap means
+                                # no configuration can cross it.
   timeout_seconds: integer      # default: 30
   allow_insecure: boolean       # default: false. Permits http:// (e.g. an intranet mirror).
   max_asset_bytes: integer      # default: 262144000 (250 MB)

@@ -391,10 +391,18 @@ With limited contributors, project continuity depends on key individuals.
 | **Category** | Legal |
 | **Phase** | All |
 | **Impact** | 4 (High) |
-| **Probability** | 4 (Likely) |
-| **Score** | 16 (Critical) |
+| **Probability** | 2 (Unlikely) — was 4 before SPIKE-010 ran; see below |
+| **Score** | 8 (High) |
 | **Owner** | TBD |
-| **Status** | Open |
+| **Status** | Mitigating — [SPIKE-010 ran 2026-07-28](../spikes/010-legal-posture.md) |
+
+**SPIKE-010 findings (2026-07-28):** none of the ten most likely sources forbids automated
+access to current documentation; the strictest host (Read the Docs) publishes crawler guidelines
+Tome's planned behaviour already beats; the golden corpus — the one redistribution artifact —
+now has a licence gate. Probability drops accordingly; impact does not, because a mishandled
+complaint is still expensive. One mitigation changed: **no per-host opt-out list ships with the
+app** — nothing found belongs on it, and the mechanism if something appears is registry
+exclusion, not app code.
 
 **Description:**
 Tome's entire value proposition is fetching, transforming, caching, and displaying documentation
@@ -425,7 +433,9 @@ this gets handled badly:
    licence where determinable
 4. **The registry contains configuration only** — this is a structural mitigation, not a policy
    one, and it is why the registry was designed that way
-5. A published takedown process, and a per-host opt-out list shipped with the app
+5. A published takedown process (drafted by SPIKE-010; ≤ 7 days, no relitigating). The per-host
+   opt-out list originally listed here was dropped — SPIKE-010 found nothing to put on it, and
+   the right mechanism is registry exclusion, not app code
 6. Prior art: Dash, DevDocs, and Zeal have all operated in this space publicly for years
 
 **Contingency:**
@@ -540,7 +550,7 @@ it is the normal case.
 
 | ID | Risk | Score | Level | Status |
 |----|------|-------|-------|--------|
-| RISK-011 | Legal / ToS exposure from scraping | 16 | Critical | Open |
+| RISK-011 | Legal / ToS exposure from scraping | 8 | High | Mitigating (SPIKE-010 ran) |
 | RISK-002 | Sync correctness and data loss | 16 | Critical | Open |
 | RISK-014 | Annotation loss through content drift | 16 | Critical | Open |
 | RISK-001 | Shell architecture unvalidated | 15 | Critical | Open |
