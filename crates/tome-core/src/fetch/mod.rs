@@ -28,10 +28,14 @@
 //! fn scrape` — those are illustrative notes, and this decision supersedes
 //! them.)
 
+pub mod resolver;
 pub mod robots;
+pub mod ssrf;
 
 use std::collections::HashMap;
 use std::io::Read as _;
+use std::net::IpAddr;
+use std::str::FromStr as _;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -39,7 +43,9 @@ use url::Url;
 
 use crate::config::FetchConfig;
 use crate::error::{Error, Result};
+use resolver::GuardResolver;
 use robots::RobotsPolicy;
+use ssrf::AddressPolicy;
 
 /// `Tome/<version> (+<project url>)` — the PRD's format, not overridable.
 pub fn user_agent() -> String {
@@ -85,6 +91,9 @@ pub enum FetchOutcome {
 pub struct Fetcher {
     agent: ureq::Agent,
     config: FetchConfig,
+    /// The SSRF policy, kept alongside the agent so the pre-flight check for
+    /// literal-IP URLs uses the same decision the resolver does.
+    address_policy: AddressPolicy,
     /// Robots policy per origin (scheme://host:port).
     robots: Mutex<HashMap<String, RobotsPolicy>>,
     /// Last request completion per host, for the rate limiter.
@@ -107,11 +116,39 @@ impl Fetcher {
             .max_redirects(0)
             // Statuses are data, not errors; retry/relay logic lives here.
             .http_status_as_error(false)
+            // Disable proxy support entirely. ureq defaults to
+            // Proxy::try_from_env(), which routes through HTTP_PROXY /
+            // ALL_PROXY / SOCKS if the environment sets them — and a proxy
+            // connection dials the *proxy*, so the GuardResolver only ever
+            // classifies the proxy address, never the destination. The SSRF
+            // refute-panel confirmed this as a filter bypass (an ambient
+            // corporate proxy makes `http://169.254.169.254/` reachable). A
+            // documentation fetcher has no business silently tunnelling
+            // through an environment proxy; connect directly so the resolver
+            // governs every destination.
+            .proxy(None)
             .timeout_global(Some(config.timeout))
             .build();
+        // The SSRF filter is installed as the agent's resolver, so the
+        // addresses that pass the check are the exact addresses ureq dials —
+        // this is where DNS-rebinding is closed, not in a separate pre-check
+        // that would re-resolve. `allow_insecure` (an owned host) is the one
+        // thing that widens the policy to private/loopback; it never opens
+        // link-local (the cloud metadata endpoint).
+        let policy = if config.allow_insecure {
+            AddressPolicy::allow_private()
+        } else {
+            AddressPolicy::public_only()
+        };
+        let agent = ureq::Agent::with_parts(
+            agent_config,
+            ureq::unversioned::transport::DefaultConnector::default(),
+            GuardResolver::new(policy),
+        );
         Self {
-            agent: agent_config.new_agent(),
+            agent,
             config,
+            address_policy: policy,
             robots: Mutex::new(HashMap::new()),
             last_request: Mutex::new(HashMap::new()),
             backoff_base,
@@ -128,8 +165,13 @@ impl Fetcher {
     ) -> Result<FetchOutcome> {
         let mut current = url.clone();
         for _hop in 0..=MAX_REDIRECTS {
+            // The SSRF filter, per hop. The authoritative enforcement is in
+            // GuardResolver (installed as the agent's resolver, closing the
+            // rebinding window). This pre-flight only catches the case a
+            // resolver never sees: a URL whose host is already a literal IP,
+            // rejected with the real reason instead of a generic error.
+            self.preflight_literal_ip(&current)?;
             self.check_robots(&current)?;
-            // ---- S1-5 SSRF filter slots in here, per hop. ----
             let response = self.request_with_retry(&current, max_body, validators)?;
             match response {
                 HopOutcome::Redirect(next) => {
@@ -142,6 +184,30 @@ impl Fetcher {
         Err(Error::Fetch {
             message: format!("more than {MAX_REDIRECTS} redirects"),
         })
+    }
+
+    // ---- SSRF ---------------------------------------------------------------
+
+    /// Reject a URL whose host is a literal IP the policy forbids, before any
+    /// connection. Hostnames are handled by [`GuardResolver`] at resolution
+    /// time; this covers `http://169.254.169.254/` and its v6 spellings,
+    /// which never reach a name resolver.
+    fn preflight_literal_ip(&self, url: &Url) -> Result<()> {
+        let Some(host) = url.host_str() else {
+            return Ok(());
+        };
+        // url gives bracketed v6 hosts as "[::1]"; strip for parsing.
+        let bare = host
+            .strip_prefix('[')
+            .and_then(|h| h.strip_suffix(']'))
+            .unwrap_or(host);
+        if let Ok(ip) = IpAddr::from_str(bare) {
+            if !self.address_policy.permits(ip) {
+                tracing::warn!(%ip, "SSRF filter blocked a literal-IP URL");
+                return Err(Error::BlockedByFilter);
+            }
+        }
+        Ok(())
     }
 
     // ---- robots -----------------------------------------------------------
@@ -197,6 +263,12 @@ impl Fetcher {
                     RobotsPolicy::disallow_all()
                 }
             }
+            // GuardResolver returns HostNotFound when it blocks every resolved
+            // address; surface the real reason instead of caching a
+            // disallow-all and reporting "robots". A genuine DNS failure comes
+            // through as Io, not HostNotFound, and stays a conservative
+            // disallow.
+            Err(ureq::Error::HostNotFound) => return Err(Error::BlockedByFilter),
             Err(_) => RobotsPolicy::disallow_all(),
         };
 
@@ -268,6 +340,9 @@ impl Fetcher {
 
             let mut response = match result {
                 Ok(response) => response,
+                // The resolver blocked every address: not retryable, and not
+                // a "download failed" — the filter refused the destination.
+                Err(ureq::Error::HostNotFound) => return Err(Error::BlockedByFilter),
                 Err(e) => {
                     // Transport failure: retryable with backoff.
                     last_error = Some(Error::Fetch {

@@ -20,6 +20,8 @@ pub mod paths;
 pub use error::{Error, Result};
 pub use paths::Paths;
 
+pub use fetch::ssrf;
+
 /// Reverse-DNS bundle identifier. See `docs/decisions/0004-bundle-identifier.md`.
 ///
 /// Single source of truth: the Keychain service name, the iCloud container, the
