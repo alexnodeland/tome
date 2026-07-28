@@ -156,11 +156,30 @@ API docs, never the versioned tree.
 - S1-3 maps the flat YAML sync fields into `SyncStrategy` (the enum makes
   `schedule`-without-`scheduled` unrepresentable); S1-2 owns the DB mapping.
 
-### Immediately: the S1 fan-out
+### Done: the S1 fan-out — S1-2/3/4/7 all merged 2026-07-28
 
-S1-2 (SQLite schema + repos), S1-3 (config parser), S1-4 (HTTP client) are parallel behind
-S1-1 and all Fable-shaped. S1-7 (HTML→AST, Opus) can also start — its output type is frozen.
-The which-site-first question below bites at S1-7/S1-8.
+| | Where | Worth knowing |
+|---|---|---|
+| S1-2 | `tome-core/src/db.rs` (#20) | STRICT tables, bundled SQLite; `icon`/`sync` stored as JSON in the frozen serde shape; upsert is `ON CONFLICT DO UPDATE`, never `INSERT OR REPLACE` (REPLACE cascades and empties a source's pages); rows re-validate through the model on read; `SyncState` deliberately absent (ADR-0005) |
+| S1-3 | `tome-core/src/config.rs` (#19) | Two layers: raw serde with `deny_unknown_fields`, then per-type `SourceSpec` variants; selectors validated by the same engine the parser uses; rate clamped to the 4 req/s cap; cargo-deny forced two dep swaps (serde_yaml→serde_yaml_ng, scraper 0.24→0.27 over fxhash) |
+| S1-4 | `tome-core/src/fetch/` (#21) | **Sync client (ureq 3), manual redirects** — every hop passes robots + rate limit, and **S1-5's SSRF filter slots into the marked seam in `Fetcher::fetch`**. robots.txt hand-rolled (RFC 9309 subset; 5xx/unreachable ⇒ disallow; Crawl-delay capped 60 s; iterative wildcard matching — recursive is exponential on hostile rules) |
+| S1-7 | `tome-core/src/parse.rs` (#22) | Content-root discovery then walk; unknown wrappers unwrap but keep `id` as `Anchor`; Sphinx pilcrows stripped, `highlight-<lang>` found by climbing ancestors; streaming parsing deliberately not implemented (SPIKE-002 numbers); links resolved beside the AST, hrefs inside as-written |
+
+Four more fuzz targets live (`model_ids`, `source_config`, `robots`, `html_parser`), each
+asserting an invariant, not just no-panic. The paths→`&SourceId` migration (#18) closed the S0
+containment gap. 105 tome-core tests.
+
+### Immediately: what remains of Stage 1
+
+- **S1-5 (SSRF filter)** and later **S1-9 (sanitizer)** are the two tickets the plan routes as
+  **Opus + adversarial verify** — verifiers prompted to *refute*, majority-refute kills the
+  change. That means multi-agent verification, which needs the owner's opt-in in this harness;
+  ask before spawning, or implement single-pass with an attack corpus and say which happened.
+  The S1-5 seam is already marked in `Fetcher::fetch`.
+- **S1-6 (BFS crawl + URL filter)** behind S1-4/S1-5; nodejs.org trap recorded above.
+- **S1-8 (normalization + golden corpus)** — the corpus licence gate is in
+  `crates/tome-core/corpus/README.md`; Python-first per the owner's call.
+- Then S1-10..15 (assets, highlighting, typography, reader, layout, navigation).
 
 ### Then: Stage 1 — the vertical slice
 
