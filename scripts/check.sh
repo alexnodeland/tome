@@ -42,7 +42,11 @@ run() {
 echo
 run "rust: formatting"      cargo fmt --all --check
 run "rust: lints"           cargo clippy -p tome-core -p tome-cli -p tome-testkit --all-targets -- -D warnings
-run "rust: tests"           cargo test -p tome-core -p tome-cli -p tome-testkit
+# tome-app is included here but NOT in the clippy line above: its tests
+# cover the `tome://` asset protocol handler, which is the one place a
+# string from page content becomes a filesystem path. Clippy still runs
+# without it, matching CI's Linux lint job, which cannot build it.
+run "rust: tests"           cargo test -p tome-core -p tome-cli -p tome-testkit -p tome-app
 # Type-check only. Fuzzing itself is unbounded and belongs in a scheduled run;
 # what rots between those runs is a target that no longer compiles against the
 # module it fuzzes, and that is cheap to catch here. Stable is enough for this

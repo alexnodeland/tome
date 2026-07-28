@@ -22,7 +22,10 @@ pub mod model;
 pub mod normalize;
 pub mod parse;
 pub mod paths;
+pub mod pipeline;
+pub mod render;
 pub mod sanitize;
+pub mod store;
 
 pub use error::{Error, Result};
 pub use paths::Paths;

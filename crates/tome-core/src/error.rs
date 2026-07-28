@@ -67,6 +67,14 @@ pub enum Error {
     #[error("The response exceeded the size limit ({limit} bytes).")]
     TooLarge { limit: u64 },
 
+    // Stored page content that will not load. The message names the file, a
+    // content hash under the cache root, and never the page path — same rule
+    // as `InvalidPagePath`: what someone reads is not diagnostics.
+    #[error(
+        "Stored page content could not be read ({message}). Re-sync the source to rebuild it."
+    )]
+    PageStore { message: String },
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }

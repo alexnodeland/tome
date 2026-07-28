@@ -271,25 +271,35 @@ impl<'a> Crawler<'a> {
         }))
     }
 
-    /// Derive a source-relative [`PagePath`] from a fetched URL. The path is
-    /// the URL path with its leading slash removed; a directory URL
-    /// (`/guide/`) becomes `guide/index.html` so every page has a file-shaped
-    /// path the store can write.
     fn page_path(&self, url: &Url) -> PagePath {
-        let mut path = url.path().trim_start_matches('/').to_owned();
-        if path.is_empty() || path.ends_with('/') {
-            path.push_str("index.html");
-        }
-        // PagePath rejects dot segments and the like; a URL that produces one
-        // (rare — the fetcher resolved it already) falls back to a hash-named
-        // page rather than dropping the content.
-        PagePath::new(&path).unwrap_or_else(|_| {
-            let digest = crate::hash::sha256(url.as_str().as_bytes());
-            let hex: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
-            #[allow(clippy::unwrap_used)] // the constructed name is always valid
-            PagePath::new(format!("pages/{hex}.html")).unwrap()
-        })
+        page_path_for(url)
     }
+}
+
+/// Derive a source-relative [`PagePath`] from a fetched URL. The path is the
+/// URL path with its leading slash removed; a directory URL (`/guide/`)
+/// becomes `guide/index.html` so every page has a file-shaped path the store
+/// can write.
+///
+/// **Free function, not just a method, because two other places need exactly
+/// this mapping and a second implementation of it would drift:** the ingestion
+/// pipeline inverts it to rebuild a page's original URL (for resolving
+/// relative assets), and applies it again to decide whether an internal link
+/// points at a page the library actually holds. See `pipeline::page_base`.
+pub fn page_path_for(url: &Url) -> PagePath {
+    let mut path = url.path().trim_start_matches('/').to_owned();
+    if path.is_empty() || path.ends_with('/') {
+        path.push_str("index.html");
+    }
+    // PagePath rejects dot segments and the like; a URL that produces one
+    // (rare — the fetcher resolved it already) falls back to a hash-named
+    // page rather than dropping the content.
+    PagePath::new(&path).unwrap_or_else(|_| {
+        let digest = crate::hash::sha256(url.as_str().as_bytes());
+        let hex: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
+        #[allow(clippy::unwrap_used)] // the constructed name is always valid
+        PagePath::new(format!("pages/{hex}.html")).unwrap()
+    })
 }
 
 /// One crawled page before it becomes a `DocPage` — carries the discovered

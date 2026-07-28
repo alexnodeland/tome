@@ -15,8 +15,13 @@ Rust ──invoke / event──▶ app webview ──postMessage──▶ sandbo
 A spike mode built into the app itself, gated on `TOME_SPIKE_002=1`:
 `src-tauri/src/spike002.rs` (commands), `src/spike/spike002.ts` (runner),
 `public/spike002-frame.js` (the script inside the frame). Results go to stdout so the run is
-capturable headlessly. **The harness comes out when S1-13 lands; this document is the part that
-stays.**
+capturable headlessly.
+
+**The harness was removed when S1-13 landed (2026-07-28), as planned. This document is the part
+that stays**, and its findings live on in the real reader: `src/lib/reader/bridge.ts` (the app
+half), `public/reader-frame.js` (the frame half), and `src/lib/reader/bridge.test.ts`, which
+asserts the posture below — sandbox attribute, frame CSP, message source check — so that a
+one-word edit cannot quietly undo what this spike cost to learn.
 
 Run against the **debug** build — the numbers below are a ceiling, not a floor — on the
 environment recorded in `.claude/continuation.md` (macOS 26.5, arm64). The frame is

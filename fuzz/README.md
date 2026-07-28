@@ -44,6 +44,7 @@ in a pre-commit gate.
 | `source_config` | No panic on any YAML; whatever parses honours the validated invariants (rate ≤ cap, https-or-allow_insecure, …) | Live |
 | `robots` | robots.txt parser/matcher never panics and never goes exponential; `/robots.txt` always fetchable | Live |
 | `ssrf` | Address classifier is total; every v6 spelling of a v4 address classifies identically (no v4-mapped bypass); policy is monotone | Live |
+| `render` | Every tag in the rendered HTML is one the renderer wrote (any other is an escaping hole); every attribute value is quoted and bracket-free; no `src` leaves the local asset base; every outline entry points at an id that exists | Live |
 | `highlight` | The only markup in the output is the highlighter's own two tags (any other `<` is an escaping hole); spans balance and never cross a line boundary; stripping tags and decoding entities returns the input verbatim | Live |
 | `annotation_anchor` | Re-anchoring resolves or reports `orphaned`, never lands on the wrong text | S3 |
 
