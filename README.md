@@ -9,24 +9,55 @@ macOS, Apple Silicon. Local-first. Open source.
 
 ---
 
-## Status: planning. No code yet.
+## Status: scaffolded. Stage 0 of the implementation plan.
 
-This repository currently contains **specifications, not software**. Nothing has been built, no
-technical spike has been run, and several foundational decisions are still open.
+The app builds, launches, and creates its library in the right place. Nothing else works yet —
+there is no ingestion, no reader, no search. The P0 technical spikes have not been run.
 
-If you are here to use Tome: there is nothing to install yet.
+If you are here to use Tome: there is nothing useful to install yet.
 If you are here to understand or shape it: start below.
+
+```bash
+npm install
+npm run tauri dev          # launches the app
+./scripts/check.sh         # everything CI would run
+cargo run -p tome-cli -- status
+```
+
+> **CI does not run yet.** The repository is private until release, so
+> [`scripts/check.sh`](scripts/check.sh) is the gate — it runs exactly what
+> [`.github/workflows/ci.yml`](.github/workflows/ci.yml) will. Keep the two in lockstep.
 
 | | |
 |---|---|
 | **What it should be** | [`docs/PRD.md`](docs/PRD.md) — product requirements, architecture, API and CLI surface |
 | **How it would be built** | [`docs/plans/`](docs/plans/) — 90 tickets across 5 phases, plus testing, security, CI/CD, design system, risk register |
 | **What's wrong with the plan** | [`docs/reviews/2026-07-28-plan-review.md`](docs/reviews/2026-07-28-plan-review.md) — a full critical review |
+| **How it gets built** | [`docs/plans/18-implementation-plan.md`](docs/plans/18-implementation-plan.md) — agent-driven execution plan, stages and gates |
 | **What's undecided** | [`docs/decisions/`](docs/decisions/) — open decisions and ADRs |
+| **What exists so far** | [Repository layout](#repository-layout) below — a Cargo workspace, a Svelte frontend, and one real module |
 
 **Start with the review.** It is the shortest path to understanding both the plan and its gaps.
 
 ---
+
+## Installing (once there is something to install)
+
+```bash
+brew install --cask alexnodeland/tap/tome
+xattr -dr com.apple.quarantine /Applications/Tome.app   # see below
+```
+
+Tome is **not signed or notarized** — the Apple Developer Program is deferred
+([ADR-0006](docs/decisions/0006-unsigned-distribution.md)). macOS Gatekeeper will refuse to open it
+on first launch until the quarantine flag is cleared; the command above works on every supported
+version, and the cask's caveats give the click-through alternatives. You only do it once per
+install.
+
+That friction is a real cost, and it is the main reason to revisit the decision at v1.0.
+
+`brew install --cask` delivers both the app and the `tome` CLI from the same build, which is what
+makes them read the same library.
 
 ## Why this exists
 
@@ -70,23 +101,37 @@ These are constraints, not aspirations. Where the plan violated one, the plan wa
 
 Recorded in [`docs/decisions/`](docs/decisions/). The ones that block progress:
 
-| ID | Decision | Blocks |
+| ID | Decision | Status |
 |----|----------|--------|
-| **DEC-001** | Licence — MIT or Apache-2.0 | **Any public release.** There is no `LICENSE` file yet. |
-| **DEC-002** | Bundle identifier and domain | Notarization, iCloud container, Keychain |
-| **DEC-003** | Funding — the Apple Developer Program is $99/yr and mandatory for notarization | Distribution |
-| **DEC-004** | Team size | Every date in the roadmap. The plan assumes ~2.5 engineers. |
+| DEC-001 | Licence | ✅ Dual **MIT OR Apache-2.0** |
+| DEC-002 | Bundle identifier | ✅ `com.alexnodeland.tome` |
+| DEC-004 | Capacity and scope | ✅ Solo + agent workflows; sync deferred |
+| DEC-003 | Apple Developer Program | ✅ **Deferred.** Ships unsigned via own Homebrew tap |
+| DEC-005–008 | Product questions (docset import, `watch` behaviour, note format, export targets) | Open, non-blocking |
 
-> **On DEC-004.** The plan totals ~381 person-days against a 30-week calendar. Solo, that is closer
-> to 77 weeks. If this stays a one-person project, the recommended cut is Phase 1 + Phase 2 + the
-> MCP portion of Phase 4 — about 55% of the work, keeping both differentiated features and dropping
-> cross-device sync, which is the largest and riskiest piece.
+**How it is being built:** by a solo maintainer directing Fable + Opus agent workflows. That changes
+the binding constraint from *time to write code* to *confidence the code is right*, which is why the
+[implementation plan](docs/plans/18-implementation-plan.md) puts every verification artifact before
+the thing it verifies. Scope is cut to Stages 0–4; cross-device sync is deferred until v1.0 has
+shipped and users ask for it.
 
 ---
 
 ## Repository layout
 
 ```
+crates/
+├── tome-core/                shared library — app, CLI, and MCP server all use it
+│   ├── src/paths.rs          the only place a data path is constructed
+│   └── corpus/               golden corpora: real pages and their expected output
+├── tome-cli/                 the `tome` binary
+└── tome-testkit/             test infrastructure (dev-dependency only)
+    ├── src/server.rs         fixture HTTP server — serves doc-site fixtures offline
+    ├── src/golden.rs         golden-corpus harness — snapshot, diff, review
+    └── fixtures/             hand-authored miniature documentation sites
+fuzz/                         fuzz targets; its own workspace, needs nightly
+src-tauri/                    the desktop app (Tauri owns the shell)
+src/                          Svelte frontend
 docs/
 ├── PRD.md                    product requirements — the authoritative specification
 ├── plans/                    phase plans (01-05), dependency map, and supporting documents
@@ -99,6 +144,12 @@ docs/
 ├── decisions/                open decisions and architecture decision records
 └── reviews/                  point-in-time reviews of the plan
 ```
+
+**`tome-core` shared by the app and the CLI is the load-bearing part.** They are separate
+processes that must observe the same library on disk; an integration test runs the real `tome`
+binary and asserts it resolves the same paths the app links against. See
+[ADR-0002](docs/decisions/0002-no-app-sandbox.md) for why that constraint exists and what it
+cost.
 
 Each shared fact has exactly one owning document — see the ownership table in
 [`docs/plans/00-project-overview.md`](docs/plans/00-project-overview.md). Please link rather than
@@ -123,5 +174,5 @@ Security issues: see [`SECURITY.md`](SECURITY.md) — please do not open a publi
 
 ## Licence
 
-**Not yet chosen** (DEC-001). Until a `LICENSE` file exists, no licence is granted. This is being
-resolved before anything is published.
+Dual-licensed under either [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option — the
+Rust ecosystem convention. Contributions are dual-licensed on the same terms.

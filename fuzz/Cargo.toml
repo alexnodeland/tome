@@ -1,0 +1,30 @@
+# Its own workspace on purpose: `libfuzzer-sys` needs a nightly toolchain and
+# sanitizer instrumentation, and neither should be imposed on `cargo test`.
+# The root Cargo.toml excludes this directory to match.
+[workspace]
+
+[package]
+name = "tome-fuzz"
+description = "Fuzz targets for Tome. See README.md."
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+tome-core = { path = "../crates/tome-core" }
+
+[profile.release]
+debug = true
+
+# Each target is a bin. `cargo fuzz add <name>` writes one of these; keep the
+# list in step with fuzz_targets/ or `cargo fuzz list` lies.
+[[bin]]
+name = "paths"
+path = "fuzz_targets/paths.rs"
+test = false
+doc = false
+bench = false

@@ -1,0 +1,54 @@
+[workspace]
+resolver = "2"
+members = ["crates/tome-core", "crates/tome-cli", "crates/tome-testkit", "src-tauri"]
+# `fuzz/` is its own workspace: `libfuzzer-sys` needs a nightly toolchain and
+# sanitizer flags, and pulling it into this workspace would impose both on every
+# ordinary `cargo test`. See fuzz/README.md.
+exclude = ["fuzz"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/alexnodeland/tome"
+authors = ["Alex Nodeland"]
+
+[workspace.dependencies]
+tome-core = { path = "crates/tome-core", version = "0.0.0" }
+tome-testkit = { path = "crates/tome-testkit", version = "0.0.0" }
+
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+thiserror-ext = "0.2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs", "io-util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+directories = "6"
+clap = { version = "4", features = ["derive", "env"] }
+
+# Test-only. `similar` produces the unified diffs the golden-corpus harness
+# prints; `proptest` and `tempfile` are used by tests across several crates.
+similar = { version = "3", default-features = false, features = ["text"] }
+proptest = "1"
+tempfile = "3"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+# Panicking paths are how agent-written code fails silently in production:
+# an `unwrap()` on remote data becomes a crash loop. Deny them in library
+# code and allow them explicitly, per-call, with a justification.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "warn"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

@@ -1,0 +1,24 @@
+[package]
+name = "tome-testkit"
+description = "Test infrastructure for Tome: the fixture HTTP server and the golden-corpus harness."
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+# Deliberately thin. This crate is a dev-dependency of everything, so anything
+# it pulls in is compiled on every `cargo test` run. The fixture server is
+# hand-written over `std::net` rather than built on hyper/axum for that reason,
+# and because a fixture server needs to misbehave on purpose (truncated bodies,
+# scripted 429s, mid-test shutdown) in ways a correct HTTP stack resists.
+similar = { workspace = true }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

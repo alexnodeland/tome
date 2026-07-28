@@ -275,6 +275,8 @@ documents with three sets of values. Ownership is now explicit.
 | Design tokens / components | `15-design-system.md` | links |
 | Data locations | `PRD.md` § File System Layout | links |
 | Ticket detail | phase plans `01`–`05` | links |
+| Test tiers, fixtures, corpora, fuzzing | `08-testing-strategy.md` | links |
+| Execution order, stages, model routing | `18-implementation-plan.md` | links |
 
 ---
 

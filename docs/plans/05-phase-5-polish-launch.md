@@ -6,10 +6,17 @@
 **Prerequisites:** Phases 1-4 complete
 **Exit Criteria:** App is stable, performant, and ready for public use
 
-> **Two blocking prerequisites this phase assumed away.** Notarization requires an **Apple
-> Developer Program membership ($99/yr)** — that is a funding decision (DEC-003), not a task — and
-> every artefact below still carries the placeholder bundle identifier `com.example.tome`
-> (DEC-002). Both must resolve before P5-010 can start.
+> **Both blocking prerequisites are now resolved.**
+>
+> * **DEC-002** — the bundle identifier is `com.alexnodeland.tome` ([ADR-0004](../decisions/0004-bundle-identifier.md)).
+> * **DEC-003** — the Apple Developer Program is **deferred**
+>   ([ADR-0006](../decisions/0006-unsigned-distribution.md)). Tome ships **unsigned and
+>   un-notarized** through `alexnodeland/homebrew-tap`. **P5-010 is therefore deferred**, and the
+>   phase exit criterion changes from "passes Gatekeeper" to "installs from the tap and launches
+>   after the documented quarantine step".
+>
+> The cost is real and is not hidden: Gatekeeper blocks first launch, and on macOS 15+ the
+> Control-click bypass no longer exists. The cask's `caveats` carry the instructions.
 
 ---
 
@@ -26,9 +33,9 @@
 | P5-007 | Build preferences UI | M | Critical | P1-017 |
 | P5-008 | Implement menu bar integration | M | High | P1-001 |
 | P5-009 | Add global keyboard shortcut | S | Medium | P5-008 |
-| P5-010 | macOS notarization setup | M | Critical | All previous |
-| P5-011 | Build DMG installer | M | High | P5-010 |
-| P5-012 | Publish distribution channels (own tap first) | S | High | P5-011 |
+| ~~P5-010~~ | ~~macOS notarization setup~~ — **deferred**, ADR-0006 | M | — | Needs DEC-003 reversed |
+| P5-011 | Build DMG installer (unsigned) | M | High | — |
+| P5-012 | Publish to `alexnodeland/homebrew-tap` | S | Critical | P5-011 |
 | P5-013 | Write user documentation | M | High | All previous |
 | P5-014 | Create landing page | M | High | All previous |
 
@@ -725,9 +732,18 @@ class GlobalShortcutManager {
 
 ---
 
-### P5-010: macOS notarization setup
+### P5-010: macOS notarization setup — DEFERRED
 
-**Priority:** Critical
+> **Not scheduled.** Requires Apple Developer Program membership, which is deferred by
+> [ADR-0006](../decisions/0006-unsigned-distribution.md). Everything below is kept intact and
+> correct so that enabling it later is a credentials change, not a redesign: enrol, add four
+> secrets, add `notarytool submit` + `stapler staple` to the release workflow. Nothing about the
+> app, the bundle identifier, or the entitlements changes.
+>
+> **Revisit at v1.0** — the natural trigger, and the point at which the Gatekeeper friction starts
+> costing real adoption.
+
+**Priority:** Deferred
 **Complexity:** M (3-5 days)
 **Dependencies:** All previous phases
 **Blocks:** P5-011
@@ -1234,9 +1250,11 @@ All Previous Phases
 - [ ] Preferences UI functional
 - [ ] Menu bar integration working
 - [ ] Global shortcut functional
-- [ ] App signed and notarized
-- [ ] DMG installer created
-- [ ] Homebrew cask available
+- [ ] DMG installer created (unsigned)
+- [ ] `brew install --cask alexnodeland/tap/tome` works on a clean machine
+- [ ] The documented quarantine step is verified on a machine that never built Tome
+- [ ] `brew uninstall --cask --zap tome` leaves nothing behind
+- [ ] ~~App signed and notarized~~ — deferred, ADR-0006
 - [ ] User documentation complete
 - [ ] Landing page live
 

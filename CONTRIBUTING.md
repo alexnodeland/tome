@@ -31,10 +31,32 @@ npm run tauri dev
 ### Before you open a PR
 
 ```bash
-cargo fmt && cargo clippy --all-targets -- -D warnings
-npm run format && npm run lint
-cargo test --workspace && npm run test
+./scripts/check.sh          # everything CI runs; --fast skips the app build
 ```
+
+GitHub Actions is unavailable while the repository is private, so this script
+**is** the gate rather than a convenience. It runs exactly what
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs; change one and change the other in the
+same commit.
+
+### Test infrastructure
+
+| | |
+|---|---|
+| Fixture HTTP server | [`crates/tome-testkit/src/server.rs`](crates/tome-testkit/src/server.rs) — serves committed doc-site fixtures offline, scripts failures, and shuts down mid-test so offline behaviour is assertable |
+| Golden corpora | [`crates/tome-testkit/src/golden.rs`](crates/tome-testkit/src/golden.rs), corpora under [`crates/tome-core/corpus/`](crates/tome-core/corpus/README.md) |
+| Property tests | `proptest`, alongside the module they cover |
+| Fuzz targets | [`fuzz/`](fuzz/README.md) — its own workspace, needs nightly to run |
+
+```bash
+TOME_UPDATE_GOLDEN=1 cargo test -p tome-core normalization   # rewrite goldens...
+git diff -- crates/tome-core/corpus                          # ...then review the diff
+cargo +nightly fuzz run paths -- -max_total_time=300
+```
+
+Update mode deliberately fails the run it changes anything in; the passing run is the one after the
+diff has been read. When output is judged rather than asserted — normalization, rendering,
+snippets — add a corpus case, not a hand-written `assert_eq!` on a fragment of HTML.
 
 ### Standards
 
@@ -77,7 +99,8 @@ Do not open a public issue for a vulnerability. See [`SECURITY.md`](SECURITY.md)
 
 ## Licensing of contributions
 
-The project licence is **not yet chosen** (DEC-001). Until it is, contributions cannot be accepted
-under a defined licence — which is itself a reason DEC-001 is urgent. Contributions are made under
-the [Developer Certificate of Origin](https://developercertificate.org/); sign off with
-`git commit -s`.
+Tome is dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at the user's
+option. Unless you state otherwise, contributions you submit are dual-licensed on the same terms.
+
+Contributions are made under the [Developer Certificate of Origin](https://developercertificate.org/);
+sign off with `git commit -s`.

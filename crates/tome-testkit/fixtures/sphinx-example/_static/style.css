@@ -1,0 +1,21 @@
+/* Enough Sphinx-shaped CSS for asset localization to have something to fetch. */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.6;
+}
+
+.headerlink {
+  visibility: hidden;
+  margin-left: 0.25em;
+}
+
+h1:hover .headerlink,
+h2:hover .headerlink {
+  visibility: visible;
+}
+
+.highlight pre {
+  background: #f5f5f5;
+  padding: 0.75rem;
+  overflow-x: auto;
+}

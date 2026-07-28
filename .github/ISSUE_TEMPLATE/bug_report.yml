@@ -27,13 +27,13 @@ body:
     id: version
     attributes:
       label: Tome version
-      description: "`tome --version`, or the commit SHA"
+      description: '`tome --version`, or the commit SHA'
     validations: { required: true }
   - type: input
     id: macos
     attributes:
       label: macOS version and chip
-      placeholder: "14.5, M2"
+      placeholder: '14.5, M2'
     validations: { required: true }
   - type: textarea
     id: diagnostics

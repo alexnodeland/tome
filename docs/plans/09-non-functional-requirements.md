@@ -409,9 +409,10 @@ Priority languages for future localization:
 
 | Requirement | Implementation |
 |-------------|----------------|
-| **Code signing** | Developer ID certificate |
-| **Notarization** | Apple notarization required |
-| **Gatekeeper** | Must pass Gatekeeper checks |
+| **Code signing** | **Ad-hoc only.** No Developer ID certificate — [ADR-0006](../decisions/0006-unsigned-distribution.md). Apple Silicon requires an ad-hoc signature to execute; the toolchain applies one. |
+| **Notarization** | **Deferred.** Requires Apple Developer Program membership. |
+| **Gatekeeper** | **Will not pass.** Users clear quarantine once per install; the Homebrew cask's `caveats` document how. Revisit at v1.0. |
+| **Distribution** | `alexnodeland/homebrew-tap` — `brew install --cask alexnodeland/tap/tome` |
 
 ### Open Source
 

@@ -1,0 +1,54 @@
+# cargo-deny. Enforced in CI (see .github/workflows/ci.yml) and by scripts/check.sh.
+
+[graph]
+# Tome ships macOS on Apple Silicon only (see docs/plans/09-non-functional-requirements.md).
+# Scoping the graph to that target excludes Tauri's Linux backend -- notably the
+# unmaintained gtk-rs GTK3 bindings (RUSTSEC-2024-0411..0420), which are never
+# compiled into anything we ship. Narrowing the graph is preferable to ignoring
+# the advisory IDs: if these crates ever DO enter a macOS build, we want to hear
+# about it.
+targets = [{ triple = "aarch64-apple-darwin" }]
+all-features = false
+
+[licenses]
+# Must stay compatible with BOTH arms of our dual licence (ADR-0003).
+allow = [
+    "MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause", "BSD-3-Clause", "ISC", "Zlib",
+    "Unicode-3.0", "MPL-2.0", "CC0-1.0",
+]
+confidence-threshold = 0.9
+
+[bans]
+# A dependency pulled in twice at different versions is usually an agent
+# adding a crate that duplicates one already present.
+multiple-versions = "warn"
+wildcards = "deny"
+
+[advisories]
+yanked = "deny"
+
+# Vulnerabilities are a hard failure and are never ignored here -- if one
+# appears, the build stops until it is resolved or explicitly accepted with a
+# dated entry below.
+#
+# `unmaintained` advisories are different in kind: they flag a maintenance risk,
+# not a defect. These five are the rust-unic Unicode crates, reached only via
+# tauri -> tauri-utils -> urlpattern. We do not depend on them directly, there
+# is no alternative short of Tauri changing its own dependency, and none carries
+# a known vulnerability.
+#
+# They are listed individually rather than by setting `unmaintained = "warn"`,
+# so that any NEW unmaintained crate -- including one we introduce ourselves --
+# still fails the build. Re-check when Tauri updates `urlpattern`.
+ignore = [
+    { id = "RUSTSEC-2025-0075", reason = "rust-unic unmaintained; transitive via tauri-utils -> urlpattern" },
+    { id = "RUSTSEC-2025-0080", reason = "rust-unic unmaintained; transitive via tauri-utils -> urlpattern" },
+    { id = "RUSTSEC-2025-0081", reason = "rust-unic unmaintained; transitive via tauri-utils -> urlpattern" },
+    { id = "RUSTSEC-2025-0098", reason = "rust-unic unmaintained; transitive via tauri-utils -> urlpattern" },
+    { id = "RUSTSEC-2025-0100", reason = "rust-unic unmaintained; transitive via tauri-utils -> urlpattern" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>API reference &#8212; Widget 2.1 documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="prev" title="Widget" href="../index.html" />
+  </head>
+  <body class="wy-body-for-nav">
+    <div class="wy-nav-content">
+      <div class="rst-content">
+        <div role="main" class="document">
+          <section id="api-reference">
+            <h1>
+              API reference<a class="headerlink" href="#api-reference" title="Permalink">&para;</a>
+            </h1>
+
+            <dl class="py class">
+              <dt class="sig sig-object py" id="widget.Widget">
+                <em class="property">class </em><span class="sig-prename">widget.</span
+                ><span class="sig-name">Widget</span
+                ><span class="sig-paren">(</span
+                ><em class="sig-param">size=<span class="default_value">1</span></em
+                ><span class="sig-paren">)</span>
+                <a class="headerlink" href="#widget.Widget" title="Permalink">&para;</a>
+              </dt>
+              <dd>
+                <p>A widget of a given size.</p>
+                <dl class="py method">
+                  <dt class="sig sig-object py" id="widget.Widget.resize">
+                    <span class="sig-name">resize</span><span class="sig-paren">(</span
+                    ><em class="sig-param">size</em><span class="sig-paren">)</span>
+                    <a class="headerlink" href="#widget.Widget.resize" title="Permalink">&para;</a>
+                  </dt>
+                  <dd>
+                    <p>
+                      Resize in place. Raises <code class="docutils literal">ValueError</code> when
+                      <em>size</em> is negative.
+                    </p>
+                  </dd>
+                </dl>
+              </dd>
+            </dl>
+
+            <section id="examples">
+              <h2>Examples<a class="headerlink" href="#examples" title="Permalink">&para;</a></h2>
+              <div class="highlight-python notranslate">
+                <div class="highlight">
+                  <pre><span></span><span class="kn">from</span> <span class="nn">widget</span> <span class="kn">import</span> <span class="n">Widget</span>
+
+<span class="n">w</span> <span class="o">=</span> <span class="n">Widget</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">w</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span></pre>
+                </div>
+              </div>
+              <p>Back to the <a class="reference internal" href="../index.html">index</a>.</p>
+            </section>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

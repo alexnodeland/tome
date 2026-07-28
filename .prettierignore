@@ -1,0 +1,21 @@
+target/
+node_modules/
+dist/
+src-tauri/gen/
+src-tauri/icons/
+package-lock.json
+
+# Test fixtures and golden corpora are data, not source. Their exact bytes are
+# the thing under test -- whitespace inside <pre> is significant, and a golden
+# file reformatted by Prettier no longer records what the pipeline produced.
+crates/*/fixtures/
+crates/*/corpus/
+
+# Markdown is excluded deliberately. The documentation in this repo is the
+# product right now: tables are hand-aligned, prose is hand-wrapped, and
+# reflowing it produces enormous diffs that bury real changes. Formatting is
+# enforced by review, not by Prettier.
+*.md
+LICENSE
+LICENSE-MIT
+LICENSE-APACHE
