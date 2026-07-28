@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
 import App from './App.svelte';
 import { invoked, mockResponses } from './test/setup';
 
@@ -10,6 +11,9 @@ import { invoked, mockResponses } from './test/setup';
  */
 describe('App', () => {
   beforeEach(() => {
+    localStorage.clear();
+    // jsdom's default 1024 is exactly the right-sidebar breakpoint.
+    window.innerWidth = 1400;
     mockResponses.list_sources = [
       {
         id: 'fixture',
@@ -34,11 +38,62 @@ describe('App', () => {
 
   it('loads the first source and its first page on launch', async () => {
     render(App);
-    await screen.findByRole('combobox', { name: 'Page' });
+    await screen.findByTitle('Documentation');
 
     expect(invoked).toContainEqual(['list_sources', undefined]);
     expect(invoked).toContainEqual(['list_pages', { sourceId: 'fixture' }]);
     expect(invoked).toContainEqual(['read_page', { sourceId: 'fixture', path: 'index.html' }]);
+  });
+
+  it('shows the three panels', async () => {
+    render(App);
+    await screen.findByTitle('Documentation');
+
+    expect(screen.getByRole('navigation', { name: 'Documentation sources' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'On this page' })).toBeInTheDocument();
+  });
+
+  it('draws the outline the renderer produced', async () => {
+    render(App);
+    await screen.findByTitle('Documentation');
+
+    // The outline comes from Rust with every entry carrying an anchor; the
+    // sidebar is only allowed to draw it, never to derive it. Scoped to the
+    // outline landmark because the page is also called "Widget" in the
+    // library list, and an unscoped query would match either.
+    const outline = screen.getByRole('navigation', { name: 'On this page' });
+    expect(within(outline).getByRole('button', { name: 'Widget' })).toBeInTheDocument();
+  });
+
+  it('opens a page when one is chosen in the library', async () => {
+    const user = userEvent.setup();
+    render(App);
+    await screen.findByTitle('Documentation');
+    invoked.length = 0;
+
+    await user.click(screen.getByRole('button', { name: 'API reference' }));
+    expect(invoked).toContainEqual([
+      'read_page',
+      { sourceId: 'fixture', path: 'api/reference.html' },
+    ]);
+  });
+
+  it('toggles the sidebars with the documented shortcuts', async () => {
+    // PRD Appendix C: Cmd+1 library, Cmd+2 outline, Cmd+backslash both.
+    const user = userEvent.setup();
+    render(App);
+    await screen.findByTitle('Documentation');
+
+    await user.keyboard('{Meta>}1{/Meta}');
+    expect(
+      screen.queryByRole('navigation', { name: 'Documentation sources' }),
+    ).not.toBeInTheDocument();
+
+    await user.keyboard('{Meta>}1{/Meta}');
+    expect(screen.getByRole('navigation', { name: 'Documentation sources' })).toBeInTheDocument();
+
+    await user.keyboard('{Meta>}2{/Meta}');
+    expect(screen.queryByRole('navigation', { name: 'On this page' })).not.toBeInTheDocument();
   });
 
   it('puts the reader in a sandboxed frame with no same-origin access', async () => {
@@ -77,12 +132,18 @@ describe('App', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/list_pages/);
   });
 
-  it('has a reachable heading and labelled controls', async () => {
+  it('has a reachable heading and labelled landmarks', async () => {
     // Queried by role and accessible name, not by test id: if these fail, the
     // shell is not navigable by a screen reader either.
     render(App);
-    expect(screen.getByRole('heading', { level: 1, name: 'Tome' })).toBeInTheDocument();
-    expect(await screen.findByRole('combobox', { name: 'Source' })).toBeInTheDocument();
-    expect(await screen.findByRole('combobox', { name: 'Page' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole('searchbox', { name: /filter/i })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Library' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'On this page' })).toBeInTheDocument();
+  });
+
+  it('titles the window bar with the page, not with the app name', async () => {
+    render(App);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Widget' })).toBeInTheDocument();
   });
 });
