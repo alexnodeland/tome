@@ -12,9 +12,11 @@
   import Outline from '$lib/components/Outline.svelte';
   import Reader from '$lib/components/Reader.svelte';
   import { isCommand } from '$lib/keys';
+  import { classifyLink, NavigationHistory, type HistoryEntry } from '$lib/navigation';
   import {
     listPages,
     listSources,
+    openExternal,
     readPage,
     type PageSummary,
     type ReaderPage,
@@ -29,9 +31,24 @@
   let activeHeading = $state<string | null>(null);
   let error = $state<string | null>(null);
   let loading = $state(true);
+  /** Where to restore the reader to, and the token that makes it re-apply. */
+  let restoreScroll = $state(0);
+  let navigationToken = $state(0);
 
   let layout = $state<Layout>();
   let reader = $state<Reader>();
+
+  // Not `$state`: the history object mutates in place on every scroll event,
+  // and making it reactive would re-render the whole shell at pointer rate.
+  // The two things the UI actually needs from it are mirrored below.
+  const history = new NavigationHistory();
+  let canGoBack = $state(false);
+  let canGoForward = $state(false);
+
+  function syncHistoryButtons(): void {
+    canGoBack = history.canGoBack();
+    canGoForward = history.canGoForward();
+  }
 
   onMount(async () => {
     try {
@@ -50,27 +67,78 @@
   }
 
   async function selectSource(id: string): Promise<void> {
-    selectedSource = id;
-    page = null;
     error = null;
     try {
       pages = await listPages(id);
+      selectedSource = id;
       const first = pages[0];
-      if (first) await open(first.path);
+      if (first) await navigateTo({ sourceId: id, path: first.path, fragment: null, scrollTop: 0 });
+      else page = null;
     } catch (e) {
       error = message(e);
     }
   }
 
+  /** Go somewhere, and remember that we did. */
   async function open(path: string, hash: string | null = null): Promise<void> {
     if (!selectedSource) return;
+    await navigateTo({ sourceId: selectedSource, path, fragment: hash, scrollTop: 0 });
+  }
+
+  /**
+   * Display an entry and push it onto the history.
+   *
+   * Cross-source navigation goes through here too: an entry names its source,
+   * so following a link into another documentation set reloads that source's
+   * page list before showing the page — and back returns to the first source
+   * with no special case.
+   */
+  async function navigateTo(entry: HistoryEntry): Promise<void> {
+    if (await show(entry)) {
+      history.push(entry);
+      syncHistoryButtons();
+    }
+  }
+
+  /**
+   * Display an entry WITHOUT touching the history. Back and forward use this;
+   * pushing there would make the buttons undo each other for ever.
+   *
+   * Returns whether it worked, so a failed navigation does not leave a
+   * history entry pointing at a page that would not open.
+   */
+  async function show(entry: HistoryEntry): Promise<boolean> {
     error = null;
     try {
-      page = await readPage(selectedSource, path);
-      fragment = hash;
+      if (entry.sourceId !== selectedSource) {
+        pages = await listPages(entry.sourceId);
+        selectedSource = entry.sourceId;
+      }
+      page = await readPage(entry.sourceId, entry.path);
+      fragment = entry.fragment;
+      restoreScroll = entry.scrollTop;
       activeHeading = null;
+      navigationToken += 1;
+      return true;
     } catch (e) {
       error = message(e);
+      return false;
+    }
+  }
+
+  async function goBack(): Promise<void> {
+    const entry = history.back();
+    if (entry) {
+      await show(entry);
+      syncHistoryButtons();
+    }
+  }
+
+  async function goForward(): Promise<void> {
+    const entry = history.forward();
+    if (entry) {
+      await show(entry);
+      syncHistoryButtons();
     }
   }
 
@@ -83,24 +151,40 @@
    * here. Back/forward and cross-source routing are S1-15.
    */
   function navigate(href: string): void {
-    if (href.startsWith('#')) {
-      const id = href.slice(1);
-      // A same-page fragment scrolls; it does not reload the page. Reloading
-      // would lose the reader's position on every permalink click, and Sphinx
-      // puts a permalink on every heading.
-      activeHeading = id;
-      reader?.scrollToHeading(id);
-      return;
+    const target = classifyLink(href);
+    switch (target.kind) {
+      case 'fragment':
+        // A same-page fragment scrolls; it does not reload the page.
+        // Reloading would lose the reader's position on every permalink
+        // click, and Sphinx puts a permalink on every heading. It is still
+        // history, so back returns to where the reader was.
+        activeHeading = target.fragment;
+        reader?.scrollToHeading(target.fragment);
+        if (selectedSource && page) {
+          history.push({
+            sourceId: selectedSource,
+            path: page.path,
+            fragment: target.fragment,
+            scrollTop: 0,
+          });
+          syncHistoryButtons();
+        }
+        break;
+      case 'page':
+        void open(target.path, target.fragment);
+        break;
+      case 'external':
+        // Rust decides whether this is safe to hand to the OS; the frontend
+        // only asks. See `open_external` in src-tauri/src/reader.rs.
+        openExternal(target.url).catch((e) => (error = message(e)));
+        break;
     }
-    if (/^[a-z][a-z0-9+.-]*:/i.test(href)) {
-      // External. Opening it in the user's browser needs the opener plugin
-      // and a capability grant; S1-15 adds both together rather than silently
-      // doing nothing here.
-      error = `External links are not routed yet: ${href}`;
-      return;
-    }
-    const [path, hash] = href.split('#', 2);
-    if (path) void open(path, hash ?? null);
+  }
+
+  /** The reader scrolled. Remember it, so back returns to the same place. */
+  function readerScrolled(state: { top: number; activeId: string | null }): void {
+    activeHeading = state.activeId;
+    history.recordScroll(state.top);
   }
 
   /**
@@ -118,6 +202,12 @@
     } else if (isCommand(event, '\\')) {
       event.preventDefault();
       layout?.toggleBoth();
+    } else if (isCommand(event, '[')) {
+      event.preventDefault();
+      void goBack();
+    } else if (isCommand(event, ']')) {
+      event.preventDefault();
+      void goForward();
     }
   }
 </script>
@@ -126,6 +216,19 @@
 
 <div class="shell">
   <header>
+    <nav class="history" aria-label="History">
+      <button onclick={goBack} disabled={!canGoBack} aria-label="Back" title="Back (⌘[)">
+        <span aria-hidden="true">‹</span>
+      </button>
+      <button
+        onclick={goForward}
+        disabled={!canGoForward}
+        aria-label="Forward"
+        title="Forward (⌘])"
+      >
+        <span aria-hidden="true">›</span>
+      </button>
+    </nav>
     <h1>{page?.title ?? 'Tome'}</h1>
     {#if page}
       <span class="path selectable" title={page.path}>{page.path}</span>
@@ -163,8 +266,10 @@
           bind:this={reader}
           {page}
           {fragment}
+          scrollTop={restoreScroll}
+          token={navigationToken}
           onnavigate={navigate}
-          onscroll={(state) => (activeHeading = state.activeId)}
+          onscroll={readerScrolled}
         />
       {/snippet}
 
@@ -203,6 +308,36 @@
     /* The window is dragged by its title bar; without this the header is a
        dead strip that looks draggable and is not. */
     -webkit-app-region: drag;
+  }
+
+  .history {
+    display: flex;
+    gap: var(--space-1);
+    -webkit-app-region: no-drag;
+  }
+
+  .history button {
+    width: 1.6rem;
+    height: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-lg);
+    line-height: 1;
+    color: var(--color-text-secondary);
+  }
+
+  .history button:hover:not(:disabled) {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+  }
+
+  /* Disabled is carried by opacity AND by the `disabled` attribute, which is
+     what a screen reader announces and what stops the click. Colour alone
+     would say nothing to either. */
+  .history button:disabled {
+    opacity: 0.35;
   }
 
   h1 {

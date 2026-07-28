@@ -1,31 +1,25 @@
 /**
- * Keyboard shortcut helpers (S1-14).
+ * Keyboard shortcut helpers.
  *
  * **Canonical list: [PRD Appendix C](../../docs/PRD.md#appendix-c-keyboard-shortcut-reference).**
  * Not restated here — four partially-contradictory copies previously existed
  * across the plan set, two of which shadowed macOS system shortcuts.
  *
- * What lives here is the one rule that has to be code rather than a table.
- */
-
-/**
- * Whether a keystroke should be ignored because the user is typing.
+ * # Why there is no `isTyping` guard here
  *
- * The PRD's first shortcut rule: single-letter reading keys (`J`, `K`, `G`,
- * `[`, `]`) bind on the reader surface only, and every handler bails if the
- * focused element takes text. Without it, typing "j" in the source filter box
- * scrolls the document — which is not a hypothetical, it is what the box
- * added in this very ticket would have caused.
+ * The PRD's first shortcut rule is that single-letter reading keys (`J`, `K`,
+ * `G`, `[`, `]`) must never fire while a text field has focus — otherwise
+ * typing "j" in the library filter scrolls the document. S1-14 added such a
+ * guard here, and S1-15 removed it, because **nothing in the app webview can
+ * use it**: the app binds only modifier combinations, which do not collide
+ * with typing, and the reading keys scroll the *reader*, whose document lives
+ * in a sandboxed iframe the app cannot reach.
  *
- * Modifier combinations (`Cmd+1`) are exempt: they do not collide with typing
- * and are also in the menu bar, which is how macOS users find them.
+ * So when those keys are implemented they belong in `public/reader-frame.js`,
+ * with the guard written against *that* document's `activeElement`. A helper
+ * here would have been checking the wrong document. It is written down rather
+ * than silently deleted so the rule is not lost with the code.
  */
-export function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
-  const tag = target.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-}
 
 /** Whether `event` is the platform's primary modifier plus `key`. */
 export function isCommand(event: KeyboardEvent, key: string): boolean {

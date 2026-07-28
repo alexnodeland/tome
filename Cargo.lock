@@ -3871,6 +3871,7 @@ dependencies = [
  "tome-core",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]

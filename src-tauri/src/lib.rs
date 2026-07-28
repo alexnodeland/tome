@@ -80,6 +80,7 @@ pub fn run() {
             reader::list_sources,
             reader::list_pages,
             reader::read_page,
+            reader::open_external,
         ])
         .run(tauri::generate_context!());
 

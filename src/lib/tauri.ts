@@ -68,3 +68,14 @@ export async function listPages(sourceId: string): Promise<PageSummary[]> {
 export async function readPage(sourceId: string, path: string): Promise<ReaderPage> {
   return invoke<ReaderPage>('read_page', { sourceId, path });
 }
+
+/**
+ * Open a link in the user's browser.
+ *
+ * Validated in Rust against an allowlist of `http`, `https`, and `mailto` —
+ * see `src-tauri/src/reader.rs`. The frontend does not decide what is safe to
+ * hand to the operating system; it only asks.
+ */
+export async function openExternal(url: string): Promise<void> {
+  return invoke<void>('open_external', { url });
+}
