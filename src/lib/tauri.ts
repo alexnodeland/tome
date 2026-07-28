@@ -15,6 +15,56 @@ export interface LibraryLocation {
   initialised: boolean;
 }
 
+export interface SourceSummary {
+  id: string;
+  name: string;
+  category: string;
+  page_count: number;
+  last_synced: string | null;
+}
+
+export interface PageSummary {
+  path: string;
+  title: string;
+}
+
+/** One heading in a page's outline. Nested, so the sidebar can indent. */
+export interface OutlineEntry {
+  id: string;
+  title: string;
+  level: number;
+  children: OutlineEntry[];
+}
+
+/**
+ * A rendered page.
+ *
+ * `html` is produced by the Rust renderer, not by the frontend — every
+ * attribute quoted and every value escaped there, which is the contract the
+ * sanitizer depends on (`crates/tome-core/src/render.rs`). **Nothing in the
+ * frontend may build reader HTML from page content**; it only moves this
+ * string into the sandboxed frame.
+ */
+export interface ReaderPage {
+  source_id: string;
+  path: string;
+  title: string;
+  html: string;
+  outline: OutlineEntry[];
+}
+
 export async function libraryLocation(): Promise<LibraryLocation> {
   return invoke<LibraryLocation>('library_location');
+}
+
+export async function listSources(): Promise<SourceSummary[]> {
+  return invoke<SourceSummary[]>('list_sources');
+}
+
+export async function listPages(sourceId: string): Promise<PageSummary[]> {
+  return invoke<PageSummary[]>('list_pages', { sourceId });
+}
+
+export async function readPage(sourceId: string, path: string): Promise<ReaderPage> {
+  return invoke<ReaderPage>('read_page', { sourceId, path });
 }

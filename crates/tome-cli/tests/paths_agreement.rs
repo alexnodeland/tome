@@ -85,11 +85,14 @@ fn cli_reports_the_shared_bundle_identifier() {
 #[test]
 fn unimplemented_commands_fail_loudly() {
     // A scaffold that exits 0 on an unimplemented command is worse than one that
-    // errors: scripts and CI would treat it as success.
+    // errors: scripts and CI would treat it as success. (`list` used to be the
+    // subject here; S1-13 implemented it, so this moved to one that is still
+    // a stub rather than being deleted.)
     let out = Command::new(tome_bin())
-        .arg("list")
+        .arg("search")
+        .arg("anything")
         .output()
-        .expect("`tome list` runs");
+        .expect("`tome search` runs");
 
     assert!(
         !out.status.success(),
@@ -99,4 +102,54 @@ fn unimplemented_commands_fail_loudly() {
         String::from_utf8_lossy(&out.stderr).contains("not implemented"),
         "error should say what is missing"
     );
+}
+
+#[test]
+fn list_says_where_sources_go_when_there_are_none() {
+    // An empty library must not print nothing. The one thing someone in this
+    // state needs is the directory to put a configuration in.
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let out = Command::new(tome_bin())
+        .arg("list")
+        .env("TOME_HOME", tmp.path())
+        .output()
+        .expect("`tome list` runs");
+
+    assert!(out.status.success(), "an empty library is not an error");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("sources"), "{stdout}");
+}
+
+#[test]
+fn list_json_has_one_shape_even_when_empty() {
+    // `tome list --json | jq` must not need an empty-library special case.
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let out = Command::new(tome_bin())
+        .arg("list")
+        .arg("--json")
+        .env("TOME_HOME", tmp.path())
+        .output()
+        .expect("`tome list --json` runs");
+
+    assert!(out.status.success());
+    assert_eq!(
+        String::from_utf8_lossy(&out.stdout).trim(),
+        r#"{"sources":[]}"#
+    );
+}
+
+#[test]
+fn pull_without_a_source_says_which_are_available() {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let out = Command::new(tome_bin())
+        .arg("pull")
+        .arg("nothing-here")
+        .env("TOME_HOME", tmp.path())
+        .output()
+        .expect("`tome pull` runs");
+
+    assert!(!out.status.success());
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    // Names the directory, so the next step is obvious rather than guessed.
+    assert!(stderr.contains("sources"), "{stderr}");
 }

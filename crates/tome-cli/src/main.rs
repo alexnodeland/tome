@@ -12,8 +12,13 @@
 //!   a single stray `println!` corrupts the stream and the client disconnects
 //!   with an opaque parse error. All diagnostics go to stderr.
 
-use anyhow::Result;
+use std::path::PathBuf;
+
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
+use tome_core::config::SourceConfig;
+use tome_core::db::Database;
+use tome_core::model::SourceId;
 use tome_core::Paths;
 
 #[derive(Parser)]
@@ -88,6 +93,8 @@ fn main() -> Result<()> {
     let paths = Paths::resolve()?;
 
     match cli.command {
+        Command::Pull { source, all } => pull(&paths, source.as_deref(), all, cli.quiet)?,
+        Command::List => list(&paths, cli.json)?,
         Command::Status => {
             // The one command that does something real so far: it proves the
             // CLI and the app agree on where the library lives.
@@ -110,20 +117,223 @@ fn main() -> Result<()> {
                 }
             );
         }
+        Command::Add { .. } => {
+            // P1-022 owns the interactive add workflow. Until it lands there
+            // IS a way to add a source, and saying what it is beats a bare
+            // "not implemented" that leaves the reader with nothing to read.
+            anyhow::bail!(
+                "`tome add` is not implemented yet (P1-022).\n\
+                 Until it lands, write the source configuration yourself:\n  \
+                 {}/<source-id>.yaml\n\
+                 then run `tome pull <source-id>`. The schema is in \
+                 docs/PRD.md Appendix A.",
+                paths.sources_dir().display()
+            );
+        }
         other => {
             let name = match other {
-                Command::Add { .. } => "add",
-                Command::Pull { .. } => "pull",
                 Command::Search { .. } => "search",
-                Command::List => "list",
                 Command::Remove { .. } => "remove",
                 Command::Serve { .. } => "serve",
                 Command::Mcp { .. } => "mcp",
-                Command::Status => unreachable!("handled above"),
+                Command::Add { .. } | Command::Pull { .. } | Command::List | Command::Status => {
+                    unreachable!("handled above")
+                }
             };
             anyhow::bail!("`tome {name}` is not implemented yet (scaffold only).");
         }
     }
 
+    Ok(())
+}
+
+/// Every source configuration on disk, as `(id, path)`.
+///
+/// The sources directory is the source of truth for what CAN be pulled; the
+/// database records what HAS been. A config with no database row is a source
+/// that has never been pulled, which `tome list` shows rather than hiding.
+fn source_configs(paths: &Paths) -> Result<Vec<(SourceId, PathBuf)>> {
+    let dir = paths.sources_dir();
+    let entries = match std::fs::read_dir(&dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(e).with_context(|| format!("reading {}", dir.display())),
+    };
+
+    let mut found = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().is_none_or(|ext| ext != "yaml") {
+            continue;
+        }
+        let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        match SourceId::new(stem) {
+            Ok(id) => found.push((id, path)),
+            // A file whose name is not a valid source id is not a source.
+            // Warn rather than fail: one bad file must not block `--all`.
+            Err(e) => tracing::warn!("skipping {}: {e}", path.display()),
+        }
+    }
+    found.sort_by(|a, b| a.0.as_str().cmp(b.0.as_str()));
+    Ok(found)
+}
+
+fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool) -> Result<()> {
+    // `pull` writes, so it creates the library. `list` deliberately does not.
+    paths.ensure_created()?;
+    let available = source_configs(paths)?;
+    if available.is_empty() {
+        anyhow::bail!(
+            "No source configurations found in {}.\n\
+             Add one before pulling; see docs/PRD.md Appendix A for the schema.",
+            paths.sources_dir().display()
+        );
+    }
+
+    let selected: Vec<_> = match (source, all) {
+        (Some(_), true) => anyhow::bail!("Pass a source or --all, not both."),
+        (Some(name), false) => {
+            let matched: Vec<_> = available
+                .iter()
+                .filter(|(id, _)| id.as_str() == name)
+                .collect();
+            if matched.is_empty() {
+                let known: Vec<&str> = available.iter().map(|(id, _)| id.as_str()).collect();
+                anyhow::bail!("No source named `{name}`. Known: {}", known.join(", "));
+            }
+            matched
+        }
+        (None, true) => available.iter().collect(),
+        (None, false) => anyhow::bail!("Name a source, or pass --all."),
+    };
+
+    for (id, config_path) in selected {
+        let config = SourceConfig::parse_file(config_path)
+            .with_context(|| format!("reading {}", config_path.display()))?;
+
+        if !quiet {
+            eprintln!("Pulling {id}…");
+        }
+
+        // Progress goes to stderr, deliberately: stdout belongs to `--json`
+        // output and to `tome mcp`, and a progress line in a piped JSON
+        // stream is a parse error at the other end.
+        let mut last_reported = 0usize;
+        let report = tome_core::pipeline::pull(paths, &config, &mut |progress| {
+            if quiet {
+                return;
+            }
+            if let tome_core::pipeline::Progress::Crawled {
+                crawled, queued, ..
+            } = progress
+            {
+                if crawled > last_reported {
+                    last_reported = crawled;
+                    eprint!("\r  {crawled} pages fetched, {queued} queued   ");
+                }
+            }
+        })?;
+        if !quiet && last_reported > 0 {
+            eprintln!();
+        }
+
+        println!(
+            "{id}: {} pages in {:.1}s",
+            report.pages_stored,
+            report.elapsed.as_secs_f64()
+        );
+
+        // Everything that went wrong, said out loud. A pull that reports
+        // success while having silently skipped 200 pages is worse than one
+        // that says what it missed.
+        if report.hit_page_cap {
+            println!("  stopped at the page cap — the source has more pages than were fetched");
+        }
+        if !report.page_errors.is_empty() {
+            println!("  {} pages could not be fetched:", report.page_errors.len());
+            for error in report.page_errors.iter().take(10) {
+                println!("    {error}");
+            }
+            if report.page_errors.len() > 10 {
+                println!("    … and {} more", report.page_errors.len() - 10);
+            }
+        }
+        if !report.asset_errors.is_empty() {
+            println!(
+                "  {} assets could not be localized (those images show a placeholder)",
+                report.asset_errors.len()
+            );
+        }
+    }
+
+    Ok(())
+}
+
+fn list(paths: &Paths, json: bool) -> Result<()> {
+    let configs = source_configs(paths)?;
+    // A read-only command must not create the library. On a machine where
+    // nothing has been pulled yet there is no database, and `tome list`
+    // saying "empty" is the correct answer -- not an error, and not a reason
+    // to make ~/Library/Application Support/Tome exist.
+    let database = paths
+        .database_file()
+        .exists()
+        .then(|| Database::open(paths))
+        .transpose()?;
+    let pulled = match &database {
+        Some(database) => database.list_sources()?,
+        None => Vec::new(),
+    };
+
+    if json {
+        // One shape, always — an empty library prints `{"sources":[]}`, not
+        // nothing, so a script can `jq` it without special-casing.
+        let sources: Vec<_> = configs
+            .iter()
+            .map(|(id, _)| {
+                let row = pulled.iter().find(|s| s.id == *id);
+                serde_json::json!({
+                    "id": id.as_str(),
+                    "name": row.map(|s| s.name.clone()),
+                    "category": row.map(|s| s.category.clone()),
+                    // The live row count, the same number the human-readable
+                    // output prints. Reading `Source.page_count` here instead
+                    // made the two disagree whenever the stored field was
+                    // stale.
+                    "pages": row
+                        .and_then(|s| database.as_ref().and_then(|db| db.page_count(&s.id).ok()))
+                        .unwrap_or(0),
+                    "pulled": row.is_some(),
+                })
+            })
+            .collect();
+        println!("{}", serde_json::json!({ "sources": sources }));
+        return Ok(());
+    }
+
+    if configs.is_empty() {
+        println!(
+            "No sources yet. Configurations go in {}.",
+            paths.sources_dir().display()
+        );
+        return Ok(());
+    }
+
+    for (id, _) in &configs {
+        match pulled.iter().find(|s| s.id == *id) {
+            Some(source) => println!(
+                "{:<24} {:<8} {}",
+                id.as_str(),
+                database
+                    .as_ref()
+                    .and_then(|db| db.page_count(id).ok())
+                    .unwrap_or(source.page_count),
+                source.name
+            ),
+            None => println!("{:<24} {:<8} (never pulled)", id.as_str(), "-"),
+        }
+    }
     Ok(())
 }

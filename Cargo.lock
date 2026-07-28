@@ -3867,6 +3867,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tempfile",
  "tome-core",
  "tracing",
  "tracing-subscriber",
@@ -3878,6 +3879,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "clap",
+ "serde_json",
  "tempfile",
  "tome-core",
  "tracing",

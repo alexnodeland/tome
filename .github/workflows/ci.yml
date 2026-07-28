@@ -103,7 +103,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Unit and integration tests
-        run: cargo test -p tome-core -p tome-cli -p tome-testkit
+        # tome-app is included: its tests cover the `tome://` asset protocol
+        # handler, the one place a string from page content becomes a
+        # filesystem path. It builds here (macOS) but not in the Linux lint
+        # job, which is why the clippy step above still excludes it.
+        run: cargo test -p tome-core -p tome-cli -p tome-testkit -p tome-app
 
   test-js:
     name: Test frontend

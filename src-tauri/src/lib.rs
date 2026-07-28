@@ -2,13 +2,14 @@
 //!
 //! Tauri **is** the native shell: it owns the process, the window, the menus,
 //! and the `WKWebView`. There is no separate Swift/AppKit shell, and there is
-//! no second webview — the reader will be a sandboxed `<iframe>` inside the
+//! no second webview — the reader is a sandboxed `<iframe>` inside the
 //! primary webview so that untrusted documentation HTML is isolated from the
-//! app UI and the IPC bridge. See `docs/PRD.md` § Technical Architecture.
+//! app UI and the IPC bridge. See `docs/PRD.md` § Technical Architecture and
+//! `docs/spikes/002-reader-iframe-bridge.md`.
 
 use tome_core::Paths;
 
-mod spike002;
+mod reader;
 
 /// Where this library lives on disk. Exposed so the UI can show it and so an
 /// integration test can assert the app and the CLI agree.
@@ -44,8 +45,11 @@ pub fn run() {
 
     // First launch creates the directory structure. Failing here is fatal and
     // must say why: an unwritable data directory is not recoverable at runtime.
-    match Paths::resolve().and_then(|p| p.ensure_created().map(|()| p)) {
-        Ok(paths) => tracing::info!(state = %paths.state_root().display(), "library ready"),
+    let paths = match Paths::resolve().and_then(|p| p.ensure_created().map(|()| p)) {
+        Ok(paths) => {
+            tracing::info!(state = %paths.state_root().display(), "library ready");
+            paths
+        }
         Err(e) => {
             tracing::error!("could not prepare the data directory: {e}");
             if let Some(hint) = e.suggestion() {
@@ -53,17 +57,29 @@ pub fn run() {
             }
             std::process::exit(1);
         }
-    }
+    };
 
+    // The syntax set is several megabytes of inflated syntax dumps and is
+    // loaded on first use. Doing it here, before the window exists, keeps the
+    // cost off the first page view rather than making one page mysteriously
+    // slower than the rest.
+    let _ = tome_core::highlight::Highlighter::shared();
+
+    let protocol_paths = paths.clone();
     let result = tauri::Builder::default()
+        .manage(reader::ReaderState { paths })
+        // Localized assets live in the cache directory, outside the bundle,
+        // so the webview cannot reach them by URL without this. The handler
+        // is the app's only path from page content to the filesystem and
+        // validates accordingly — see `reader.rs`.
+        .register_uri_scheme_protocol(reader::ASSET_SCHEME, move |_ctx, request| {
+            reader::serve_asset(&protocol_paths, &request)
+        })
         .invoke_handler(tauri::generate_handler![
             library_location,
-            spike002::spike002_mode,
-            spike002::spike002_page_html,
-            spike002::spike002_echo,
-            spike002::spike002_emit,
-            spike002::spike002_report,
-            spike002::spike002_done,
+            reader::list_sources,
+            reader::list_pages,
+            reader::read_page,
         ])
         .run(tauri::generate_context!());
 

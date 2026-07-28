@@ -11,6 +11,14 @@ export default [
     languageOptions: { parserOptions: { parser: ts.parser } },
   },
   {
+    // `no-undef` is redundant and actively wrong on TypeScript: the compiler
+    // already resolves every identifier, and `no-undef` cannot see DOM lib
+    // types, so `HTMLIFrameElement` in a type position reads as undefined.
+    // typescript-eslint's own guidance is to turn it off for TS.
+    files: ['**/*.ts', '**/*.svelte'],
+    rules: { 'no-undef': 'off' },
+  },
+  {
     // The SPIKE-002 frame bootstrap runs inside a sandboxed iframe, plain JS
     // with no bundler in front of it, so its globals are the browser's.
     files: ['public/**/*.js'],
