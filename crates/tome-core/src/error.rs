@@ -45,6 +45,11 @@ pub enum Error {
     #[error("Invalid content hash: expected 64 lowercase hex characters.")]
     InvalidContentHash,
 
+    // SQLite's own messages are technical but carry no user content (no
+    // page paths, no queries) — bound parameters never appear in them.
+    #[error("Database error: {message}")]
+    Database { message: String },
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }

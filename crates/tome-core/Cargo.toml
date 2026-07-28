@@ -12,8 +12,12 @@ authors.workspace = true
 chrono.workspace = true
 directories.workspace = true
 regex.workspace = true
+rusqlite.workspace = true
 scraper.workspace = true
 serde = { workspace = true }
+# Not only a dev-dependency: the DB stores `icon` and `sync` as JSON in the
+# frozen serde shape, so the same contract covers storage, IPC, and the API.
+serde_json.workspace = true
 serde_yaml_ng.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
