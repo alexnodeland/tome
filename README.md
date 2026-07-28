@@ -97,6 +97,26 @@ These are constraints, not aspirations. Where the plan violated one, the plan wa
 
 ---
 
+## Fetching other people's documentation
+
+Tome's core loop is downloading documentation someone else wrote. The position, in plain language
+(evidence and analysis in [`docs/spikes/010-legal-posture.md`](docs/spikes/010-legal-posture.md)):
+
+- **Tome is a personal cache.** It fetches pages you chose, at your request, to your machine —
+  the same pages your browser would fetch, kept so they work offline. Nothing is uploaded,
+  shared, or served to anyone else.
+- **Tome is a polite client.** `robots.txt` is obeyed (and not overridable for registry-shipped
+  configurations), the User-Agent names this project, requests are rate-limited per host,
+  `Retry-After` is honoured, and revalidation uses conditional requests.
+- **Tome redistributes configurations, never content.** The registry is scraper configs — URLs
+  and selectors. No documentation text ships with the app or the registry.
+- **Every page keeps its provenance.** The reader links to the origin and shows the upstream
+  licence where determinable; exports carry both along.
+- **Removal on request.** A documentation owner who objects gets their registry entry removed —
+  within seven days, without a debate.
+
+---
+
 ## Open decisions
 
 Recorded in [`docs/decisions/`](docs/decisions/). The ones that block progress:

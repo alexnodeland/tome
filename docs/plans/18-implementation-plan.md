@@ -461,7 +461,9 @@ generate something that *looks* finished.
 5. ✅ **SPIKE-002** — ran 2026-07-28; [write-up](../spikes/002-reader-iframe-bridge.md). Single
    postMessage carries a full page; CSP inheritance into srcdoc holds; the sandbox seals the IPC
    layer; frame pacing moved to S1-13's interactive acceptance
-6. **SPIKE-010** — legal posture, one day, before the registry has entries
+6. ✅ **SPIKE-010** — ran 2026-07-28; [write-up](../spikes/010-legal-posture.md). No source
+   forbids the planned behaviour; the corpus gained a licence gate; takedown policy drafted;
+   no shipped opt-out list
 7. ✅ **DEC-003** — Apple Developer Program **deferred**; unsigned distribution via
    `alexnodeland/homebrew-tap` ([ADR-0006](../decisions/0006-unsigned-distribution.md))
 8. **Keep `scripts/check.sh` and `ci.yml` in lockstep** — the local script is the gate until the

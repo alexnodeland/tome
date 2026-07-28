@@ -378,6 +378,14 @@ Targeting M1+ only. Potential optimizations:
 
 ### SPIKE-010: Documentation scraping — legal and ToS posture
 
+> **Ran 2026-07-28 — complete.** Findings, the position statement, attribution rules, the
+> registry takedown policy, and the corpus licence gate are in
+> [`docs/spikes/010-legal-posture.md`](../spikes/010-legal-posture.md). Short version: none of
+> the ten most likely sources forbids automated access to current docs; Read the Docs publishes
+> explicit crawler guidelines (< 4 req/s, self-identifying UA) that Tome's planned behaviour
+> already beats; the golden corpus is the one redistribution artifact and now has a licence
+> gate (the DevDocs bar). No lawyer needed on current facts; no shipped opt-out list needed.
+
 **Priority:** P0 (before Phase 1)
 **Time Budget:** 1 day (plus a lawyer's opinion if the answer is not obviously fine)
 
@@ -477,7 +485,7 @@ testing, and misdiagnosed as a TOC bug.
 > assumptions. SPIKE-009 was previously marked P2 ("before the relevant phase") but due "During
 > P1", which contradicts its own priority definition — it informs Phase 5 performance work, so it
 > is due before Phase 5.
-| SPIKE-010 | Doc scraping: legal & ToS posture | **P0** | Not Started | - | Before P1 |
+| SPIKE-010 | Doc scraping: legal & ToS posture | **P0** | **Complete** — [write-up](../spikes/010-legal-posture.md) | agent | 2026-07-28 |
 | SPIKE-011 | Sanitizer vs. real documentation | P1 | Not Started | - | During P1 |
 
 ---

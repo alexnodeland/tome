@@ -48,7 +48,18 @@ easy to normalize proves nothing. Save the page as fetched, do not reformat it
 (Prettier is configured to leave this directory alone), and name it
 `<platform>-<what-is-interesting-about-it>.html`.
 
-Real pages are third-party content. Keep each case to the single page that
-demonstrates the structure, and note the source URL and retrieval date in
-`input/SOURCES.md` — the legal posture for redistributing fetched pages is
-SPIKE-010 and is not yet settled.
+Real pages are third-party content, and committing them here is
+**redistribution** — this repository is intended to go public. SPIKE-010
+settled the rule ([`docs/spikes/010-legal-posture.md`](../../../docs/spikes/010-legal-posture.md)):
+
+- Only pages whose licence permits alteration and redistribution may be
+  committed (PSF-2.0, CC-BY, CC-BY-SA, MIT, Apache-2.0 qualify). Pages from
+  sources with per-project or unknown licences stay local and uncommitted.
+- Every committed case gets a line in the suite's `input/SOURCES.md`: URL,
+  retrieval date, licence, and a one-line note of modifications ("truncated to
+  N bytes; scripts removed") — the PSF and CC licences ask for exactly that.
+- CC-BY-SA inputs (MDN) make the derived goldens CC-BY-SA too; the suite's
+  `SOURCES.md` must say so. If that bookkeeping ever costs more than MDN adds,
+  drop MDN from the corpus rather than the rule.
+
+Keep each case to the single page that demonstrates the structure.
