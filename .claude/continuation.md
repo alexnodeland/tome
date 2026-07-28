@@ -1,7 +1,11 @@
 # Continuation note — Tome
 
-**Written:** 2026-07-28. Updated the same day, after Stage 0 closed and PR #4 merged.
+**Written:** 2026-07-28. Updated the same day, through S1-10 (ingestion backend complete).
 **Delete this file when Stage 1 lands.** It is in-flight task state, not documentation.
+
+> **Resuming on the reader half (S1-11..S1-15)? Read [`reader-half.md`](reader-half.md) instead** —
+> it is the focused, actionable note for that work. This file is the full backend history and the
+> settled-facts reference behind it.
 
 ---
 
