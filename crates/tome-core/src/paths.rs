@@ -41,6 +41,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::error::{Error, Result};
+use crate::model::SourceId;
 use crate::APP_NAME;
 
 /// Environment variable that overrides both roots.
@@ -111,7 +112,15 @@ impl Paths {
     }
 
     /// Configuration file for a single source.
-    pub fn source_config_file(&self, source_id: &str) -> PathBuf {
+    ///
+    /// Takes [`SourceId`], not `&str` — that is the containment story. A
+    /// `SourceId` admits no path separator, no NUL, and no leading dot, so
+    /// every accessor below joins exactly one well-formed component and
+    /// cannot be steered outside its root. The S0 scaffold took `&str` here
+    /// and documented `pages_dir("../../etc")` escaping as a known gap; the
+    /// fix was to make the hostile value unrepresentable, not to sprinkle
+    /// checks at each call site.
+    pub fn source_config_file(&self, source_id: &SourceId) -> PathBuf {
         self.sources_dir().join(format!("{source_id}.yaml"))
     }
 
@@ -137,24 +146,25 @@ impl Paths {
         self.cache_root.join("index")
     }
 
-    /// Cached content for one source.
-    pub fn source_data_dir(&self, source_id: &str) -> PathBuf {
-        self.cache_root.join("data").join(source_id)
+    /// Cached content for one source. See [`Self::source_config_file`] for
+    /// why this takes [`SourceId`].
+    pub fn source_data_dir(&self, source_id: &SourceId) -> PathBuf {
+        self.cache_root.join("data").join(source_id.as_str())
     }
 
     /// Normalized, sanitized, highlight-annotated HTML — what the reader loads.
-    pub fn pages_dir(&self, source_id: &str) -> PathBuf {
+    pub fn pages_dir(&self, source_id: &SourceId) -> PathBuf {
         self.source_data_dir(source_id).join("pages")
     }
 
     /// Original fetched bytes, kept so content can be re-normalized without
     /// re-crawling when the pipeline changes.
-    pub fn raw_dir(&self, source_id: &str) -> PathBuf {
+    pub fn raw_dir(&self, source_id: &SourceId) -> PathBuf {
         self.source_data_dir(source_id).join("raw")
     }
 
     /// Content-addressed assets (`<sha256>.<ext>`), deduplicated across pages.
-    pub fn assets_dir(&self, source_id: &str) -> PathBuf {
+    pub fn assets_dir(&self, source_id: &SourceId) -> PathBuf {
         self.source_data_dir(source_id).join("assets")
     }
 
@@ -178,7 +188,7 @@ impl Paths {
     }
 
     /// Create the per-source cache directories for one source.
-    pub fn ensure_source_dirs(&self, source_id: &str) -> Result<()> {
+    pub fn ensure_source_dirs(&self, source_id: &SourceId) -> Result<()> {
         for dir in [
             self.pages_dir(source_id),
             self.raw_dir(source_id),
@@ -229,6 +239,10 @@ pub fn restrict_file(path: &Path) -> Result<()> {
 mod tests {
     use super::*;
 
+    fn sid(id: &str) -> SourceId {
+        SourceId::new(id).unwrap()
+    }
+
     #[test]
     fn under_root_separates_state_from_cache() {
         let p = Paths::under_root("/tmp/tome-test");
@@ -278,9 +292,9 @@ mod tests {
             p.database_file(),
             p.logs_dir(),
             p.index_dir(),
-            p.pages_dir("rust-std"),
-            p.raw_dir("rust-std"),
-            p.assets_dir("rust-std"),
+            p.pages_dir(&sid("rust-std")),
+            p.raw_dir(&sid("rust-std")),
+            p.assets_dir(&sid("rust-std")),
         ];
 
         for path in all {
@@ -334,7 +348,7 @@ mod tests {
         let p = Paths::under_root(tmp.path());
 
         p.ensure_created().unwrap();
-        p.ensure_source_dirs("rust-std").unwrap();
+        p.ensure_source_dirs(&sid("rust-std")).unwrap();
 
         for dir in [
             p.state_root().to_path_buf(),
@@ -342,8 +356,8 @@ mod tests {
             p.logs_dir(),
             p.cache_root().to_path_buf(),
             p.index_dir(),
-            p.pages_dir("rust-std"),
-            p.assets_dir("rust-std"),
+            p.pages_dir(&sid("rust-std")),
+            p.assets_dir(&sid("rust-std")),
         ] {
             assert!(dir.is_dir(), "expected directory: {dir:?}");
 
@@ -366,19 +380,24 @@ mod tests {
     }
 
     #[test]
-    fn source_ids_do_not_escape_their_directory() {
-        let p = Paths::under_root("/tmp/tome-test");
+    fn hostile_source_ids_cannot_reach_the_accessors_at_all() {
+        // The S0 version of this test called `pages_dir("../../etc")` and
+        // asserted the result did not land in /etc — the best a &str
+        // signature allowed. The accessors now take &SourceId, and the
+        // hostile values fail *construction*, which is the stronger claim:
+        // there is no call site to get wrong.
+        for hostile in ["../../etc", "..", "a/b", "a\\b", ".ssh", "~root", ""] {
+            assert!(
+                SourceId::new(hostile).is_err(),
+                "must not construct: {hostile:?}"
+            );
+        }
 
-        // Path validation proper lives with the page loader, but a source id is
-        // derived from user configuration, so assert the obvious escape here too.
-        let escaped = p.pages_dir("../../etc");
-        assert!(
-            !escaped
-                .canonicalize()
-                .map(|c| c.starts_with("/etc"))
-                .unwrap_or(false),
-            "source id must not escape the data directory"
-        );
+        // And every id that does construct stays inside the cache root.
+        let p = Paths::under_root("/tmp/tome-test");
+        let id = sid("rust-std");
+        assert!(p.pages_dir(&id).starts_with(p.cache_root()));
+        assert_eq!(p.source_data_dir(&id), p.cache_root().join("data/rust-std"));
     }
 
     /// Set an environment variable for the duration of a closure.

@@ -10,24 +10,29 @@
 //! exist yet. It is not scaffolding in the sense of being fake: these
 //! properties are the real contract `paths` owes every other module.
 //!
-//! # What is deliberately not asserted
+//! # Containment, resolved
 //!
-//! **That a hostile source id stays inside the cache directory.** It does not
-//! today: `pages_dir("../../etc")` escapes lexically, as the unit test in
-//! `paths.rs` acknowledges. Containment is validation, it belongs with the
-//! page loader, and it is S1 work. Asserting it here would either fail or —
-//! worse — be quietly weakened until it passed.
+//! The S0 version of this header documented a deliberate gap: a hostile
+//! source id (`"../../etc"`) escaped the cache directory lexically, because
+//! the accessors took `&str`. They now take
+//! [`SourceId`](tome_core::model::SourceId), whose validation refuses
+//! separators and dot-leading names — the hostile values fail *construction*
+//! (asserted in `model_validation.rs` and the `model_ids` fuzz target), and
+//! the properties here hold for every id that can exist at all.
 #![allow(clippy::expect_used, clippy::unwrap_used)]
 
 use std::path::{Component, Path, PathBuf};
 
 use proptest::prelude::*;
+use tome_core::model::SourceId;
 use tome_core::Paths;
 
-/// Source ids as they can legitimately occur: registry slugs, and the ids a
-/// user might type. No separators — those are the validation question above.
-fn benign_source_id() -> impl Strategy<Value = String> {
+/// Every constructible source id. The regex is `SourceId`'s documented
+/// grammar (if one changes, change the other); mapping through
+/// `SourceId::new` means a grammar/validator mismatch fails loudly here.
+fn benign_source_id() -> impl Strategy<Value = SourceId> {
     "[a-zA-Z0-9][a-zA-Z0-9._+-]{0,63}"
+        .prop_map(|s| SourceId::new(s).expect("generator emits only valid ids"))
 }
 
 /// Absolute roots, including the awkward ones: spaces (macOS paths are full of
@@ -42,7 +47,7 @@ fn absolute_root() -> impl Strategy<Value = PathBuf> {
         .prop_map(|parts| PathBuf::from(format!("/{}", parts.join("/"))))
 }
 
-fn every_path(paths: &Paths, source_id: &str) -> Vec<PathBuf> {
+fn every_path(paths: &Paths, source_id: &SourceId) -> Vec<PathBuf> {
     vec![
         paths.state_root().to_path_buf(),
         paths.cache_root().to_path_buf(),
