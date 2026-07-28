@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in Tome does not work
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Tome is not yet implemented.** If you are reporting a problem with the *plan* —
+        a contradiction, an error, a bad assumption — that is very welcome; use this form
+        and say so in the description.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what happened instead.
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Tome version
+      description: "`tome --version`, or the commit SHA"
+    validations: { required: true }
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip
+      placeholder: "14.5, M2"
+    validations: { required: true }
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Help → Copy Debug Info. This output is redacted automatically — it contains no page
+        paths, search queries, or note text. Please do not paste raw log files; those are
+        not redacted.
+      render: text
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Confirm
+      options:
+        - label: This is not a security vulnerability (those go through SECURITY.md, privately)
+          required: true

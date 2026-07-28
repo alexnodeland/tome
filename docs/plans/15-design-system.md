@@ -30,10 +30,16 @@ This document defines the visual language, components, and patterns for Tome's u
   --color-bg-secondary: #FFFFFF;
   --color-bg-tertiary: #F5F5F7;
 
-  /* Text */
+  /* Text
+     Contrast against --color-bg-primary (#FAFAFA), WCAG 2.1:
+       primary   #1D1D1F  16.8:1  AAA
+       secondary #6E6E73   4.9:1  AA  (body text)
+       tertiary  #57575B   6.4:1  AA  -- was #8E8E93 at 3.1:1, which FAILED
+                                         the 4.5:1 requirement this project
+                                         sets for itself in the NFR document. */
   --color-text-primary: #1D1D1F;
   --color-text-secondary: #6E6E73;
-  --color-text-tertiary: #8E8E93;
+  --color-text-tertiary: #57575B;
   --color-text-inverse: #FFFFFF;
 
   /* Borders */
@@ -46,9 +52,20 @@ This document defines the visual language, components, and patterns for Tome's u
   --color-error: #FF3B30;
   --color-info: #5856D6;
 
-  /* Code */
-  --color-code-bg: #F5F5F7;
+  /* Code — #F5F5F7 against the page background #FAFAFA is a 1.02:1 difference,
+     effectively invisible. Code blocks need a discernible edge, so the surface
+     is slightly deeper and a border carries the boundary. */
+  --color-code-bg: #F1F1F4;
   --color-code-text: #1D1D1F;
+  --color-code-border: #E5E5EA;
+
+  /* Highlight colours: chosen so black body text remains >= 4.5:1 on top of
+     them. A saturated yellow wash fails this and makes highlighted text the
+     least readable text on the page. */
+  --color-highlight-yellow: #FFF3B0;
+  --color-highlight-green:  #D6F5D6;
+  --color-highlight-blue:   #D6E9FF;
+  --color-highlight-pink:   #FFE0EC;
 }
 
 /* Dark mode */
@@ -64,20 +81,41 @@ This document defines the visual language, components, and patterns for Tome's u
     --color-bg-secondary: #2C2C2E;
     --color-bg-tertiary: #38383A;
 
-    /* Text */
+    /* Text — contrast against --color-bg-primary (#1C1C1E):
+         primary   #F5F5F7  15.8:1  AAA
+         secondary #98989D   6.3:1  AA
+         tertiary  #8A8A8F   5.1:1  AA  -- was #6E6E73 at 3.4:1, which FAILED */
     --color-text-primary: #F5F5F7;
     --color-text-secondary: #98989D;
-    --color-text-tertiary: #6E6E73;
+    --color-text-tertiary: #8A8A8F;
 
     /* Borders */
     --color-border: #38383A;
     --color-border-strong: #48484A;
 
-    /* Code */
-    --color-code-bg: #2C2C2E;
+    /* Code — must differ from --color-bg-secondary (#2C2C2E), or code blocks
+       are invisible on every surface that uses it (panels, cards, modals).
+       The original set them to the same value. */
+    --color-code-bg: #222224;
     --color-code-text: #F5F5F7;
+    --color-code-border: #3A3A3C;
+
+    /* Status colors need dark-mode variants too; the original block omitted
+       them, so light-mode values were used on dark backgrounds. */
+    --color-success: #30D158;
+    --color-warning: #FF9F0A;
+    --color-error:   #FF453A;
+    --color-info:    #5E5CE6;
   }
 }
+
+/* Manual theme override.
+   P5-007 offers light / dark / system, but the original stylesheet had only a
+   `prefers-color-scheme` media query -- which cannot honour an explicit user
+   choice. The app sets data-theme on <html>; these blocks must be able to win
+   in both directions. */
+:root[data-theme="dark"]  { /* ...dark token values... */ }
+:root[data-theme="light"] { /* ...light token values... */ }
 ```
 
 ### Color Palette Reference
@@ -115,27 +153,51 @@ This document defines the visual language, components, and patterns for Tome's u
 
 ### Type Scale
 
+> **The original scale did not produce the sizes it documented.** `--text-base: 17px` was declared
+> but never applied to anything, so `rem` resolved against the browser default of 16px: `1rem` was
+> 16px (not 17), `--text-xs` was 10.24px (not 10.9), `--text-sm` was 12.8px (not 13.6). Every
+> commented value was wrong, and the reader would have rendered a point smaller than the PRD
+> specifies. Setting the root font size is what makes `rem` mean what the comments claim — and it
+> also makes the user's font-size preference work, since changing one value rescales the system.
+
 ```css
+/* This line is what makes every rem below correct. */
+html { font-size: 17px; }
+
 :root {
-  /* Base size */
+  /* User preference multiplies this; everything scales from it. */
   --text-base: 17px;
 
-  /* Scale: 1.25 ratio */
-  --text-xs: 0.64rem;   /* 10.9px */
-  --text-sm: 0.8rem;    /* 13.6px */
-  --text-md: 1rem;      /* 17px */
-  --text-lg: 1.25rem;   /* 21.3px */
-  --text-xl: 1.563rem;  /* 26.5px */
+  /* Scale: 1.25 ratio, relative to the 17px root */
+  --text-xs:  0.64rem;  /* 10.9px */
+  --text-sm:  0.8rem;   /* 13.6px */
+  --text-md:  1rem;     /* 17px   */
+  --text-lg:  1.25rem;  /* 21.3px */
+  --text-xl:  1.563rem; /* 26.6px */
   --text-2xl: 1.953rem; /* 33.2px */
   --text-3xl: 2.441rem; /* 41.5px */
 
+  /* Code: the PRD specifies 15px, which the scale does not contain.
+     Do not substitute --text-sm (13.6px) -- that was the drift between
+     this document and the PRD. */
+  --text-code: 0.882rem;  /* 15px */
+
   /* Line heights */
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
+  --leading-tight:   1.25;
+  --leading-normal:  1.5;
   --leading-relaxed: 1.6;
-  --leading-loose: 1.75;
+  --leading-loose:   1.75;
 }
+
+/* Reader font size preference (P5-007) rescales the whole system. */
+:root[data-text-size="small"]  { font-size: 15px; }
+:root[data-text-size="large"]  { font-size: 19px; }
+:root[data-text-size="xlarge"] { font-size: 21px; }
 ```
+
+**Minimum size floor.** Nothing renders below 11px. `--text-xs` at 10.9px is already at the edge of
+legibility, and it is used for `.caption`, which is also the lowest-contrast token — the two
+choices compound. Prefer `--text-sm` for captions.
 
 ### Typography Classes
 
@@ -403,10 +465,13 @@ This document defines the visual language, components, and patterns for Tome's u
     transition: border-color 0.15s ease;
   }
 
-  .input:focus {
+  .input:focus-visible {
     outline: none;
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(88, 86, 214, 0.15);
+    /* Derived from the accent token rather than a hardcoded rgba() of the
+       light-mode accent -- the original literal stayed light-mode indigo in
+       dark mode. */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
   }
 
   .has-error .input {
@@ -493,12 +558,22 @@ This document defines the visual language, components, and patterns for Tome's u
   export let subtitle = '';
 </script>
 
+<!-- role="button" with only a click handler is keyboard-inaccessible: it is
+     focusable and announced as a button, but Enter and Space do nothing. This
+     contradicts design principle #4 and the NFR keyboard requirement. -->
 <div
   class="list-item"
   class:selected
-  on:click
   role="button"
   tabindex="0"
+  aria-pressed={selected}
+  on:click
+  on:keydown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();          // Space must not scroll the page
+      e.currentTarget.click();
+    }
+  }}
 >
   {#if icon}
     <span class="list-item-icon">{icon}</span>
@@ -622,13 +697,27 @@ This document defines the visual language, components, and patterns for Tome's u
   export let title = '';
 </script>
 
+<!-- The original modal had no focus trap, no Escape handler, no aria-modal,
+     and did not restore focus on close. A keyboard or screen-reader user could
+     tab out of the dialog into the page behind it and lose their place -- and
+     the close button's label was the character "×", which VoiceOver reads as
+     "multiplication sign". -->
+<svelte:window on:keydown={(e) => { if (open && e.key === 'Escape') close(); }} />
+
 {#if open}
-  <div class="modal-backdrop" on:click|self={() => open = false}>
-    <div class="modal" role="dialog" aria-labelledby="modal-title">
+  <div class="modal-backdrop" on:click|self={close}>
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      bind:this={dialogEl}
+      use:trapFocus
+    >
       <header class="modal-header">
         <h2 id="modal-title">{title}</h2>
-        <button class="modal-close" on:click={() => open = false}>
-          ×
+        <button class="modal-close" on:click={close} aria-label="Close dialog">
+          <Icon name="x" />
         </button>
       </header>
       <div class="modal-body">
@@ -700,11 +789,25 @@ Use SF Symbols or a consistent icon set:
   export let size: number = 16;
 </script>
 
+<!-- `aria-hidden` unconditionally means an icon-only button has NO accessible
+     name -- screen readers announce "button" and nothing else. Several
+     icon-only buttons exist (close, clear search, bookmark, sync). Icons are
+     decorative by default and labellable when they carry meaning. -->
+<script>
+  export let name: string;
+  export let size: number = 16;
+  /** Set when the icon IS the label (icon-only buttons). */
+  export let label: string | undefined = undefined;
+</script>
+
 <svg
   class="icon"
   width={size}
   height={size}
-  aria-hidden="true"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
 >
   <use href="/icons.svg#{name}" />
 </svg>
@@ -753,9 +856,16 @@ Use SF Symbols or a consistent icon set:
 
 /* Respect user preference */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    /* The original rule missed this, so TOC clicks and "scroll to match" still
+       animated -- and smooth scrolling is the motion most likely to cause
+       discomfort for the people this preference exists to protect. */
+    scroll-behavior: auto !important;
   }
 }
 ```
@@ -799,6 +909,43 @@ Use SF Symbols or a consistent icon set:
 :focus:not(:focus-visible) {
   outline: none;
 }
+
+/* On the accent-filled selected row, an accent outline is invisible.
+   Use the inverse token so focus is never lost against its own background. */
+.list-item.selected:focus-visible {
+  outline-color: var(--color-text-inverse);
+}
+```
+
+### Accessibility checklist for every component
+
+Applied at review time. Each item exists because the original components missed it:
+
+- [ ] Interactive non-`<button>` elements handle **Enter and Space**, not only click
+- [ ] Icon-only controls have an accessible name
+- [ ] Dialogs: `aria-modal`, focus trap, Escape, focus restored to the trigger on close
+- [ ] Focus is visible against **every** background the element can sit on
+- [ ] Colour is never the only carrier of meaning (sync state needs an icon shape, not just red)
+- [ ] Text and its background meet 4.5:1; UI borders meet 3:1; **verified against the tokens, not
+      by eye**
+- [ ] Component is reachable and operable with the pointer unplugged
+
+### Automated contrast checking
+
+The failures corrected above (two token pairs below 4.5:1, in a document that names accessibility
+as a principle) would have been caught by five lines of CI. Every foreground/background token pair
+that can legitimately combine is enumerated and asserted:
+
+```js
+// scripts/check-contrast.mjs — runs in CI, fails the build
+const PAIRS = [
+  ['--color-text-primary',   '--color-bg-primary',   4.5],
+  ['--color-text-secondary', '--color-bg-primary',   4.5],
+  ['--color-text-tertiary',  '--color-bg-primary',   4.5],
+  ['--color-text-inverse',   '--color-accent',       4.5],
+  ['--color-border',         '--color-bg-primary',   3.0],
+  // ...for both themes, and for text over each highlight colour
+];
 ```
 
 ### Screen Reader Utilities
@@ -821,6 +968,20 @@ Use SF Symbols or a consistent icon set:
 ---
 
 ## Responsive Behavior
+
+### Keyboard shortcuts
+
+**Canonical list: [PRD Appendix C](../PRD.md#appendix-c-keyboard-shortcut-reference).** Not
+restated here — four partially-contradictory copies previously existed across the plan set, two of
+which shadowed macOS system shortcuts (`Cmd+H` Hide, `Cmd+P` Print).
+
+Component-level rules that follow from it:
+
+- Single-letter reading keys (`J`, `K`, `G`, `[`, `]`) bind on the reader surface only, and every
+  handler returns early if the focused element is an input, textarea, or `contenteditable`.
+  Otherwise typing "j" in the source filter box scrolls the document.
+- Every shortcut also appears in the menu bar next to its command, which is how macOS users
+  discover shortcuts and how VoiceOver announces them.
 
 ### Breakpoints
 

@@ -42,10 +42,16 @@ v1.0.0 → v1.0.1 (bug fix)
 ### URL-Based Versioning
 
 ```
-Base URL: http://localhost:7431/api/v1/
+Base URL: http://127.0.0.1:7431/api/v1/
 ```
 
 **Rationale:** URL versioning is explicit, easy to understand, and works with any HTTP client.
+
+> **This was the only document using `/api/v1/`.** The PRD, the OpenAPI sketch in P4-008, the Axum
+> routes in P4-009, and the Phase 4 exit criteria all used an unversioned `/api/…`. A versioning
+> strategy that the implementation does not follow is not a strategy. **All documents now use
+> `/api/v1/` and the version segment is mandatory from day one** — retrofitting a version prefix
+> after clients exist is precisely the migration this document is meant to avoid.
 
 ### Version in URL
 
@@ -150,17 +156,32 @@ MCP uses version negotiation during initialization:
 
 ### Supported Protocol Versions
 
+> **Two problems with the original list.** `"2024-09-01"` is not an MCP protocol version — it does
+> not exist. And pinning to a fixed pair of 2024 dates in a product shipping in 2026 guarantees
+> incompatibility with current clients on day one. **SPIKE-008 establishes the actual revisions to
+> support**, and the list is maintained as a build-time constant reviewed at each release, not
+> frozen in a planning document.
+
 ```rust
+/// Populated from SPIKE-008 and reviewed every release. Newest first.
+/// The specification revises on a published cadence; treat this list as
+/// perishable and add a release-checklist item to re-check it.
 const SUPPORTED_MCP_VERSIONS: &[&str] = &[
-    "2024-11-05",  // Current
-    "2024-09-01",  // Previous
+    /* current stable revision */,
+    /* one prior revision      */,
 ];
 
-pub fn negotiate_version(client_version: &str) -> Option<&'static str> {
+pub fn negotiate_version(client_version: &str) -> &'static str {
+    // Per spec: if the client's requested version is supported, echo it back.
+    // Otherwise respond with our latest and let the client decide whether it can
+    // proceed. The original returned Option and had no defined behaviour for an
+    // unsupported version -- in practice that means the handshake fails with an
+    // opaque error rather than a negotiable one.
     SUPPORTED_MCP_VERSIONS
         .iter()
         .find(|&&v| v == client_version)
         .copied()
+        .unwrap_or(SUPPORTED_MCP_VERSIONS[0])
 }
 ```
 
@@ -258,13 +279,17 @@ Stable across versions:
 ### Schema Version
 
 ```yaml
-# ~/.tome/sources/example.yaml
+# <Application Support>/Tome/sources/example.yaml
 schema_version: 1
 name: Example Docs
 source:
   type: generic
   url: https://example.com/docs
 ```
+
+> `schema_version` was introduced here but was **absent from the authoritative schema** in PRD
+> Appendix A and from the P1-005 parser, so no config would ever have carried one and the migration
+> code below would have had nothing to switch on. It is now a required field in Appendix A.
 
 ### Schema Migration
 
@@ -318,13 +343,36 @@ pub async fn run_migrations(db: &SqlitePool) -> Result<()> {
 ### Rollback Support
 
 ```sql
--- Each migration has an up and down
--- migrations/003_sync_status.up.sql
-ALTER TABLE bookmarks ADD COLUMN sync_status TEXT DEFAULT 'pending';
+-- Each migration has an up and a down. Note the file naming: the MIGRATIONS
+-- table above referenced a single `003_sync_status.sql` while this section
+-- describes `.up.sql`/`.down.sql` pairs. One convention:
+--   migrations/003_sync_status.up.sql
+--   migrations/003_sync_status.down.sql
 
--- migrations/003_sync_status.down.sql
+-- up
+ALTER TABLE bookmarks ADD COLUMN sync_status TEXT DEFAULT 'pending';
+CREATE INDEX idx_bookmarks_sync ON bookmarks(sync_status);
+
+-- down
+-- SQLite's ALTER TABLE DROP COLUMN FAILS if the column is indexed. Dropping the
+-- index first is not optional here -- the original down migration would have
+-- errored, and it would only have been discovered during an actual rollback,
+-- i.e. during an incident.
+DROP INDEX IF EXISTS idx_bookmarks_sync;
 ALTER TABLE bookmarks DROP COLUMN sync_status;
 ```
+
+**Down migrations are best-effort and must be treated as such.** SQLite cannot drop a column that
+is referenced by a view, a trigger, a generated column, or a partial-index predicate, and it cannot
+restore data a forward migration discarded. Two rules:
+
+1. **Every forward migration that drops or transforms data takes a backup first**
+   (`tome.db.pre-<version>`), retained until the next successful launch. This, not the down
+   migration, is the real rollback mechanism.
+2. **Never assume downgrade works.** `17-rollback-recovery.md` claims v1.0.2 → v1.0.1 is "usually
+   compatible"; that is only true when no migration ran in between, which is not knowable from the
+   version number alone. Record the schema version in the database and refuse to open a database
+   newer than the binary understands, with a clear message, rather than corrupting it.
 
 ---
 
@@ -376,12 +424,18 @@ GET /api/v1/search?q=iterator&limit=10
 
 **v2:**
 ```json
-GET /api/v2/search
+POST /api/v2/search
 {
   "query": "iterator",
   "options": { "limit": 10 }
 }
 ```
+
+> The original example showed a `GET` carrying a JSON request body. `GET` bodies have no defined
+> semantics, are dropped by proxies and several HTTP clients, and break caching. If a request needs
+> a body, it is a `POST`. (Whether search should move to `POST` at all is a separate question —
+> `GET` with query parameters is friendlier to `curl` and browsers, and there is no complexity here
+> that requires a body.)
 
 ## Configuration Changes
 
@@ -408,6 +462,9 @@ sync:
 
 ### API Version Endpoint
 
+Deliberately **unversioned** — it is the endpoint a client calls to find out which versions exist,
+so it cannot itself live behind a version segment.
+
 ```http
 GET /api/version
 
@@ -416,7 +473,7 @@ GET /api/version
   "app_version": "1.2.0",
   "supported_api_versions": ["v1"],
   "deprecated_api_versions": [],
-  "mcp_protocol_versions": ["2024-11-05", "2024-09-01"]
+  "mcp_protocol_versions": ["<current>", "<previous>"]
 }
 ```
 
@@ -447,4 +504,11 @@ tome version --json
 | 2.0.x | ✓* | ✓ | ✓ | ✓ |
 | 2.1.x | ✓* | ✓ | ✓ | - |
 
-\* Deprecated, will be removed in 3.0
+\* Deprecated, removed in 3.0.
+
+> **Note the inconsistency this table had with the lifecycle table above**, which says a deprecated
+> API version returns `410 Gone` after "6 months minimum". Here v1 stays available across two major
+> versions. The lifecycle table describes the *minimum* deprecation window; this matrix describes
+> the *actual* intent — support v1 until 3.0. Both are now stated as such rather than reading as a
+> contradiction. For a single-user local API with no third-party clients yet, the longer window
+> costs almost nothing.

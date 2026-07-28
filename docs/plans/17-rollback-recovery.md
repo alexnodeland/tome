@@ -97,10 +97,17 @@ If a user wants to downgrade:
 
 | Scenario | Compatibility |
 |----------|---------------|
-| v1.0.1 → v1.0.2 | ✓ Full compatibility |
-| v1.0.2 → v1.0.1 | ✓ Usually compatible |
+| v1.0.1 → v1.0.2 | ✓ Forward migrations run automatically |
+| v1.0.2 → v1.0.1 | ⚠️ **Only if no migration ran between them** — see below |
 | v1.x → v2.x | ⚠️ Migration required |
-| v2.x → v1.x | ✗ May not work |
+| v2.x → v1.x | ✗ Not supported |
+
+> "Usually compatible" is too generous, and in a recovery document that is dangerous. Whether a
+> downgrade is safe depends on whether a schema migration ran, which is not knowable from the
+> version numbers. **The app records the schema version in the database and refuses to open one
+> newer than it understands**, telling the user to reinstall the newer version rather than opening
+> it and corrupting data. The real downgrade path is the automatic pre-migration backup
+> (`tome.db.pre-<version>`), not a down migration.
 
 ### Database Migration Rollback
 
@@ -132,26 +139,29 @@ tome debug rollback-migration --version 5
 
 ### Backup Locations
 
-Tome data is stored in:
+**Authoritative layout: [PRD § File System Layout](../PRD.md#file-system-layout).** This document
+previously described a third, different set of paths — the plan set contained `~/.tome/`,
+`~/Library/Application Support/Tome`, `~/Library/Caches/com.example.tome`, and
+`dirs::data_dir()/tome/` across four documents. In a recovery procedure a wrong path is worse than
+no path: it sends someone deleting the wrong directory during an incident.
 
 ```
-~/.tome/
-├── config.yaml              # Configuration
-├── sources/                 # Source configs (YAML)
-├── data/                    # Cached documentation
-├── index/                   # Search index
-├── tome.db                  # SQLite database
-└── logs/                    # Log files
+~/Library/Application Support/Tome/     # BACK THIS UP — irreplaceable
+├── config.yaml
+├── sources/                            # source configs (YAML)
+├── tome.db                             # bookmarks, annotations, metadata
+└── logs/
+
+~/Library/Caches/Tome/                  # safe to delete — rebuildable
+├── data/<source-id>/{pages,raw,assets}
+└── index/
+
+~/Library/Mobile Documents/iCloud~<bundle-id>/Documents/   # synced
+└── devices/<device-id>/{manifest.json,ops-*.jsonl}
 ```
 
-**Synced via iCloud:**
-```
-~/Library/Mobile Documents/iCloud~com~example~tome/
-├── bookmarks.json
-├── collections.json
-├── reading-positions.json
-└── sources-meta.json
-```
+**Only the first directory matters for backup.** Everything under Caches can be re-fetched, and
+saying so plainly is what stops someone backing up 40 GB of cached documentation.
 
 ### What Can Be Recovered
 
@@ -168,22 +178,32 @@ Tome data is stored in:
 #### Database Corruption
 
 ```bash
-# 1. Stop Tome
-# 2. Backup corrupted database
-cp ~/.tome/tome.db ~/.tome/tome.db.corrupted
+DB=~/Library/Application\ Support/Tome/tome.db
 
-# 3. Try to recover with sqlite3
-sqlite3 ~/.tome/tome.db.corrupted ".recover" | sqlite3 ~/.tome/tome.db.recovered
+# 1. Quit Tome, and any `tome serve` / `tome mcp` processes holding the database
+pkill -f 'tome (serve|mcp)' || true
 
-# 4. If recovery works, replace
-mv ~/.tome/tome.db.recovered ~/.tome/tome.db
+# 2. Back up the corrupted database BEFORE touching it. Also copy the -wal and
+#    -shm files: without them a WAL-mode database is missing its most recent
+#    committed transactions, which are exactly the ones you are trying to save.
+cp "$DB" "$DB.corrupted"
+cp "$DB-wal" "$DB.corrupted-wal" 2>/dev/null || true
+cp "$DB-shm" "$DB.corrupted-shm" 2>/dev/null || true
 
-# 5. If recovery fails, start fresh
-rm ~/.tome/tome.db
-# Tome will recreate on next launch
+# 3. Attempt recovery
+sqlite3 "$DB.corrupted" ".recover" | sqlite3 "$DB.recovered"
 
-# 6. Re-sync from iCloud to restore bookmarks
-# (happens automatically on launch)
+# 4. Verify BEFORE replacing — .recover succeeds on output that is still broken
+sqlite3 "$DB.recovered" "PRAGMA integrity_check;"   # must print: ok
+sqlite3 "$DB.recovered" "SELECT count(*) FROM bookmarks;"
+
+# 5. If both look right, replace
+mv "$DB.recovered" "$DB"
+
+# 6. If recovery fails, start fresh — bookmarks return from iCloud on next
+#    launch if sync is enabled. If it is NOT enabled, this step loses them:
+#    check `tome export` output exists first.
+rm "$DB"
 ```
 
 #### Search Index Corruption
@@ -194,7 +214,7 @@ rm ~/.tome/tome.db
 tome debug rebuild-index
 
 # This will:
-# 1. Delete ~/.tome/index/
+# 1. Delete ~/Library/Caches/Tome/index/
 # 2. Re-index all cached documentation
 # 3. Takes a few minutes for large doc sets
 ```
@@ -204,18 +224,22 @@ tome debug rebuild-index
 If sync data is corrupted:
 
 ```bash
-# 1. Export local data first
-tome export --format json --output ~/tome-backup.json
+# 1. Export local data first — always, before anything destructive
+tome export --all --output ~/tome-backup/
 
-# 2. Reset sync state
+# 2. Reset this device's sync state (drops local replay offsets and this
+#    device's op log; does NOT touch other devices' logs)
 tome debug reset-sync
 
-# 3. Force full sync
-tome sync --force
+# 3. Replay from the container
+tome debug resync
 
-# 4. If still broken, restore from local backup
-tome import ~/tome-backup.json
+# 4. If still broken, restore from the export
+tome import ~/tome-backup/
 ```
+
+> There is no `tome sync --force`. `sync` is not a CLI command — bookmark sync is automatic and
+> `pull` fetches documentation. See [PRD § CLI Specification](../PRD.md#cli-specification).
 
 ### Manual Data Export
 
@@ -246,13 +270,18 @@ pub async fn check_integrity(db: &SqlitePool) -> IntegrityReport {
 
     report.database_ok = sqlite_ok;
 
-    // Foreign key check
-    let fk_violations: i64 = sqlx::query_scalar("PRAGMA foreign_key_check")
-        .fetch_one(db)
+    // `PRAGMA foreign_key_check` returns one ROW PER VIOLATION, and no rows when
+    // clean -- it is not a scalar. `query_scalar(...).fetch_one(...)` therefore
+    // ERRORS on a healthy database, and `unwrap_or(-1)` turns that error into
+    // "not ok". The original integrity check reported every clean database as
+    // broken.
+    let fk_violations: Vec<FkViolation> = sqlx::query_as("PRAGMA foreign_key_check")
+        .fetch_all(db)
         .await
-        .unwrap_or(-1);
+        .unwrap_or_default();
 
-    report.foreign_keys_ok = fk_violations == 0;
+    report.foreign_keys_ok = fk_violations.is_empty();
+    report.fk_violations = fk_violations;   // report WHAT is broken, not just that it is
 
     // Orphaned records check
     report.orphaned_pages = count_orphaned_pages(db).await;
@@ -280,18 +309,25 @@ tome debug check-integrity
 
 ### Complete Data Loss
 
-If `~/.tome/` is completely lost:
+If `~/Library/Application Support/Tome/` is completely lost:
 
-1. **Reinstall Tome** - Download from releases or Homebrew
-2. **Launch** - Creates fresh directory structure
-3. **Sign in to iCloud** - Automatically syncs bookmarks, etc.
-4. **Re-add sources** - Source configs need to be recreated
-5. **Re-sync documentation** - `tome pull --all`
+1. **Reinstall Tome** — download from releases or Homebrew
+2. **Launch** — creates a fresh directory structure
+3. **Sign in to iCloud** — bookmarks, annotations, collections and reading positions replay from
+   the container automatically
+4. **Re-add sources.** ⚠️ **Source configurations are not synced**, so this is the one thing that
+   does not come back. This is a real gap: a user who loses their machine keeps their bookmarks but
+   loses the list of documentation those bookmarks point *into*, which makes them useless until
+   each source is re-added by hand.
+   **Recommendation: sync source configurations too.** They are small (a few KB of YAML), they
+   contain no secrets, and they are what makes the restore actually complete. Tracked as a change
+   to P3-010's synced entity list.
+5. **Re-sync documentation** — `tome pull --all`
 
 ### Partial Recovery Checklist
 
 ```
-[ ] Check Time Machine backup for ~/.tome/
+[ ] Check Time Machine backup for ~/Library/Application Support/Tome/
 [ ] Check iCloud for synced data
 [ ] Check ~/tome-backup/ or similar for exports
 [ ] Recreate source configs from memory/browser history
@@ -305,7 +341,7 @@ If `~/.tome/` is completely lost:
 tmutil listbackups | head -5
 
 # Restore specific directory
-tmutil restore /Volumes/Time\ Machine/.../Users/you/.tome ~/.tome-recovered
+tmutil restore "/Volumes/Time Machine/.../Library/Application Support/Tome" ~/Tome-recovered
 
 # Or use Time Machine UI to browse and restore
 ```
@@ -316,12 +352,17 @@ tmutil restore /Volumes/Time\ Machine/.../Users/you/.tome ~/.tome-recovered
 
 ### Incident Severity Levels
 
-| Level | Description | Response Time |
-|-------|-------------|---------------|
-| **P0** | Data loss, security breach | Immediate |
-| **P1** | App unusable, crash loop | < 4 hours |
-| **P2** | Major feature broken | < 24 hours |
-| **P3** | Minor feature broken | < 1 week |
+**These are internal prioritization targets, not commitments to users.**
+`16-support-maintenance.md` states "no SLAs or guaranteed response times", and that is the public
+position. A solo maintainer cannot promise a four-hour response, and publishing one that is missed
+costs more trust than never having made it.
+
+| Level | Description | Target (best effort) |
+|-------|-------------|----------------------|
+| **P0** | Data loss or security vulnerability | Drop everything |
+| **P1** | App unusable, crash loop | Same day |
+| **P2** | Major feature broken | Next release |
+| **P3** | Minor feature broken | Backlog |
 
 ### Incident Response Checklist
 
@@ -390,7 +431,7 @@ Test recovery procedures quarterly:
 | Database corruption | Delete tome.db, verify recreation |
 | Index corruption | Delete index/, verify rebuild |
 | iCloud sync loss | Reset sync, verify restore |
-| Full reinstall | Delete ~/.tome/, reinstall, verify |
+| Full reinstall | Delete Application Support + Caches, reinstall, verify |
 | Version rollback | Install old version, verify compatibility |
 
 ---

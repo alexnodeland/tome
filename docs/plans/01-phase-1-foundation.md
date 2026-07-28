@@ -1,8 +1,12 @@
 # Phase 1: Foundation (v0.1)
 
 **Goal:** Core reading experience with manual doc addition
-**Tickets:** 22
-**Exit Criteria:** Can add a ReadTheDocs site via config and read it with consistent styling
+**Tickets:** 23
+**Effort:** ~102 person-days (≈ 2.6 FTE against the 8-week calendar target — see `00-project-overview.md` § Effort Reality)
+**Exit Criteria:** Can add a ReadTheDocs site via config and read it with consistent styling, fully offline
+
+> **Blocked by the phase gate.** SPIKE-001/002/003 and DEC-001/002/004 must resolve before these
+> tickets start. Every ticket below assumes a shell architecture no spike has validated.
 
 ---
 
@@ -32,6 +36,7 @@
 | P1-020 | Create navigation system (back/forward/history) | M | High | P1-016, P1-018 |
 | P1-021 | Build page metadata storage and retrieval | M | High | P1-004, P1-013 |
 | P1-022 | Implement manual source addition workflow | M | High | P1-005, P1-007, P1-008 |
+| P1-023 | Implement asset localization pipeline | L | Critical | P1-008, P1-013 |
 
 ---
 
@@ -180,7 +185,8 @@ Design and implement the SQLite database schema for storing sources, pages, and 
 - [ ] Schema supports Source, Page, and SyncState entities
 - [ ] Migrations system in place (sqlx or rusqlite migrations)
 - [ ] Indexes created for common queries
-- [ ] Database file created in proper location (~/.tome/tome.db)
+- [ ] Database file created in the location resolved by P1-006
+      (`~/Library/Application Support/Tome/tome.db`), never a hardcoded path
 - [ ] Connection pooling configured
 - [ ] CRUD operations implemented for all entities
 - [ ] Foreign key constraints enforced
@@ -285,34 +291,47 @@ pub enum SourceType {
 **Priority:** High
 **Complexity:** S (1-2 days)
 **Dependencies:** P1-001
-**Blocks:** P1-007
+**Blocks:** P1-007, P1-023
 
 #### Description
-Create a module to manage the ~/.tome directory structure, ensuring proper creation, permissions, and organization.
+Create the single module that resolves every path Tome uses. **Nothing else in the codebase may
+construct a data path.** The plan previously referenced four different data locations across
+documents, and several samples passed a literal `~` to APIs that do not expand it — which silently
+creates a directory named `~` in the process's working directory.
 
 #### Acceptance Criteria
-- [ ] Create ~/.tome directory structure on first run
-- [ ] Proper subdirectories: sources/, data/, index/
-- [ ] Handle permissions errors gracefully
-- [ ] Support for custom base directory via config/env
-- [ ] Path resolution utilities for all standard locations
+- [ ] One module owns all path resolution; a lint or review rule forbids path literals elsewhere
+- [ ] Layout matches [PRD § File System Layout](../PRD.md#file-system-layout):
+      state in `~/Library/Application Support/Tome`, re-fetchable content in `~/Library/Caches/Tome`
+- [ ] **Tilde expansion is explicit** (`dirs`/`home_dir`), never handed to `PathBuf::from("~/…")`
+- [ ] `$TOME_HOME` override, honoured identically by the app, the CLI, and the MCP server
+- [ ] Directories created with `0700`; `tome.db` and source YAML with `0600`
+- [ ] Handle permissions errors gracefully, with an actionable message naming the path
 - [ ] Cleanup utilities for orphaned data
+- [ ] Cache directory is marked as cache so macOS may evict it, and losing it is non-fatal
+- [ ] A test asserts the app binary and the CLI binary resolve byte-identical paths
 
 #### Technical Notes
 ```
-~/.tome/
-├── config.yaml              # Global configuration
-├── sources/                 # Source configurations
+~/Library/Application Support/Tome/     # state — back this up
+├── config.yaml                         # global configuration
+├── sources/                            # source configurations
 │   ├── rust-std.yaml
 │   └── ...
-├── data/                    # Document content
-│   ├── rust-std/
-│   │   ├── pages/          # Normalized HTML
-│   │   └── raw/            # Original content
-│   └── ...
-├── index/                   # Tantivy index (Phase 2)
-└── tome.db                  # SQLite database
+├── tome.db                             # SQLite database
+└── logs/
+
+~/Library/Caches/Tome/                  # re-fetchable — safe to delete
+├── data/<source-id>/
+│   ├── pages/                          # normalized, sanitized HTML
+│   ├── raw/                            # original fetched bytes
+│   └── assets/                         # content-addressed (P1-023)
+└── index/                              # Tantivy index (Phase 2)
 ```
+
+Splitting state from cache is what lets `brew uninstall --zap` be correct, lets macOS evict the
+cache under disk pressure, and tells a user which single directory to back up. See
+[PRD § File System Layout](../PRD.md#file-system-layout).
 
 #### Success Metrics
 - Directory creation < 100ms
@@ -332,7 +351,7 @@ Create a module to manage the ~/.tome directory structure, ensuring proper creat
 Implement file system watching for the sources/ directory to detect config changes and trigger reloads.
 
 #### Acceptance Criteria
-- [ ] Watch ~/.tome/sources/ for file changes
+- [ ] Watch the sources directory (path via P1-006) for file changes
 - [ ] Debounce rapid changes (300ms window)
 - [ ] Emit events for: add, modify, delete
 - [ ] Re-validate config on change
@@ -340,17 +359,23 @@ Implement file system watching for the sources/ directory to detect config chang
 - [ ] Handle watch errors (permissions, missing directory)
 
 #### Technical Notes
-Use `notify` crate for cross-platform file watching:
-```rust
-use notify::{Watcher, RecursiveMode, watcher};
+Use the `notify` crate. Note the path comes from the path module (P1-006) — **never a string
+literal with `~`, which `notify` will not expand**:
 
-fn watch_sources() -> notify::Result<()> {
-    let (tx, rx) = std::sync::mpsc::channel();
-    let mut watcher = watcher(tx, Duration::from_millis(300))?;
-    watcher.watch("~/.tome/sources", RecursiveMode::NonRecursive)?;
-    // ...
+```rust
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+
+fn watch_sources(paths: &Paths) -> notify::Result<RecommendedWatcher> {
+    let (tx, _rx) = std::sync::mpsc::channel();
+    let mut watcher = notify::recommended_watcher(tx)?;
+    // paths.sources_dir() -> /Users/<you>/Library/Application Support/Tome/sources
+    watcher.watch(paths.sources_dir(), RecursiveMode::NonRecursive)?;
+    Ok(watcher)
 }
 ```
+
+Debouncing is applied on the receiving side (or via `notify-debouncer-full`); the old
+`watcher(tx, Duration)` constructor no longer exists in `notify` 6.x.
 
 #### Success Metrics
 - Change detected within 500ms of file write
@@ -371,8 +396,20 @@ Build the core HTTP scraping infrastructure that all platform-specific scrapers 
 
 #### Acceptance Criteria
 - [ ] Async HTTP client with configurable timeouts
-- [ ] Respect robots.txt (optional, configurable)
-- [ ] Rate limiting (configurable requests/second)
+- [ ] **`robots.txt` obeyed by default, including `Crawl-delay`.** Disabling it requires an explicit
+      per-source `fetch.respect_robots: false`, which is only legitimate for hosts the user owns.
+      This was previously specced as "optional, configurable", which inverts the default and is how
+      a tool gets IP-banned from the sites it depends on. See RISK-011.
+- [ ] **URL validation before every fetch, including after each redirect**, using the SSRF filter in
+      `12-security-considerations.md`: resolve the host and reject if *any* resolved address is
+      loopback, link-local (169.254/16, fe80::/10), private (10/8, 172.16/12, 192.168/16,
+      fc00::/7), or unspecified. Checking the hostname string alone does not stop DNS rebinding.
+- [ ] Honest `User-Agent` identifying Tome and its project URL; not overridable
+- [ ] Conditional requests (`If-None-Match` / `If-Modified-Since`) on re-sync
+- [ ] `Retry-After` honoured; exponential backoff on 429/5xx
+- [ ] Per-host connection and concurrency limits, not just a global rate
+- [ ] Response size cap and total-crawl byte cap (a crawl must not be able to fill the disk)
+- [ ] Rate limiting (configurable requests/second, capped)
 - [ ] Retry logic with exponential backoff
 - [ ] Cookie/session handling
 - [ ] User-agent configuration
@@ -405,6 +442,10 @@ impl Scraper {
 - Fetch single page < 2s (network dependent)
 - Crawl 100 pages with rate limit = 5/s takes ~20s
 - Memory usage < 100MB during crawl
+- Zero requests issued to a disallowed path in a `robots.txt` conformance test
+- SSRF test suite passes: `localhost`, `127.0.0.1`, `[::1]`, `169.254.169.254`, `10.0.0.1`,
+  `172.20.0.1`, decimal/octal/hex-encoded IPs, and a redirect chain ending at a private address
+  are all rejected
 
 ---
 
@@ -1081,7 +1122,9 @@ impl PageRepository {
 Enable users to add documentation sources by creating config files.
 
 #### Acceptance Criteria
-- [ ] Detect new YAML files in ~/.tome/sources/
+- [ ] Detect new YAML files in the sources directory (path via P1-006)
+- [ ] Reject configs whose `url` fails SSRF validation, before any fetch
+- [ ] Refuse to start a crawl when `max_pages`/`max_depth` are absent *and* the host is unknown
 - [ ] Validate configuration on detection
 - [ ] Show validation errors in UI
 - [ ] Trigger initial sync on valid config
@@ -1092,7 +1135,8 @@ Enable users to add documentation sources by creating config files.
 
 #### Technical Notes
 ```yaml
-# Example: ~/.tome/sources/polars.yaml
+# Example: ~/Library/Application Support/Tome/sources/polars.yaml
+schema_version: 1
 name: Polars
 source:
   type: generic
@@ -1100,15 +1144,22 @@ source:
   generic:
     entry_points: ["/"]
     max_depth: 4
+    max_pages: 5000
     content_selector: "main.content"
     title_selector: "h1"
 category: Python
 sync:
-  strategy: weekly
+  strategy: scheduled   # NOT `weekly` — that is a `schedule` value
+  schedule: weekly
 ```
 
+> The previous version of this example was **invalid against the schema in PRD Appendix A**: it set
+> `strategy: weekly`, but `strategy` only accepts `manual | on_launch | scheduled | watch`. This is
+> the single most likely user mistake, so the parser must reject it with a message that names the
+> right field rather than a generic enum error — and the example that ships must be correct.
+
 User workflow:
-1. Create YAML file in ~/.tome/sources/
+1. Create YAML file in the sources directory
 2. Tome detects new file
 3. Validates configuration
 4. If valid, starts initial sync
@@ -1119,6 +1170,65 @@ User workflow:
 - Detection within 1 second of file save
 - Clear error messages for invalid configs
 - Initial sync progress visible within 2 seconds
+
+---
+
+### P1-023: Implement asset localization pipeline
+
+**Priority:** Critical
+**Complexity:** L (1-2 weeks)
+**Dependencies:** P1-008 (Scraper), P1-013 (Normalization)
+**Blocks:** None
+
+#### Description
+Fetch, store, and rewrite every non-HTML asset a documentation page references, so that a synced
+source renders identically with the network off.
+
+**Why this ticket exists.** The original Phase 1 pipeline fetched HTML only. That makes the product's
+headline claim — "works offline" — false for any page containing a diagram, and it means the reader
+issues live requests to third-party hosts every time a page is opened. That leaks the user's reading
+activity, breaks the content-security policy specified in `12-security-considerations.md`, and shows
+broken images on a plane. It is not a polish item; it is load-bearing for the core promise.
+
+#### Acceptance Criteria
+- [ ] Collect asset references from normalized content: `img[src]`, `img[srcset]`, `source[srcset]`,
+      `video[poster]`, inline `<svg><image href>`, and `url()` in surviving inline styles
+- [ ] Resolve relative URLs against the page's base URL before fetching
+- [ ] Fetch through the same client as P1-008: same rate limit, robots rules, SSRF validation,
+      redirect re-validation
+- [ ] Content-address on disk as `assets/<sha256>.<ext>`; identical assets across pages and across
+      sources stored once
+- [ ] Verify the declared content type; store an extension derived from sniffed type, not from the URL
+- [ ] Per-asset size cap (default 10 MB) and per-source total cap (default 250 MB), both configurable
+- [ ] Rewrite references in the stored HTML to the local content-addressed path
+- [ ] Assets that fail or exceed caps are replaced by an inline placeholder recording the original
+      URL and the reason — **never left as a live remote reference**
+- [ ] SVG assets are sanitized (they can carry script) before storage
+- [ ] Garbage-collect assets with no remaining referrer when a source is re-synced or removed
+- [ ] `data:` URIs pass through without a fetch, subject to the size cap
+
+#### Technical Notes
+```rust
+pub struct AssetStore { root: PathBuf }   // <cache>/data/<source-id>/assets
+
+impl AssetStore {
+    /// Returns the local relative path, or None if the asset was rejected.
+    pub async fn ingest(&self, url: &Url, fetcher: &Scraper, limits: &AssetLimits)
+        -> Result<Option<PathBuf>, AssetError>
+    {
+        // 1. validate_source_url(url)?  — same SSRF filter as page fetches
+        // 2. fetch with size cap; abort the stream once limits.max_bytes is exceeded
+        // 3. sniff content type; reject anything not in the media allowlist
+        // 4. sha256 the bytes -> <hash>.<ext>; write once, ignore if it already exists
+        // 5. return the relative path for rewriting
+    }
+}
+```
+
+#### Success Metrics
+- A source synced with the network disabled renders with zero failed requests
+- Asset dedup ratio > 30 % on a typical Sphinx site (shared logos, icons, admonition art)
+- Asset pass adds < 25 % to total sync wall-clock at the default rate limit
 
 ---
 
@@ -1163,9 +1273,19 @@ P1-001 (Tauri Init)
 - [ ] Can create YAML config for a ReadTheDocs site
 - [ ] Config is detected and validated automatically
 - [ ] Generic scraper fetches and crawls the site
-- [ ] Content is normalized and styled consistently
+- [ ] Content is normalized, **sanitized**, and styled consistently
 - [ ] Typography matches design spec
 - [ ] Can navigate between pages
 - [ ] Back/forward navigation works
-- [ ] TOC sidebar shows page structure
+- [ ] TOC sidebar shows page structure, **and its anchors actually resolve** (heading `id`
+      attributes survive sanitization)
 - [ ] Source appears in library sidebar
+- [ ] **The synced source renders correctly with networking disabled, images included** — this is
+      the real test of "offline", and nothing in the original exit criteria checked it
+- [ ] **`robots.txt` is respected** and a disallowed path is provably not fetched
+- [ ] No path in the codebase is a string literal containing `~`
+
+### Explicitly deferred out of Phase 1
+
+Naming these prevents them being smuggled in (RISK-009): search of any kind, bookmarks, sync, CLI,
+API, MCP, platform-specific scrapers, menu bar, preferences UI, onboarding.

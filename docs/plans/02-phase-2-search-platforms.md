@@ -1,9 +1,11 @@
 # Phase 2: Search & Platforms (v0.2)
 
 **Goal:** Intelligent search and platform-specific scrapers
-**Tickets:** 18
+**Tickets:** 20
+**Effort:** ~85 person-days (≈ 2.9 FTE against the 6-week calendar target)
 **Prerequisites:** Phase 1 complete
-**Exit Criteria:** Fast search across multiple doc sources, platform scrapers work reliably
+**Exit Criteria:** Fast search across multiple doc sources, platform scrapers work reliably, **and
+both claims are backed by a measurable eval set rather than an impression**
 
 ---
 
@@ -29,8 +31,16 @@
 | P2-016 | Implement search history | S | Medium | P2-004 |
 | P2-017 | Add search keyboard navigation | S | High | P2-004, P2-005 |
 | P2-018 | Build search performance benchmarks | S | Medium | P2-001 |
+| P2-019 | Build search relevance eval set and harness | M | Critical | P2-001 |
+| P2-020 | Build platform detection corpus and harness | S | High | P2-014 |
 
 ---
+
+> **Two tickets added.** Phase 2 previously asserted "relevant result in top 3 for 90 %+ of
+> queries" (P2-006) and "correct detection 95 %+" (P2-014) as success metrics with nothing capable
+> of measuring either. A quality bar with no measurement is an opinion. P2-019 and P2-020 build the
+> measurement, and they must land *before* the tickets whose targets depend on them, because
+> tuning ranking without an eval set is how search quality silently regresses.
 
 ## Detailed Tickets
 
@@ -46,7 +56,8 @@ Add Tantivy as the full-text search engine for documentation.
 
 #### Acceptance Criteria
 - [ ] Tantivy dependency added and compiling
-- [ ] Index directory created at ~/.tome/index/
+- [ ] Index directory created at `~/Library/Caches/Tome/index/` (path via P1-006) — the index is
+      rebuildable, so it belongs in the cache, not alongside irreplaceable state
 - [ ] Index writer configured with appropriate settings
 - [ ] Index reader with reload capability
 - [ ] Basic document indexing working
@@ -514,29 +525,39 @@ interface SearchState {
 Enable fuzzy matching to handle typos and approximate queries.
 
 #### Acceptance Criteria
-- [ ] Edit distance of 1-2 for short words
-- [ ] Edit distance of 2-3 for longer words
+- [ ] Edit distance 0 for terms ≤ 3 chars, 1 for 4–6, **2 for longer — 2 is the maximum**
 - [ ] Prefix matching for partial words
-- [ ] Fuzzy results ranked lower than exact
+- [ ] Fuzzy applied only to terms that produce no exact match, not to every term
+- [ ] Fuzzy results ranked strictly below exact matches
 - [ ] Configurable fuzzy threshold
 - [ ] "Did you mean?" suggestions
+- [ ] Multi-term queries: fuzzy is applied per-term and recombined, not to the whole query string
+
+> The original criterion "edit distance of 2-3 for longer words" is not implementable: Tantivy's
+> Levenshtein automaton supports a maximum distance of 2. Distance 3 on a large index is also a
+> latency trap — the candidate set explodes.
 
 #### Technical Notes
 ```rust
-use tantivy::query::FuzzyTermQuery;
+use tantivy::query::{FuzzyTermQuery, Query};
+use tantivy::schema::Field;
+use tantivy::Term;
 
-pub fn build_fuzzy_query(term: &str) -> Box<dyn Query> {
-    let distance = match term.len() {
-        0..=3 => 0,  // No fuzzy for very short
+/// `field` must be passed in — the original sample referenced an undefined `field`.
+/// Distance is capped at 2: Tantivy's Levenshtein automaton does not support more.
+pub fn build_fuzzy_query(field: Field, term: &str) -> Box<dyn Query> {
+    // Count characters, not bytes: `len()` on a UTF-8 string over-counts non-ASCII terms.
+    let distance: u8 = match term.chars().count() {
+        0..=3 => 0,
         4..=6 => 1,
         _ => 2,
     };
 
-    FuzzyTermQuery::new_prefix(
+    Box::new(FuzzyTermQuery::new_prefix(
         Term::from_field_text(field, term),
         distance,
-        true,  // transpositions
-    )
+        true, // transpositions
+    ))
 }
 ```
 
@@ -594,10 +615,19 @@ impl ReadTheDocsScraper {
 }
 ```
 
+> **`searchindex.js` is a JavaScript file, not JSON, and its format is not a public API.** It is
+> emitted as `Search.setIndex({...})` (older Sphinx) or a bare object, may be minified, and its
+> internal shape changed across Sphinx 4/5/6/7. Parsing it requires either a tolerant JS-object
+> parser or per-version handling — budget for that, and treat SPIKE-006 as a genuine gate on this
+> ticket rather than a formality. **Fall back to HTML crawling whenever parsing fails**; the index
+> is an optimization that yields structure, not a replacement for fetching pages.
+
 #### Success Metrics
 - Scrapes docs.python.org structure correctly
 - Preserves API reference hierarchy
 - Version switching detected
+- Parses ≥ 95 % of the Sphinx corpus collected in SPIKE-006, and degrades to the generic crawler
+  (not an error) on the remainder
 
 ---
 
@@ -645,10 +675,18 @@ impl RustdocScraper {
 // searchIndex["crate_name"] = {"doc":"...","t":[...],"n":[...],...}
 ```
 
+> **rustdoc's `search-index.js` is explicitly an unstable internal format.** It changes without
+> notice between Rust releases and has done so repeatedly. Pin the ticket to "current stable plus
+> the two previous formats", detect the format version defensively, and make failure fall back to
+> HTML extraction rather than erroring. Assume this scraper will need maintenance every few months —
+> that ongoing cost is RISK-003, and the registry CI check (PRD § Source Registry) is what turns it
+> from silent rot into a tracked signal.
+
 #### Success Metrics
 - Correctly parses std library structure
 - Type signatures extracted accurately
 - Cross-references between types work
+- Detects an unrecognised index format and falls back cleanly instead of producing partial garbage
 
 ---
 
@@ -1036,6 +1074,74 @@ fn bench_index_build(b: &mut Bencher) {
 
 ---
 
+### P2-019: Build search relevance eval set and harness
+
+**Priority:** Critical
+**Complexity:** M (3-5 days)
+**Dependencies:** P2-001
+**Blocks:** P2-006, P2-009, P2-015 (they cannot be verified without it)
+
+#### Description
+Create a labelled query set and an offline harness that scores ranking quality, so that changes to
+boosts, tokenizers, and fuzzy behaviour are measured rather than guessed.
+
+#### Acceptance Criteria
+- [ ] ≥ 200 queries across ≥ 5 fixture sources, covering: exact symbol lookups (`Vec::new`),
+      natural-language questions ("how do I read a file"), misspellings, multi-word phrases,
+      acronyms, and queries with a correct answer in *another* source than the obvious one
+- [ ] Each query labelled with one or more acceptable target pages
+- [ ] Harness reports MRR, recall@1, recall@3, recall@10, and per-query deltas against the last run
+- [ ] Runs offline against a fixed index built from committed fixtures — no network, deterministic
+- [ ] CI fails on a regression greater than an agreed margin, and prints which queries moved
+- [ ] Adding a query is a one-line change to a YAML file
+
+#### Technical Notes
+Queries should be drawn from real usage, not invented: mine the maintainers' own shell history and
+browser history for what they actually search for. A synthetic eval set measures agreement with
+your assumptions.
+
+Grade on *acceptable targets*, not a single gold answer — documentation frequently has several
+correct destinations, and a strict single-answer set punishes correct behaviour.
+
+#### Success Metrics
+- Full eval runs in < 60 s in CI
+- Baseline recorded before any ranking work begins in P2-006
+
+---
+
+### P2-020: Build platform detection corpus and harness
+
+**Priority:** High
+**Complexity:** S (1-2 days)
+**Dependencies:** P2-014
+**Blocks:** None
+
+#### Description
+Save real documentation homepages and assert the detector classifies them correctly.
+
+#### Acceptance Criteria
+- [ ] ≥ 100 saved homepages (HTML + response headers) spanning Sphinx/ReadTheDocs, rustdoc,
+      mdBook, GitBook, Docusaurus, MkDocs, and sites that are none of these
+- [ ] Includes deliberate hard cases: custom domains, heavily themed Sphinx, Docusaurus that looks
+      like MkDocs, and a plain marketing site that must classify as Generic
+- [ ] Harness asserts predicted platform and reports a confusion matrix
+- [ ] Runs offline from committed fixtures
+- [ ] Fixtures record the date captured, so staleness is visible
+
+#### Technical Notes
+Store fixtures compressed and strip anything user-identifying. Keep them small — the homepage plus
+whatever manifest file the detector actually reads, not a full crawl.
+
+**Detection must be allowed to say "I don't know."** The original detector returned
+`(Generic, 1.0)` — full confidence in the fallback — which makes low-confidence detection
+indistinguishable from a confident answer. Return a confidence below the auto-accept threshold and
+let the UI ask.
+
+#### Success Metrics
+- ≥ 95 % correct on the corpus, with no confident-but-wrong classification of a non-doc site
+
+---
+
 ## Phase 2 Dependency Graph
 
 ```
@@ -1092,5 +1198,9 @@ P1-021 (Page metadata) ─── P2-001 (Tantivy) ──────────
 - [ ] mdBook scraper working (test: Rust Book)
 - [ ] Man pages indexed and searchable
 - [ ] Platform auto-detection working
-- [ ] Search latency < 100ms (P95)
+- [ ] Search latency < 100ms (P95) — **measured by the P2-018 benchmark, not by feel**
 - [ ] Index build < 30s for 1000 pages
+- [ ] **Relevance eval (P2-019) passes: correct page in top 3 for ≥ 90 % of the labelled query set**
+- [ ] **Detection eval (P2-020) passes: ≥ 95 % on the saved corpus**
+- [ ] Every scraper degrades to the generic crawler on parse failure; none returns partial content
+      silently

@@ -2,8 +2,14 @@
 
 **Goal:** Production-ready release
 **Tickets:** 14
+**Effort:** ~54.5 person-days
 **Prerequisites:** Phases 1-4 complete
 **Exit Criteria:** App is stable, performant, and ready for public use
+
+> **Two blocking prerequisites this phase assumed away.** Notarization requires an **Apple
+> Developer Program membership ($99/yr)** — that is a funding decision (DEC-003), not a task — and
+> every artefact below still carries the placeholder bundle identifier `com.example.tome`
+> (DEC-002). Both must resolve before P5-010 can start.
 
 ---
 
@@ -22,7 +28,7 @@
 | P5-009 | Add global keyboard shortcut | S | Medium | P5-008 |
 | P5-010 | macOS notarization setup | M | Critical | All previous |
 | P5-011 | Build DMG installer | M | High | P5-010 |
-| P5-012 | Create Homebrew cask | S | Critical | P5-011 |
+| P5-012 | Publish distribution channels (own tap first) | S | High | P5-011 |
 | P5-013 | Write user documentation | M | High | All previous |
 | P5-014 | Create landing page | M | High | All previous |
 
@@ -150,8 +156,9 @@ impl PageCache {
 ```
 
 #### Success Metrics
-- Memory bounded to configured limit
-- Cache hit rate > 80% for typical usage
+- Memory bounded to configured limit under a scripted browsing soak
+- Cache hit rate > 80% **measured by the local diagnostics counter** during that soak — this is a
+  lab measurement, not an observation of real users, since there is no telemetry
 - Load time < 200ms for cache miss
 
 ---
@@ -243,8 +250,13 @@ Audit all error paths and ensure consistent, user-friendly error handling.
 - [ ] User-friendly error messages
 - [ ] Actionable error suggestions
 - [ ] No stack traces shown to users
-- [ ] Errors logged for debugging
-- [ ] Error telemetry (opt-in)
+- [ ] Errors logged locally for debugging
+- [ ] **No error telemetry of any kind.** The original criterion said "error telemetry (opt-in)",
+      which contradicts the product's stated position — `09-non-functional-requirements.md` says
+      "Zero data collection or phone-home" and `13-observability-plan.md` says "No external crash
+      reporting". Users share a diagnostics bundle manually if they choose to file a bug.
+- [ ] "Copy diagnostics" produces a shareable, **redacted** report: no page paths, no search
+      queries, no note text, no home-directory usernames
 
 #### Technical Notes
 ```rust
@@ -269,12 +281,14 @@ pub enum TomeError {
     ConfigError { file: PathBuf, message: String },
 
     // Search errors
-    #[error("Search index is corrupted. Try rebuilding with `tome rebuild-index`.")]
+    // The command is `tome debug rebuild-index`. Error strings naming a
+    // non-existent command are worse than no suggestion at all.
+    #[error("Search index is corrupted. Try rebuilding with `tome debug rebuild-index`.")]
     IndexCorrupted,
 
     // Sync errors
     #[error("iCloud sync failed. Make sure you're signed in to iCloud.")]
-    SyncError { #[source] source: CloudKitError },
+    SyncError { #[source] source: SyncError },
 }
 
 impl TomeError {
@@ -282,7 +296,7 @@ impl TomeError {
         match self {
             Self::NetworkError { .. } => Some("Try again later or check your network."),
             Self::Timeout { .. } => Some("The server might be busy. Try again later."),
-            Self::IndexCorrupted => Some("Run `tome rebuild-index` to fix."),
+            Self::IndexCorrupted => Some("Run `tome debug rebuild-index` to fix."),
             _ => None,
         }
     }
@@ -390,12 +404,15 @@ Build a first-run experience that helps users get started.
 
 #### Acceptance Criteria
 - [ ] Welcome screen on first launch
-- [ ] Quick start guide
-- [ ] Add first documentation source
-- [ ] Offer popular documentation suggestions
+- [ ] **First source installed from the registry in one click** (PRD § Source Registry) — not by
+      hand-writing YAML. This is the single highest-leverage thing in onboarding: it is the
+      difference between a product and a configuration exercise.
+- [ ] Offer popular documentation suggestions, drawn from the registry rather than hardcoded
+- [ ] Progress and completion state for the first sync, which may take minutes
 - [ ] Tour of key features
 - [ ] Keyboard shortcuts overview
-- [ ] Skip option for experienced users
+- [ ] Skip option for experienced users, and onboarding never blocks the app
+- [ ] Works with no network: explains what it needs rather than failing opaquely
 
 #### Technical Notes
 ```svelte
@@ -445,9 +462,13 @@ Build a first-run experience that helps users get started.
 ```
 
 #### Success Metrics
-- 80%+ users complete onboarding
-- At least one source added
-- < 2 minutes to complete
+- < 2 minutes to complete in moderated testing with 5 first-time users
+- Every participant ends with at least one working source
+- No participant needs to open the documentation to finish
+
+> "80 %+ users complete onboarding" was removed: Tome collects no telemetry, so completion rate is
+> unobservable in production. Moderated testing with a handful of real people measures the same
+> thing better and is actually possible.
 
 ---
 
@@ -540,7 +561,7 @@ keyboard:
   vim_mode: false
 
 advanced:
-  data_directory: ~/.tome
+  data_directory: ~/Library/Application Support/Tome   # $TOME_HOME overrides
   cache_size_mb: 500
   debug_mode: false
 ```
@@ -740,37 +761,90 @@ Set up code signing and notarization for macOS distribution.
 }
 ```
 
+**This is the authoritative entitlements file.** A second, different one previously existed in
+`12-security-considerations.md`; that document now links here.
+
 ```xml
 <!-- entitlements.plist -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- JavaScriptCore in WKWebView needs JIT. -->
     <key>com.apple.security.cs.allow-jit</key>
     <true/>
-    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
+
+    <!-- Fetching documentation. -->
     <key>com.apple.security.network.client</key>
     <true/>
+
+    <!-- User-chosen local documentation directories (source type: local). -->
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
+
+    <!-- iCloud Drive container for bookmark sync (Phase 3). -->
+    <key>com.apple.developer.ubiquity-container-identifiers</key>
+    <array>
+        <string>iCloud.$(BUNDLE_ID)</string>
+    </array>
+
+    <!-- Keychain access for the API token. -->
+    <key>keychain-access-groups</key>
+    <array>
+        <string>$(AppIdentifierPrefix)$(BUNDLE_ID)</string>
+    </array>
+
+    <!-- DELIBERATELY ABSENT, and why:
+
+         com.apple.security.app-sandbox
+           App Sandbox is incompatible with this design. The CLI installed by
+           Homebrew is not sandboxed; the app would be, and its data directory
+           would be redirected into a container. The two would see different
+           libraries. Sandboxing is only mandatory for Mac App Store
+           distribution, and Tome ships via DMG and Homebrew.
+           See PRD "File System Layout".
+
+         com.apple.security.cs.allow-unsigned-executable-memory
+         com.apple.security.cs.disable-library-validation
+           Both were in the original file. Both materially weaken the hardened
+           runtime -- the second permits loading unsigned third-party libraries
+           into the process -- and neither is required by a Rust + Tauri app.
+           Adding hardened-runtime exceptions "just in case" is how an app ends
+           up with a weaker security posture than an Electron app.
+
+         com.apple.security.network.server
+           The local API binds loopback only; no inbound entitlement is needed.
+    -->
 </dict>
 </plist>
 ```
 
+> **Note the contradiction this resolves.** `09-non-functional-requirements.md` asserted
+> "Sandboxed: App Sandbox enabled" while this file never requested the sandbox entitlement and
+> every path in the plan was `~/.tome`, which a sandboxed app cannot write. The NFR document has
+> been corrected.
+
 **CI Notarization Script:**
 ```bash
 #!/bin/bash
-set -e
+set -euo pipefail
 
 APP_PATH="$1"
-BUNDLE_ID="com.example.tome"
+: "${BUNDLE_ID:?set BUNDLE_ID (DEC-002)}"
+: "${SIGNING_IDENTITY:?set SIGNING_IDENTITY}"
 
-# Sign the app
-codesign --deep --force --verify --verbose \
-  --sign "Developer ID Application: Your Name (TEAMID)" \
+# Sign inner binaries first, then the bundle. Do NOT use `codesign --deep`:
+# Apple documents it as unsuitable for signing (it cannot apply per-binary
+# entitlements, and it silently re-signs nested code with the outer
+# entitlements). Tauri already signs during bundling; this script exists for
+# the sidecar CLI and any extra helpers.
+find "$APP_PATH/Contents/MacOS" -type f -perm +111 | while read -r bin; do
+  codesign --force --timestamp --options runtime \
+    --sign "$SIGNING_IDENTITY" "$bin"
+done
+
+codesign --force --timestamp --verify --verbose \
+  --sign "$SIGNING_IDENTITY" \
   --options runtime \
   --entitlements entitlements.plist \
   "$APP_PATH"
@@ -858,23 +932,33 @@ xcrun stapler staple Tome-1.0.0.dmg
 
 ---
 
-### P5-012: Create Homebrew cask
+### P5-012: Publish distribution channels (own tap first)
 
-**Priority:** Critical
+**Priority:** High
 **Complexity:** S (1-2 days)
 **Dependencies:** P5-011
 **Blocks:** None
 
 #### Description
-Create a Homebrew cask for easy installation.
+Make Tome installable via Homebrew.
+
+> **Priority lowered from Critical, and the plan changed.** The original ticket assumed submission
+> to `homebrew-cask` at launch. **homebrew-cask has notability requirements** — a brand-new project
+> with no stars, forks, or watchers is rejected, and "Critical" priority on an action that a
+> third party will decline is a scheduling trap. Ship an **own tap** on day one
+> (`brew install --cask alexnodeland/tap/tome`), and submit to homebrew-cask later once the
+> project clears the thresholds. Nothing about the user experience changes materially.
 
 #### Acceptance Criteria
-- [ ] Cask formula created
-- [ ] SHA256 verification
-- [ ] Zap stanza for cleanup
-- [ ] Caveats for first run
-- [ ] Auto-update support
-- [ ] Submit to homebrew-cask
+- [ ] Own tap repository created (`homebrew-tap`) with the cask
+- [ ] SHA256 verification against the released DMG
+- [ ] Zap stanza that matches the **actual** data locations (see PRD § File System Layout) — the
+      original zap listed `~/.tome`, `~/Library/Application Support/Tome`, and
+      `~/Library/Caches/com.example.tome`, a set no version of the app ever used simultaneously
+- [ ] Caveats explaining first run and the CLI
+- [ ] `livecheck` for upgrade detection
+- [ ] Release automation updates the tap on tag
+- [ ] Submission to homebrew-cask tracked as a **post-launch** follow-up, gated on notability
 
 #### Technical Notes
 ```ruby
@@ -897,15 +981,18 @@ cask "tome" do
 
   app "Tome.app"
 
+  # Must match PRD "File System Layout" exactly. Anything missing here is data
+  # left behind after `--zap`; anything wrong is a path that never existed.
   zap trash: [
-    "~/.tome",
     "~/Library/Application Support/Tome",
-    "~/Library/Caches/com.example.tome",
-    "~/Library/Preferences/com.example.tome.plist",
+    "~/Library/Caches/Tome",
+    "~/Library/Preferences/#{BUNDLE_ID}.plist",
+    "~/Library/Mobile Documents/iCloud~#{BUNDLE_ID.tr('.', '~')}",
   ]
 
   caveats <<~EOS
-    Tome stores documentation in ~/.tome
+    Tome stores its library in ~/Library/Application Support/Tome
+    and cached documentation in ~/Library/Caches/Tome
 
     To get started, run Tome and add your first documentation source,
     or use the CLI: tome add https://docs.python.org/3/
@@ -956,10 +1043,15 @@ Create comprehensive user documentation.
 3. Add your first documentation source
 
 ## Adding Documentation
-### From URL
-1. Press Cmd+N or click "Add Source"
+### From the registry (recommended)
+1. Press `Cmd+N` or click "Add Source"
+2. Search the built-in registry and pick a source
+3. Tome installs a tested configuration and starts the first sync
+
+### From an arbitrary URL
+1. Press `Cmd+N` or click "Add Source"
 2. Enter the documentation URL
-3. Tome will detect the platform and configure automatically
+3. Tome detects the platform and proposes a configuration for you to confirm
 
 ### Supported Platforms
 - ReadTheDocs / Sphinx
@@ -998,6 +1090,9 @@ tome pull           # Update documentation
 | Bookmark | Cmd+D |
 | Back | Cmd+[ |
 | Forward | Cmd+] |
+
+Full list: PRD Appendix C. Do not restate it here -- four copies previously
+existed and had already drifted apart.
 ```
 
 #### Success Metrics
@@ -1080,7 +1175,9 @@ Create a marketing landing page for Tome.
   </main>
 
   <footer>
-    <p>&copy; 2026 Tome. Open source under MIT license.</p>
+    <p>&copy; 2026 Tome. Open source — see LICENSE.
+       <!-- DEC-001: licence not yet chosen. Do not assert a licence in
+            marketing copy before the LICENSE file exists. --></p>
   </footer>
 </body>
 </html>
@@ -1126,10 +1223,12 @@ All Previous Phases
 
 ## Exit Criteria Checklist
 
-- [ ] Startup time < 500ms
-- [ ] Memory usage < 200MB idle
-- [ ] Search latency < 100ms P95
-- [ ] No critical bugs
+- [ ] Startup time < 500ms *(benchmark, not stopwatch)*
+- [ ] Memory usage < 200MB idle *(instrumented launch test)*
+- [ ] Search latency < 100ms P95 *(P2-018 benchmark)*
+- [ ] Relevance eval (P2-019) and detection eval (P2-020) both at or above target
+- [ ] No known critical bugs
+- [ ] **Offline verification passes**: full session with networking disabled, including images
 - [ ] Error handling comprehensive
 - [ ] Onboarding flow complete
 - [ ] Preferences UI functional
@@ -1147,9 +1246,15 @@ All Previous Phases
 
 ### Pre-Launch (1 week before)
 - [ ] Final performance testing
-- [ ] Security audit
+- [ ] Security review against `12-security-considerations.md`, specifically: API auth cannot be
+      bypassed, SSRF filter rejects the full test vector list, sanitizer blocks the XSS corpus,
+      no secrets in logs or diagnostics bundles
+- [ ] `LICENSE` file present and matching what the landing page claims (DEC-001)
+- [ ] Bundle identifier consistent across app, Keychain, iCloud container, and cask zap (DEC-002)
+- [ ] Third-party licence attributions generated and shipped
+- [ ] `SECURITY.md` published with a reporting address that someone reads
 - [ ] Beta tester feedback incorporated
-- [ ] Documentation reviewed
+- [ ] Documentation reviewed; every command in it exists
 - [ ] Landing page ready
 - [ ] Social media prepared
 

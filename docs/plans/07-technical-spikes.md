@@ -2,6 +2,17 @@
 
 **Purpose:** De-risk unknowns through focused research and prototyping before committing to implementation.
 
+> **The spikes were written but never run, and the plan was written as if they had passed.**
+> Every P0 spike is "Not Started", yet 90 tickets are specified against the architecture those
+> spikes exist to validate — SPIKE-001 asks whether the shell architecture is even feasible while
+> 23 Phase-1 tickets assume it is. Spikes that do not gate anything are documentation, not
+> risk reduction. They now gate the phases they inform; see the
+> [phase gate](./00-project-overview.md#phase-gate-before-any-implementation).
+>
+> A spike that has no owner and no date does not happen. The tracking table at the bottom has
+> owner and due columns for exactly this reason, and they are currently empty — which is itself
+> the finding.
+
 ---
 
 ## Overview
@@ -137,44 +148,50 @@ If memory usage too high:
 
 ## P1 Spikes (During Phase 1)
 
-### SPIKE-004: CloudKit Sync Complexity
+### SPIKE-004: iCloud Drive container behaviour
 
-**Question:** What are the edge cases and limitations of CloudKit for syncing bookmarks and reading state?
+**Question:** Does an iCloud Drive ubiquity container behave well enough, from a non-Swift process,
+to carry bookmark sync?
 
 **Time Budget:** 3 days
 
 **Background:**
-iCloud sync via CloudKit is core to Phase 3. We need to understand:
-- Rate limits and quotas
-- Conflict resolution mechanics
-- Offline behavior
-- Initial sync performance
-- Record size limits
+Phase 3 now syncs via a file-based ubiquity container rather than CloudKit (see
+[PRD § iCloud Sync Architecture](../PRD.md#icloud-sync-architecture)). That trades one set of
+unknowns for another, and the new ones must be measured before P3-010 commits:
+
+- **Eviction.** iCloud can replace a local file with a placeholder. Reading it without requesting
+  download yields an empty or missing file — the most likely cause of silent data "loss".
+- **Propagation latency**, and whether it is bounded at all.
+- **Behaviour from a process that is not the app** — the CLI must reach the same container.
+- Whether per-device subdirectories genuinely avoid conflict copies.
+- Quota, throttling, and what happens when the user's iCloud is full.
 
 **Investigation Tasks:**
-- [ ] Create test CloudKit container
-- [ ] Implement basic CKRecord CRUD
-- [ ] Test conflict scenarios (simultaneous edits)
-- [ ] Measure sync latency (local → cloud → other device)
-- [ ] Test offline queue behavior
-- [ ] Document quota limits hit during testing
+- [ ] Provision a container; write and read from Rust (no Swift) on two Macs
+- [ ] Force eviction and confirm the download-then-read path works
+- [ ] Measure propagation latency, median and worst case, over a day
+- [ ] Concurrently append from two devices; confirm no `.icloud` conflict copies appear
+- [ ] Fill the account to quota and observe failure modes
+- [ ] Reach the container from a non-sandboxed CLI process
+- [ ] Kill the process mid-append; confirm the log reader tolerates a truncated final line
 
 **Success Criteria:**
-- Understand all CloudKit quotas relevant to Tome
-- Conflict resolution strategy validated
-- Sync latency < 5s for single record change
-- Offline changes sync correctly when online
+- Reliable read-after-download from Rust, on both devices
+- Propagation typically < 60 s, with a defined behaviour when it is not
+- Zero conflict copies across 100 concurrent-write trials
+- Every failure mode produces a distinguishable, reportable error
 
 **Outputs:**
-- CloudKit limitations document
-- Sync architecture recommendation
-- Test scenarios for Phase 3
+- Container behaviour document with measured latencies
+- Confirmed or revised sync design for P3-010
+- Fault-injection scenarios for Phase 3 tests
 
 **Fallback:**
-If CloudKit proves problematic:
-- Consider CouchDB/PouchDB for sync
-- Simple file-based sync via iCloud Drive
-- Optional self-hosted sync server
+If the container proves unreliable:
+- Reconsider CloudKit, accepting the Swift boundary
+- Ship v1.0 with **no sync** (see DEC-004; this is the recommended cut anyway)
+- Optional self-hosted sync server, post-v1
 
 ---
 
@@ -283,7 +300,14 @@ Similar to Sphinx, rustdoc generates search-index.js with crate structure. Forma
 
 ### SPIKE-008: MCP Protocol Implementation
 
-**Question:** What's the minimal viable MCP server implementation for Tome's use case?
+**Priority raised P2 → P0.** The original plan scheduled this "before P4" and then specified the
+MCP server against a **transport that does not exist in the protocol** (a Unix socket). That is
+precisely the error a spike prevents, and scheduling the spike after the design was written is why
+it did not. Agent access is one of the two genuinely differentiated features; validate it before
+building around it.
+
+**Question:** What's the minimal viable MCP server implementation for Tome's use case, and does
+Claude Code actually connect to it?
 
 **Time Budget:** 2 days
 
@@ -294,15 +318,20 @@ MCP (Model Context Protocol) is relatively new. We need to understand:
 - Client compatibility (Claude Code, other tools)
 
 **Investigation Tasks:**
-- [ ] Study MCP specification thoroughly
-- [ ] Identify minimal required messages
-- [ ] Test with Claude Code as client
-- [ ] Understand transport options (stdio, socket, HTTP)
+- [ ] Read the **current** specification revision; record which revision, since it moves
+- [ ] Identify the minimal required message set (`initialize`, `notifications/initialized`,
+      `tools/list`, `tools/call`)
+- [ ] **Build a hello-world stdio server and connect Claude Code to it.** This is the whole point.
+- [ ] Confirm the supported transports and discard anything not in the spec
+- [ ] Test version negotiation against a client requesting a version we do not list
+- [ ] Verify what happens when the server writes to stdout by mistake
+- [ ] Measure tool-result size limits in practice, and how a client behaves when a result is huge
 
 **Success Criteria:**
-- Clear understanding of protocol requirements
-- Know which features to implement for v1
-- Validated with at least one MCP client
+- A trivial server is reachable from Claude Code end-to-end
+- Known-correct minimal message set for v1
+- Documented protocol revision(s) to support, with negotiation behaviour
+- Confirmed stdout discipline requirement
 
 **Outputs:**
 - MCP implementation guide for Tome
@@ -340,6 +369,88 @@ Targeting M1+ only. Potential optimizations:
 
 ---
 
+### SPIKE-010: Documentation scraping — legal and ToS posture
+
+**Priority:** P0 (before Phase 1)
+**Time Budget:** 1 day (plus a lawyer's opinion if the answer is not obviously fine)
+
+**Question:** Under what conditions can Tome fetch, cache, transform, and display third-party
+documentation, and what must it *not* do?
+
+**Background:**
+The plan had no legal analysis at all — not in the risk register, not in the security document, not
+in the PRD. This is the largest non-technical risk in the project and it was invisible. Tome's
+entire value proposition is fetching other people's copyrighted content, reformatting it, and
+storing it. There is a defensible position here (a local cache, for one user, that they could have
+made with a browser), but the boundaries need to be understood *before* they shape the product,
+not after someone objects.
+
+Specific questions:
+- Personal-use caching of copyrighted docs: fine. Where does that stop?
+- Does bundling a **registry of scraper configurations** (not content) create exposure? (Almost
+  certainly far less than shipping content — which is exactly why the registry ships configs.)
+- Do the major hosts' terms — ReadTheDocs, GitBook, docs.rs — permit automated fetching, and at
+  what rate?
+- What must be preserved for attribution: origin link, licence, author?
+- Is `robots.txt` compliance sufficient, and what about ToS that forbid scraping outright?
+- What is the takedown path if a documentation owner objects to a registry entry?
+
+**Investigation Tasks:**
+- [ ] Read the ToS and `robots.txt` of the ten most likely sources
+- [ ] Check how Dash, DevDocs, and Zeal handle attribution and permission — they have all solved
+      this in public and are the cheapest available precedent
+- [ ] Draft the attribution rules the reader will enforce
+- [ ] Draft a registry takedown policy
+- [ ] Decide whether any host needs an explicit opt-out list shipped with the app
+
+**Success Criteria:**
+- A written position on what Tome does and does not do, in the README, in plain language
+- Attribution requirements specified concretely enough to implement
+- A takedown process that exists before it is needed
+
+**Outputs:**
+- Legal posture section for the README and the registry contribution guide
+- Input to RISK-011
+
+**Fallback:**
+If a major source forbids automated access: exclude it from the registry, keep manual
+configuration available (the user's own choice, on their own machine), and say so plainly.
+
+---
+
+### SPIKE-011: Sanitizer versus real documentation
+
+**Priority:** P1 (during Phase 1)
+**Time Budget:** 1 day
+
+**Question:** Does the HTML sanitizer allowlist preserve everything documentation actually needs?
+
+**Background:**
+The allowlist in `12-security-considerations.md` stripped attributes and elements that
+documentation depends on — most damagingly the `id` attribute, without which **every heading
+anchor, every TOC deep link, and every `#fragment` cross-reference silently stops working**. That
+is a security control breaking a headline feature, and it would have been found late, in manual
+testing, and misdiagnosed as a TOC bug.
+
+**Investigation Tasks:**
+- [ ] Run the proposed allowlist over 50 diverse real pages (Sphinx, rustdoc, mdBook, MkDocs, man)
+- [ ] Diff before/after: what was removed, and did it matter?
+- [ ] Verify anchors, footnotes, tables, admonitions, definition lists, and math survive
+- [ ] Verify an XSS corpus does *not* survive
+- [ ] Check the interaction with syntax highlighting (highlighter output is itself HTML that must
+      pass the allowlist)
+
+**Success Criteria:**
+- Zero anchors broken across the corpus
+- Zero XSS payloads surviving
+- A documented allowlist justified element by element
+
+**Outputs:**
+- Final allowlist for `12-security-considerations.md`
+- Regression corpus reused as a permanent test fixture
+
+---
+
 ## Spike Tracking
 
 | ID | Title | Priority | Status | Assignee | Due |
@@ -347,12 +458,20 @@ Targeting M1+ only. Potential optimizations:
 | SPIKE-001 | Tauri + Swift Integration | P0 | Not Started | - | Before P1 |
 | SPIKE-002 | WKWebView Bridge Perf | P0 | Not Started | - | Before P1 |
 | SPIKE-003 | Tantivy Memory at Scale | P0 | Not Started | - | Before P1 |
-| SPIKE-004 | CloudKit Sync | P1 | Not Started | - | During P1 |
+| SPIKE-004 | iCloud Drive container | P1 | Not Started | - | Before P3 |
 | SPIKE-005 | mandoc Output | P1 | Not Started | - | During P1 |
 | SPIKE-006 | Sphinx searchindex.js | P1 | Not Started | - | During P1 |
 | SPIKE-007 | rustdoc search-index.js | P2 | Not Started | - | Before P2 |
-| SPIKE-008 | MCP Protocol | P2 | Not Started | - | Before P4 |
-| SPIKE-009 | Apple Silicon Perf | P2 | Not Started | - | During P1 |
+| SPIKE-008 | MCP Protocol | **P0** | Not Started | - | Before P1 |
+| SPIKE-009 | Apple Silicon Perf | P2 | Not Started | - | Before P5 |
+
+> **Every row has an empty owner.** That is the most important thing in this table. Assign owners
+> and dates, or accept that the spikes will not run and that the plan is being built on
+> assumptions. SPIKE-009 was previously marked P2 ("before the relevant phase") but due "During
+> P1", which contradicts its own priority definition — it informs Phase 5 performance work, so it
+> is due before Phase 5.
+| SPIKE-010 | Doc scraping: legal & ToS posture | **P0** | Not Started | - | Before P1 |
+| SPIKE-011 | Sanitizer vs. real documentation | P1 | Not Started | - | During P1 |
 
 ---
 
