@@ -52,8 +52,11 @@ pub struct ParsedPage {
     pub title: Option<String>,
     /// A [`Node::Document`] root.
     pub body: Node,
-    /// Every `<a href>` in the *content*, resolved against `base`,
-    /// http(s) only, fragments dropped. Crawl fodder for S1-6.
+    /// Every `<a href>` in the *whole document* (content and navigation
+    /// alike), resolved against `base`, http(s) only, fragments dropped,
+    /// deduplicated. Crawl fodder for S1-6 — navigation is where a docs site
+    /// lists its pages, so link discovery is deliberately wider than the
+    /// content root.
     pub links: Vec<Url>,
 }
 
@@ -74,19 +77,29 @@ pub fn parse_page(html: &str, base: &Url, content_selector: Option<&str>) -> Par
     let root = find_content_root(&document, content_selector);
 
     let mut children = Vec::new();
-    let mut links = Vec::new();
+    let mut content_links = Vec::new();
     if let Some(root) = root {
         for child in root.children() {
-            walk(child, &mut children, &mut links);
+            walk(child, &mut children, &mut content_links);
         }
     }
+
+    // Links for crawl discovery come from the WHOLE document, not just the
+    // content root: a documentation site advertises its pages through the
+    // navigation sidebar, which the content walk deliberately drops as
+    // chrome. The content AST stays content-only; `links` is everything the
+    // crawler could follow.
+    let all_hrefs: Vec<String> = document
+        .select(&selector("a[href]"))
+        .filter_map(|a| a.value().attr("href").map(str::to_owned))
+        .collect();
 
     let title = title.or_else(|| first_heading_text(&children));
 
     ParsedPage {
         title,
         body: Node::Document { children },
-        links: resolve_links(links, base),
+        links: resolve_links(all_hrefs, base),
     }
 }
 
