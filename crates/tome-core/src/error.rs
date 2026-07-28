@@ -50,6 +50,20 @@ pub enum Error {
     #[error("Database error: {message}")]
     Database { message: String },
 
+    // Fetch errors carry no URL: which page was being fetched is the
+    // caller's to log at a level it controls, not this message's.
+    #[error("The download failed: {message}")]
+    Fetch { message: String },
+
+    #[error("The server responded with HTTP {status}.")]
+    Http { status: u16 },
+
+    #[error("This site's robots.txt does not permit fetching that page.")]
+    BlockedByRobots,
+
+    #[error("The response exceeded the size limit ({limit} bytes).")]
+    TooLarge { limit: u64 },
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }
@@ -67,7 +81,15 @@ impl Error {
     }
 
     /// Whether retrying the same operation could plausibly succeed.
+    ///
+    /// Note the fetcher already retries transport errors and 5xx internally
+    /// (S1-4); a fetch error surfacing here has exhausted those retries, so
+    /// "retryable" means "worth trying again next sync", not "immediately".
     pub fn is_retryable(&self) -> bool {
-        matches!(self, Self::Io(_))
+        match self {
+            Self::Io(_) | Self::Fetch { .. } => true,
+            Self::Http { status } => *status == 429 || *status >= 500,
+            _ => false,
+        }
     }
 }
