@@ -1,13 +1,17 @@
 # Tome — notes for AI assistants
 
+> **Work in progress: read [`.claude/continuation.md`](.claude/continuation.md) first.**
+> It has current branch/PR state, what to do next, and the traps already hit. Delete it when
+> Stage 1 lands.
+
 ## What this repository is
 
-**Specifications, not software.** There is no code, no build, no tests. Every file here is
-Markdown. If you were asked to "run the tests" or "build the app", there is nothing to run — say
-so rather than inventing a command.
+Tome is a macOS documentation reader: ingest any documentation site, read it offline with good
+typography, search across everything, and expose the library to coding agents over MCP.
 
-Tome is a planned macOS documentation reader: ingest any documentation site, read it offline with
-good typography, search across everything, and expose the library to coding agents over MCP.
+**Mostly specification, with a working scaffold.** The app builds and launches and the path layer
+is real; ingestion, the reader, and search do not exist yet. When asked whether something works,
+check rather than assume — most of this repo describes intent, not behaviour.
 
 ## Where things are
 
@@ -17,8 +21,20 @@ good typography, search across everything, and expose the library to coding agen
 | `docs/plans/00-project-overview.md` | Master plan, phase gate, critical path, and the **ownership table** naming which document owns each shared fact |
 | `docs/plans/01..05` | 90 tickets with acceptance criteria |
 | `docs/plans/06..17` | Dependency map, spikes, testing, NFRs, CI/CD, risk, security, observability, versioning, design system, support, recovery |
+| `docs/plans/18-implementation-plan.md` | **The execution plan** — stages, gates, model routing, orchestration patterns |
+| `crates/`, `src-tauri/`, `src/` | The code that exists so far |
+| `scripts/check.sh` | The verification gate, standing in for CI |
+| `dist/homebrew/` | Cask source of truth, mirrored to `alexnodeland/homebrew-tap` on release |
 | `docs/reviews/` | Point-in-time critical reviews of the plan |
 | `docs/decisions/` | Open decisions (DEC-*) and accepted ADRs |
+
+## There is code now
+
+`crates/tome-core` (shared library), `crates/tome-cli` (`tome` binary), `src-tauri` (the app),
+`src/` (Svelte frontend). The app builds and launches; almost nothing else is implemented.
+
+**`./scripts/check.sh` is the gate — CI cannot run** (private repo, and Actions is blocked at the
+account level). It runs exactly what `.github/workflows/ci.yml` runs. Change one, change the other.
 
 ## Rules for editing these documents
 
