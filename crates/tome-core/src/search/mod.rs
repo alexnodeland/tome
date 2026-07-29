@@ -157,8 +157,14 @@ impl SearchEngine {
     }
 
     /// Run a query, returning at most `limit` hits, best first.
+    ///
+    /// `query` is treated as **text a person typed**, not as query syntax —
+    /// see [`plain_text_query`]. Field scoping (P2-016) will get a typed
+    /// parameter rather than asking users to type `source_id:python`.
     pub fn search(&self, query: &str, limit: usize) -> Result<Vec<Hit>> {
         let searcher = self.reader.searcher();
+        let query = plain_text_query(query);
+        let query = query.as_str();
 
         let mut parser = QueryParser::for_index(
             &self.index,
@@ -322,6 +328,66 @@ fn facet_for(category: &str) -> Facet {
         return Facet::root();
     }
     Facet::from_path(trimmed.split('/').filter(|s| !s.is_empty()))
+}
+
+/// Neutralise Tantivy query-parser syntax in text a person typed.
+///
+/// **Found by S2-1's eval set on its first run**, which is what it is for.
+/// Twelve of the corpus's symbol queries returned *nothing at all* —
+/// `os.cpus()`, `range()`, `str.format()`, `[features] section` — because
+/// `(`, `)`, `[` and `]` are grouping and range syntax to the query parser,
+/// not characters. `os.cpus()` parsed as a term followed by an empty group;
+/// `[features]` parsed as a malformed range. Typing a function's call syntax
+/// is the single most natural way to search API documentation, and every one
+/// of those queries silently failed.
+///
+/// `:` is the same trap and worse: `Vec::new` parses as *field* `Vec`, which
+/// does not exist, so the query errors rather than returning nothing.
+///
+/// The fix is to stop treating user input as a query language. Structural
+/// characters become spaces; the tokenizer already splits on them, so
+/// `os.cpus()` and `Vec::new` reach the index as the terms they should have
+/// been all along.
+///
+/// **Double quotes survive**, because phrase search is a feature users
+/// reasonably expect and type — but only in pairs. An unbalanced quote is a
+/// half-typed query, and passing it through turns an incomplete keystroke
+/// into a parse error.
+fn plain_text_query(raw: &str) -> String {
+    // Tantivy's parser also treats `&&` and `||` as operators, but both are
+    // stripped below as individual characters, so `a && b` becomes `a  b`.
+    const STRUCTURAL: &[char] = &[
+        '+', '-', '!', '(', ')', ':', '^', '[', ']', '{', '}', '~', '*', '?', '\\', '/', '&', '|',
+        '<', '>', '=',
+    ];
+
+    let keep_quotes = raw.matches('"').count() % 2 == 0;
+    let stripped: String = raw
+        .chars()
+        .map(|ch| match ch {
+            '"' if keep_quotes => '"',
+            '"' => ' ',
+            c if STRUCTURAL.contains(&c) => ' ',
+            c => c,
+        })
+        .collect();
+
+    // Punctuation is not the whole story: the parser also has *keyword*
+    // operators, so a bare `AND` is a syntax error and `pods AND nodes` is a
+    // boolean expression rather than a search for three words. Lowercasing
+    // removes the operator meaning and costs nothing for matching, because
+    // both the default and code tokenizers lowercase what they index.
+    stripped
+        .split_inclusive(char::is_whitespace)
+        .map(|piece| {
+            let word = piece.trim_end();
+            if matches!(word, "AND" | "OR" | "NOT" | "IN") {
+                piece.to_lowercase()
+            } else {
+                piece.to_owned()
+            }
+        })
+        .collect()
 }
 
 /// Tantivy's errors name index internals, never page content or queries.
@@ -630,12 +696,113 @@ mod tests {
     }
 
     #[test]
-    fn a_malformed_query_is_an_error_not_a_panic() {
+    fn call_syntax_and_paths_are_searchable() {
+        // The defect S2-1's eval set found: `(`, `)`, `[`, `]` and `:` are
+        // query-parser syntax, so every one of these returned nothing (or
+        // errored) before `plain_text_query`. Typing a function's call syntax
+        // is the most natural way to search API documentation.
         let dir = tempfile::tempdir().expect("tempdir");
         let engine = engine(dir.path());
-        // Unbalanced quotes and a dangling operator: user input, so it must
-        // surface as an error.
-        assert!(engine.search("\"unterminated", 10).is_err());
+
+        let mut session = engine.session().expect("session");
+        session
+            .add_page(
+                &page("node", "os.html", "OS"),
+                "Node",
+                &doc(vec![
+                    code("os.cpus(); os.homedir();"),
+                    para("returns an array"),
+                ]),
+            )
+            .expect("add");
+        session
+            .add_page(
+                &page("rust", "vec.html", "Vec"),
+                "Rust",
+                &doc(vec![code("let v = Vec::new();")]),
+            )
+            .expect("add");
+        session.commit().expect("commit");
+
+        for query in ["os.cpus()", "os.homedir()", "cpus()"] {
+            let hits = engine.search(query, 10).expect("search");
+            assert_eq!(
+                hits.first().map(|h| h.path.as_str()),
+                Some("os.html"),
+                "query {query:?}"
+            );
+        }
+        for query in ["Vec::new", "Vec::new()"] {
+            let hits = engine.search(query, 10).expect("search");
+            assert_eq!(
+                hits.first().map(|h| h.path.as_str()),
+                Some("vec.html"),
+                "query {query:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn user_input_is_never_query_syntax() {
+        // Anything a person can type must return results or nothing — never a
+        // parse error. A search box that rejects `C++` is broken.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = engine(dir.path());
+
+        let mut session = engine.session().expect("session");
+        session
+            .add_page(
+                &page("s", "a.html", "Alpha"),
+                "C",
+                &doc(vec![para("ordinary prose")]),
+            )
+            .expect("add");
+        session.commit().expect("commit");
+
+        for query in [
+            "\"unterminated",
+            "C++",
+            "a && b",
+            "AND",
+            "^",
+            "*",
+            "title:foo",
+            "[unclosed",
+            "~~~",
+            "a || b",
+            "!important",
+            "-leading-dash",
+            "()",
+            "",
+            "   ",
+        ] {
+            assert!(
+                engine.search(query, 10).is_ok(),
+                "query {query:?} must not be an error"
+            );
+        }
+    }
+
+    #[test]
+    fn plain_text_query_strips_structure_but_keeps_paired_quotes() {
+        assert_eq!(plain_text_query("os.cpus()"), "os.cpus  ");
+        assert_eq!(plain_text_query("Vec::new"), "Vec  new");
+        assert_eq!(plain_text_query("[features] section"), " features  section");
+        // Paired quotes survive so phrase search still works...
+        assert_eq!(plain_text_query("\"read to string\""), "\"read to string\"");
+        // ...and an unbalanced one does not, because a half-typed query should
+        // return results rather than an error.
+        assert_eq!(plain_text_query("\"unterminated"), " unterminated");
+        // `_` and `.` are not parser syntax and must survive: the code
+        // tokenizer relies on seeing the whole identifier.
+        assert_eq!(plain_text_query("read_to_string"), "read_to_string");
+        // Keyword operators are lowercased, not stripped — `pods AND nodes`
+        // should search for three words, not evaluate a boolean expression.
+        assert_eq!(plain_text_query("pods AND nodes"), "pods and nodes");
+        assert_eq!(plain_text_query("NOT"), "not");
+        // A word that merely contains an operator is untouched.
+        assert_eq!(plain_text_query("ANDROID"), "ANDROID");
+        assert_eq!(plain_text_query("android"), "android");
     }
 
     #[test]

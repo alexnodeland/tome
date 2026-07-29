@@ -144,6 +144,20 @@ a test written from the same misunderstanding as the code agrees with it. The go
 
 ## Traps — search
 
+- **User query text is not query syntax, and Tantivy's parser disagrees.**
+  `(`, `)`, `[`, `]`, `:`, `+`, `-`, `^`, `~`, `*`, `?`, `/`, `\`, `{`, `}` are all operators, as
+  are the bare words `AND`, `OR`, `NOT`, `IN`. Passing a search box's contents straight to
+  `QueryParser` means `os.cpus()` matches nothing (a term plus an empty group), `[features]` is a
+  malformed range, `Vec::new` resolves *field* `Vec` and errors, and `C++` is a parse error.
+  Typing a function's call syntax is the most natural way to search API documentation, and every
+  such query silently failed. `search::plain_text_query` neutralises this; **anything that builds a
+  query must go through it.** Found by the S2-1 eval set on its first run — twelve dead symbol
+  queries, and symbol recall@1 went 0.7465 → 0.9474 once fixed.
+- **The relevance gate is a strong diagnostic and a weak gate, and this is measured, not assumed.**
+  Cutting the title boost 60×, additionally cutting the code boost 1500×, and removing the `code`
+  field from the query entirely each moved MRR by ≤ 0.0036 and tripped nothing. A green relevance
+  run means "nothing catastrophic", not "ranking is fine". The per-query movement report is the
+  part that works. Making it a real gate needs a bigger corpus, not a tighter threshold.
 - **`TopDocs` is a builder in tantivy 0.26.** Only `.order_by_score()` implements `Collector`, and
   `with_limit` **panics on 0**, so a caller-supplied limit must be clamped.
 - **`MmapDirectory::open` returns its own error type**, not `TantivyError`.

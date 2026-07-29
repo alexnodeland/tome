@@ -300,7 +300,7 @@ This is the stage that answers whether the product is possible.
 
 | # | Work | Spec | Model |
 |---|------|------|-------|
-| S2-1 | **Relevance eval set + harness** | P2-019 | Opus — **first, before any ranking work** |
+| S2-1 ✅ | **Relevance eval set + harness** | P2-019 | Opus — done 2026-07-29 — `corpus/relevance/` (212 labelled queries, 26 documents, 7 sources) + `tests/relevance.rs`. Found a real defect on its first run: `()` and `[]` are query-parser syntax, so twelve symbol queries returned nothing. Symbol recall@1 0.7465 → **0.9474** after the fix. **Also measured its own weakness** — see below |
 | S2-2 ✅ | Tantivy integration + schema | P2-001/002 | Opus — done 2026-07-29 — `tome-core/src/search/`: `schema.rs` (P2-002's seven fields), `tokenizer.rs` (camelCase/snake_case aware, emits the identifier *and* its parts), `extract.rs` (AST → fields), `mod.rs` (`SearchEngine` + `IndexSession`). SPIKE-003's harness removed as planned; its write-up stays |
 | S2-3 | Incremental indexing | P2-003 | Fable |
 | S2-4 | Ranking + boosts | P2-006 | Fable, scored by S2-1 |
@@ -316,6 +316,22 @@ This is the stage that answers whether the product is possible.
 **S2-1 before S2-4 is not negotiable.** Tuning ranking without an eval set is guesswork, and with
 agents it is *fast* guesswork — you will get twenty confident boost-factor changes and no way to
 tell which helped. The eval set is what converts search from an opinion into a gradient.
+
+**The eval set works as a diagnostic and not yet as a gate, and this is measured.**
+Three perturbations were run against it: cutting the title boost 60×, additionally cutting the code
+boost 1500×, and removing the `code` field from the query entirely. **None moved MRR by more than
+0.0036, and none tripped the gate.** With 26 documents there is rarely a strong wrong answer for a
+better-ranked right answer to beat, so the metrics compress near the top.
+
+Two consequences for the rest of Stage 2:
+
+- **S2-4 cannot be scored against this corpus as it stands.** Boost tuning would be measuring
+  noise, which is precisely the failure S2-1 exists to prevent — so the eval set has, usefully,
+  ruled out its own premature use. Making ranking measurable needs materially more documents, which
+  is a corpus decision (fetch and licence-verify more pages) rather than a harness one, and is
+  **owner input, not an agent's call**.
+- **The per-query movement report is the part that works.** It caught all three perturbations by
+  name. Read that, not the aggregate.
 
 **S2-2 nonetheless landed first, and the table's order is the misleading part.** P2-019 lists
 P2-001 as a dependency for the obvious reason: a relevance harness needs an index to score. The
