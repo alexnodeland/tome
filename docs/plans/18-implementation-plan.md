@@ -295,7 +295,7 @@ This is the stage that answers whether the product is possible.
 ## Stage 2 — Search
 
 **Goal:** fast, relevant search, with a number attached to "relevant".
-**Entry gate:** S1 exit + **SPIKE-003** (Tantivy at 100k pages) has run.
+**Entry gate:** S1 exit + **SPIKE-003** (Tantivy at 100k pages) has run — ✅ [ran 2026-07-29](../spikes/003-tantivy-scale.md). All four criteria pass with margin (439 MB peak indexing, 18.7 ms worst p95, 224 MB index, 3 MB idle). Three findings change how S2 is built: the writer budget is a **speed** knob not a memory one (use 512 MB); segment count is what degrades search, so set an explicit merge policy; and indexing is 3 orders of magnitude cheaper than crawling, so **S2-3's justification is avoiding re-crawls, not avoiding re-indexing**.
 **Exit gate:** relevance eval ≥ 0.90 recall@3, P95 < 100 ms on the benchmark corpus.
 
 | # | Work | Spec | Model |

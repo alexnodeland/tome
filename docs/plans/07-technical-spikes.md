@@ -472,7 +472,7 @@ testing, and misdiagnosed as a TOC bug.
 |----|-------|----------|--------|----------|-----|
 | SPIKE-001 | Tauri + Swift Integration | P0 | Not Started | - | Before P1 |
 | SPIKE-002 | WKWebView Bridge Perf | P0 | **Complete** — [write-up](../spikes/002-reader-iframe-bridge.md) | agent | 2026-07-28 |
-| SPIKE-003 | Tantivy Memory at Scale | P0 | Not Started | - | Before P1 |
+| SPIKE-003 | Tantivy Memory at Scale | P0 | **Complete 2026-07-29** — [write-up](../spikes/003-tantivy-scale.md). All four criteria pass with 2–16× margin; proceed with Tantivy, no sharding | agent | (was: before P1) |
 | SPIKE-004 | iCloud Drive container | P1 | Not Started | - | Before P3 |
 | SPIKE-005 | mandoc Output | P1 | Not Started | - | During P1 |
 | SPIKE-006 | Sphinx searchindex.js | P1 | Not Started | - | During P1 |

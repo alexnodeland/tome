@@ -4,7 +4,7 @@ members = ["crates/tome-core", "crates/tome-cli", "crates/tome-testkit", "src-ta
 # `fuzz/` is its own workspace: `libfuzzer-sys` needs a nightly toolchain and
 # sanitizer flags, and pulling it into this workspace would impose both on every
 # ordinary `cargo test`. See fuzz/README.md.
-exclude = ["fuzz"]
+exclude = ["fuzz", "spikes/003-tantivy-scale"]
 
 [workspace.package]
 version = "0.0.0"

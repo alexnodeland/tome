@@ -38,6 +38,7 @@ lcov*.info
 # Fuzzing. Corpora and crash artefacts are regenerable and can be large; a
 # crash worth keeping gets minimised and committed as a unit test instead.
 /fuzz/target/
+/spikes/*/target/
 /fuzz/corpus/
 /fuzz/artifacts/
 
