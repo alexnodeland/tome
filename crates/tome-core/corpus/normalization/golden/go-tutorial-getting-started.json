@@ -1,0 +1,974 @@
+{
+  "title": "Tutorial: Get started with Go",
+  "description": "In this tutorial, you'll get a brief introduction to Go programming. Along the way, you will:",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "list",
+        "ordered": true,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/doc/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": " Documentation "
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/doc/tutorial/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": " Tutorials "
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/doc/tutorial/getting-started",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": " Tutorial: Get started with Go "
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 1,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "Tutorial: Get started with Go"
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "nav"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In this tutorial, you'll get a brief introduction to Go programming. Along the way, you will:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Install Go (if you haven't already)."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Write some simple \"Hello, world\" code."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Use the "
+              },
+              {
+                "type": "inline_code",
+                "code": "go"
+              },
+              {
+                "type": "text",
+                "value": " command to run your code."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Use the Go package discovery tool to find packages you can use in your own code."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Call functions of an external module."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "prerequisites",
+        "children": [
+          {
+            "type": "text",
+            "value": "Prerequisites"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Some programming experience."
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " The code here is pretty simple, but it helps to know something about functions."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "A tool to edit your code."
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " Any text editor you have will work fine. Most text editors have good support for Go. The most popular are VSCode (free), GoLand (paid), and Vim (free)."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "A command terminal."
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " Go works well using any terminal on Linux and Mac, and on PowerShell or cmd in Windows."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "install",
+        "children": [
+          {
+            "type": "text",
+            "value": "Install Go"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Just use the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/doc/install",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Download and install"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " steps."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "code",
+        "children": [
+          {
+            "type": "text",
+            "value": "Write some code"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Get started with Hello, World."
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Open a command prompt and cd to your home directory. "
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "On Linux or Mac:"
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "cd"
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "On Windows:"
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "cd %HOMEPATH%"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Create a hello directory for your first Go source code. "
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "For example, use the following commands:"
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "mkdir hello\ncd hello"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Enable dependency tracking for your code. "
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "When your code imports packages contained in other modules, you manage those dependencies through your code's own module. That module is defined by a go.mod file that tracks the modules that provide those packages. That go.mod file stays with your code, including in your source code repository."
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "To enable dependency tracking for your code by creating a go.mod file, run the "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/ref/mod#go-mod-init",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "go mod init"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " command, giving it the name of the module your code will be in. The name is the module's module path."
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "In actual development, the module path will typically be the repository location where your source code will be kept. For example, the module path might be "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "github.com/mymodule"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". If you plan to publish your module for others to use, the module path "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "must"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " be a location from which Go tools can download your module. For more about naming a module with a module path, see "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/doc/modules/managing-dependencies#naming_module",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Managing dependencies"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "For the purposes of this tutorial, just use "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "example/hello"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "$ go mod init example/hello\ngo: creating new go.mod: module example/hello"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "In your text editor, create a file hello.go in which to write your code."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Paste the following code into your hello.go file and save the file."
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello, World!\")\n}"
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "This is your Go code. In this code, you:"
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Declare a "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "main"
+                      },
+                      {
+                        "type": "text",
+                        "value": " package (a package is a way to group functions, and it's made up of all the files in the same directory)."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Import the popular "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://pkg.go.dev/fmt/",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "fmt"
+                          },
+                          {
+                            "type": "text",
+                            "value": " package"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": ", which contains functions for formatting text, including printing to the console. This package is one of the "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://pkg.go.dev/std",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "standard library"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " packages you got when you installed Go."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Implement a "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "main"
+                      },
+                      {
+                        "type": "text",
+                        "value": " function to print a message to the console. A "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "main"
+                      },
+                      {
+                        "type": "text",
+                        "value": " function executes by default when you run the "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "main"
+                      },
+                      {
+                        "type": "text",
+                        "value": " package."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Run your code to see the greeting."
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "$ go run .\nHello, World!"
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "The "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/cmd/go/#hdr-Compile_and_run_Go_program",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "go run"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " command is one of many "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "go"
+                  },
+                  {
+                    "type": "text",
+                    "value": " commands you'll use to get things done with Go. Use the following command to get a list of the others:"
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "$ go help"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "call",
+        "children": [
+          {
+            "type": "text",
+            "value": "Call code in an external package"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "When you need your code to do something that might have been implemented by someone else, you can look for a package that has functions you can use in your code."
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Make your printed message a little more interesting with a function from an external module. "
+              },
+              {
+                "type": "list",
+                "ordered": true,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Visit pkg.go.dev and "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://pkg.go.dev/search?q=quote",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "search for a \"quote\" package"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "In the search results, locate and click on the v1 of the "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "rsc.io/quote"
+                      },
+                      {
+                        "type": "text",
+                        "value": " package (it should be listed with the \"Other major versions\" of "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "rsc.io/quote/v4"
+                      },
+                      {
+                        "type": "text",
+                        "value": ")."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "In the "
+                      },
+                      {
+                        "type": "strong",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Documentation"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " section, under "
+                      },
+                      {
+                        "type": "strong",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Index"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": ", note the list of functions you can call from your code. You'll use the "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "Go"
+                      },
+                      {
+                        "type": "text",
+                        "value": " function."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "At the top of this page, note that package "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "quote"
+                      },
+                      {
+                        "type": "text",
+                        "value": " is included in the "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "rsc.io/quote"
+                      },
+                      {
+                        "type": "text",
+                        "value": " module."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "You can use the pkg.go.dev site to find published modules whose packages have functions you can use in your own code. Packages are published in modules -- like "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "rsc.io/quote"
+                  },
+                  {
+                    "type": "text",
+                    "value": " -- where others can use them. Modules are improved with new versions over time, and you can upgrade your code to use the improved versions."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "In your Go code, import the "
+              },
+              {
+                "type": "inline_code",
+                "code": "rsc.io/quote"
+              },
+              {
+                "type": "text",
+                "value": " package and add a call to its "
+              },
+              {
+                "type": "inline_code",
+                "code": "Go"
+              },
+              {
+                "type": "text",
+                "value": " function. "
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "After adding the highlighted lines, your code should include the following:"
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "package main\n\nimport \"fmt\"\n\nimport \"rsc.io/quote\"\n\nfunc main() {\n    fmt.Println(quote.Go())\n}"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Add new module requirements and sums. "
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Go will add the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "quote"
+                  },
+                  {
+                    "type": "text",
+                    "value": " module as a requirement, as well as a go.sum file for use in authenticating the module. For more, see "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/ref/mod#authenticating",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Authenticating modules"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the Go Modules Reference."
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "$ go mod tidy\ngo: finding module for package rsc.io/quote\ngo: found rsc.io/quote in rsc.io/quote v1.5.2"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Run your code to see the message generated by the function you're calling. "
+              },
+              {
+                "type": "code_block",
+                "language": null,
+                "code": "$ go run .\nDon't communicate by sharing memory, share memory by communicating."
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Notice that your code calls the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "Go"
+                  },
+                  {
+                    "type": "text",
+                    "value": " function, printing a clever message about communication."
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "When you ran "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "go mod tidy"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", it located and downloaded the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "rsc.io/quote"
+                  },
+                  {
+                    "type": "text",
+                    "value": " module that contains the package you imported. By default, it downloaded the latest version -- v1.5.2."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "write-more",
+        "children": [
+          {
+            "type": "text",
+            "value": "Write more code"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "With this quick introduction, you got Go installed and learned some of the basics. To write some more code with another tutorial, take a look at "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/doc/tutorial/create-module.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Create a Go module"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      }
+    ]
+  }
+}

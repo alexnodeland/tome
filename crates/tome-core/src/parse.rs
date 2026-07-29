@@ -501,12 +501,24 @@ fn language_from_class(classes: &[String]) -> Option<String> {
 }
 
 /// Sphinx's `<a class="headerlink">¶</a>` permalink chrome.
+/// Markers a documentation generator uses for "permalink to this heading".
+///
+/// Sphinx uses `¶`, Node's API docs use `#`, and several generators use the
+/// link glyph. They are all chrome: stripping them keeps heading text usable
+/// as a title and a TOC label. The corpus is what turned this from a
+/// Sphinx-only list into a list — every Node page's title came out as `OS#`,
+/// `Path#`, `Query string#` until `#` was on it.
+const PERMALINK_MARKERS: &[&str] = &["¶", "§", "#", "🔗", "&para;"];
+
 fn is_headerlink(node: &Node) -> bool {
     match node {
         Node::Link { href, children, .. } => {
+            // A fragment href AND nothing but a marker for text. Both halves
+            // matter: a heading may legitimately contain a link, and a
+            // heading may legitimately contain a `#` (`# in a URL`).
             href.starts_with('#')
                 && matches!(children.as_slice(),
-                    [Node::Text { value }] if value == "¶" || value == "§")
+                    [Node::Text { value }] if PERMALINK_MARKERS.contains(&value.trim()))
         }
         Node::Text { value } => value == "¶",
         _ => false,

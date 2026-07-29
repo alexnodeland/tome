@@ -1,0 +1,4900 @@
+{
+  "title": "The Manifest Format",
+  "description": "The Cargo.toml file for each package is called its manifest. It is written in the TOML format. It contains metadata that is needed to compile the package. Checkout the cargo locate-project section for…",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "heading",
+        "level": 1,
+        "id": "the-manifest-format",
+        "children": [
+          {
+            "type": "text",
+            "value": "The Manifest Format"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " file for each package is called its "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "manifest"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". It is written in the "
+          },
+          {
+            "type": "link",
+            "href": "https://toml.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "TOML"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " format. It contains metadata that is needed to compile the package. Checkout the "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo locate-project"
+          },
+          {
+            "type": "text",
+            "value": " section for more detail on how cargo finds the manifest file."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Every manifest file consists of the following sections:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/unstable.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo-features"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Unstable, nightly-only features."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-manifest.html#the-package-section",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[package]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Defines a package. "
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-name-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "name"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The name of the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-version-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "version"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The version of the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-authors-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "authors"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The authors of the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-edition-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "edition"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The Rust edition."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/rust-version.html",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "rust-version"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The minimal supported Rust version."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-description-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "description"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — A description of the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-documentation-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "documentation"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — URL of the package documentation."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-readme-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "readme"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Path to the package’s README file."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-homepage-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "homepage"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — URL of the package homepage."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-repository-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "repository"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — URL of the package source repository."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-license-and-license-file-fields",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "license"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The package license."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-license-and-license-file-fields",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "license-file"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Path to the text of the license."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-keywords-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "keywords"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Keywords for the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-categories-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "categories"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Categories of the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-workspace-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "workspace"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Path to the workspace for the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-build-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "build"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Path to the package build script."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-links-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "links"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Name of the native library the package links with."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-exclude-and-include-fields",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "exclude"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Files to exclude when publishing."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-exclude-and-include-fields",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "include"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Files to include when publishing."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-publish-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "publish"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Can be used to prevent publishing the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-metadata-table",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "metadata"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Extra settings for external tools."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/mdbook-cargo-manifest.html#the-default-run-field",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "default-run"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The default binary to run by "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/commands/cargo-run.html",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "cargo run"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#target-auto-discovery",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "autolib"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Disables library auto discovery."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#target-auto-discovery",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "autobins"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Disables binary auto discovery."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#target-auto-discovery",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "autoexamples"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Disables example auto discovery."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#target-auto-discovery",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "autotests"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Disables test auto discovery."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#target-auto-discovery",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "autobenches"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Disables bench auto discovery."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/resolver.html#resolver-versions",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "resolver"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Sets the dependency resolver to use."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Target tables: (see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/cargo-targets.html#configuring-a-target",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "configuration"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for settings) "
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#library",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[lib]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Library target settings."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#binaries",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[[bin]]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Binary target settings."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#examples",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[[example]]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Example target settings."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#tests",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[[test]]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Test target settings."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/cargo-targets.html#benchmarks",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[[bench]]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Benchmark target settings."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Dependency tables: "
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/specifying-dependencies.html",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[dependencies]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Package library dependencies."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/specifying-dependencies.html#development-dependencies",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[dev-dependencies]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Dependencies for examples, tests, and benchmarks."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/specifying-dependencies.html#build-dependencies",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[build-dependencies]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Dependencies for build scripts."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/specifying-dependencies.html#platform-specific-dependencies",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "[target]"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Platform-specific dependencies."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-manifest.html#the-badges-section",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[badges]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Badges to display on a registry."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/features.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[features]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Conditional compilation features."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-manifest.html#the-lints-section",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[lints]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Configure linters for this package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-manifest.html#the-hints-section",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[hints]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Provide hints for compiling this package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/overriding-dependencies.html#the-patch-section",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[patch]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Override dependencies."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/overriding-dependencies.html#the-replace-section",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[replace]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Override dependencies (deprecated)."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/profiles.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[profile]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Compiler settings and optimizations."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/workspaces.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[workspace]"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — The workspace definition."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "the-package-section",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[package]"
+          },
+          {
+            "type": "text",
+            "value": " section"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The first section in a "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " is "
+          },
+          {
+            "type": "inline_code",
+            "code": "[package]"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\nname = \"hello_world\" # the name of the package\nversion = \"0.1.0\"    # the current version, obeying semver"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The only field required by Cargo is "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-manifest.html#the-name-field",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "name"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". If publishing to a registry, the registry may require additional fields. See the notes below and "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/publishing.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "the publishing chapter"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for requirements for publishing to "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-name-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "name"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The package name is an identifier used to refer to the package. It is used when listed as a dependency in another package, and as the default name of inferred lib and bin targets."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The name must use only "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/std/primitive.char.html#method.is_alphanumeric",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "alphanumeric"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " characters or "
+          },
+          {
+            "type": "inline_code",
+            "code": "-"
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "inline_code",
+            "code": "_"
+          },
+          {
+            "type": "text",
+            "value": ", and cannot be empty."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Note that "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/commands/cargo-new.html",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "cargo new"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/commands/cargo-init.html",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "cargo init"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " impose some additional restrictions on the package name, such as enforcing that it is a valid Rust identifier and not a keyword. "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " imposes even more restrictions, such as:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Only ASCII characters are allowed."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Do not use reserved names."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Do not use special Windows names such as “nul”."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Use a maximum of 64 characters of length."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-version-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "version"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "version"
+          },
+          {
+            "type": "text",
+            "value": " field is formatted according to the "
+          },
+          {
+            "type": "link",
+            "href": "https://semver.org/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "SemVer"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " specification:"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Versions must have three numeric parts, the major version, the minor version, and the patch version."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A pre-release part can be added after a dash such as "
+          },
+          {
+            "type": "inline_code",
+            "code": "1.0.0-alpha"
+          },
+          {
+            "type": "text",
+            "value": ". The pre-release part may be separated with periods to distinguish separate components. Numeric components will use numeric comparison while everything else will be compared lexicographically. For example, "
+          },
+          {
+            "type": "inline_code",
+            "code": "1.0.0-alpha.11"
+          },
+          {
+            "type": "text",
+            "value": " is higher than "
+          },
+          {
+            "type": "inline_code",
+            "code": "1.0.0-alpha.4"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A metadata part can be added after a plus, such as "
+          },
+          {
+            "type": "inline_code",
+            "code": "1.0.0+21AF26D3"
+          },
+          {
+            "type": "text",
+            "value": ". This is for informational purposes only and is generally ignored by Cargo."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo bakes in the concept of "
+          },
+          {
+            "type": "link",
+            "href": "https://semver.org/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Semantic Versioning"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", so versions are considered "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/semver.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "compatible"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " if their left-most non-zero major/minor/patch component is the same. See the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/resolver.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Resolver"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " chapter for more information on how Cargo uses versions to resolve dependencies."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This field is optional and defaults to "
+          },
+          {
+            "type": "inline_code",
+            "code": "0.0.0"
+          },
+          {
+            "type": "text",
+            "value": ". The field is required for publishing packages."
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "MSRV:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " Before 1.75, this field was required"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-authors-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "authors"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Warning"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ": This field is deprecated"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The optional "
+          },
+          {
+            "type": "inline_code",
+            "code": "authors"
+          },
+          {
+            "type": "text",
+            "value": " field lists in an array the people or organizations that are considered the “authors” of the package. An optional email address may be included within angled brackets at the end of each author entry."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nauthors = [\"Graydon Hoare\", \"Fnu Lnu <no-reply@rust-lang.org>\"]"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This field is surfaced in package metadata and in the "
+          },
+          {
+            "type": "inline_code",
+            "code": "CARGO_PKG_AUTHORS"
+          },
+          {
+            "type": "text",
+            "value": " environment variable within "
+          },
+          {
+            "type": "inline_code",
+            "code": "build.rs"
+          },
+          {
+            "type": "text",
+            "value": " for backwards compatibility."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-edition-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "edition"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "edition"
+          },
+          {
+            "type": "text",
+            "value": " key is an optional key that affects which "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/edition-guide/index.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Rust Edition"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " your package is compiled with. Setting the "
+          },
+          {
+            "type": "inline_code",
+            "code": "edition"
+          },
+          {
+            "type": "text",
+            "value": " key in "
+          },
+          {
+            "type": "inline_code",
+            "code": "[package]"
+          },
+          {
+            "type": "text",
+            "value": " will affect all targets/crates in the package, including test suites, benchmarks, binaries, examples, etc."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nedition = '2024'"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Most manifests have the "
+          },
+          {
+            "type": "inline_code",
+            "code": "edition"
+          },
+          {
+            "type": "text",
+            "value": " field filled in automatically by "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/commands/cargo-new.html",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "cargo new"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " with the latest stable edition. By default "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo new"
+          },
+          {
+            "type": "text",
+            "value": " creates a manifest with the 2024 edition currently."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If the "
+          },
+          {
+            "type": "inline_code",
+            "code": "edition"
+          },
+          {
+            "type": "text",
+            "value": " field is not present in "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": ", then the 2015 edition is assumed for backwards compatibility. Note that all manifests created with "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/commands/cargo-new.html",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "cargo new"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " will not use this historical fallback because they will have "
+          },
+          {
+            "type": "inline_code",
+            "code": "edition"
+          },
+          {
+            "type": "text",
+            "value": " explicitly specified to a newer value."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-rust-version-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "rust-version"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "rust-version"
+          },
+          {
+            "type": "text",
+            "value": " field tells cargo what version of the Rust toolchain you support for your package. See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/rust-version.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "the Rust version chapter"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for more detail."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-description-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "description"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The description is a short blurb about the package. "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " will display this with your package. This should be plain text (not Markdown)."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\ndescription = \"A short description of my package\""
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Note"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ": "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " requires the "
+              },
+              {
+                "type": "inline_code",
+                "code": "description"
+              },
+              {
+                "type": "text",
+                "value": " to be set."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-documentation-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "documentation"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "documentation"
+          },
+          {
+            "type": "text",
+            "value": " field specifies a URL to a website hosting the crate’s documentation. If no URL is specified in the manifest file, "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " will automatically link your crate to the corresponding "
+          },
+          {
+            "type": "link",
+            "href": "https://docs.rs/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "docs.rs"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " page when the documentation has been built and is available (see "
+          },
+          {
+            "type": "link",
+            "href": "https://docs.rs/releases/queue",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "docs.rs queue"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ")."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\ndocumentation = \"https://docs.rs/bitflags\""
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-readme-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "readme"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "readme"
+          },
+          {
+            "type": "text",
+            "value": " field should be the path to a file in the package root (relative to this "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": ") that contains general information about the package. This file will be transferred to the registry when you publish. "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " will interpret it as Markdown and render it on the crate’s page."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nreadme = \"README.md\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If no value is specified for this field, and a file named "
+          },
+          {
+            "type": "inline_code",
+            "code": "README.md"
+          },
+          {
+            "type": "text",
+            "value": ", "
+          },
+          {
+            "type": "inline_code",
+            "code": "README.txt"
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "inline_code",
+            "code": "README"
+          },
+          {
+            "type": "text",
+            "value": " exists in the package root, then the name of that file will be used. You can suppress this behavior by setting this field to "
+          },
+          {
+            "type": "inline_code",
+            "code": "false"
+          },
+          {
+            "type": "text",
+            "value": ". If the field is set to "
+          },
+          {
+            "type": "inline_code",
+            "code": "true"
+          },
+          {
+            "type": "text",
+            "value": ", a default value of "
+          },
+          {
+            "type": "inline_code",
+            "code": "README.md"
+          },
+          {
+            "type": "text",
+            "value": " will be assumed."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-homepage-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "homepage"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "homepage"
+          },
+          {
+            "type": "text",
+            "value": " field should be a URL to a site that is the home page for your package."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nhomepage = \"https://serde.rs\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A value should only be set for "
+          },
+          {
+            "type": "inline_code",
+            "code": "homepage"
+          },
+          {
+            "type": "text",
+            "value": " if there is a dedicated website for the crate other than the source repository or API documentation. Do not make "
+          },
+          {
+            "type": "inline_code",
+            "code": "homepage"
+          },
+          {
+            "type": "text",
+            "value": " redundant with either the "
+          },
+          {
+            "type": "inline_code",
+            "code": "documentation"
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "inline_code",
+            "code": "repository"
+          },
+          {
+            "type": "text",
+            "value": " values."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-repository-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "repository"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "repository"
+          },
+          {
+            "type": "text",
+            "value": " field should be a URL to the source repository for your package."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nrepository = \"https://github.com/rust-lang/cargo\""
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-license-and-license-file-fields",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "license"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "license-file"
+          },
+          {
+            "type": "text",
+            "value": " fields"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "license"
+          },
+          {
+            "type": "text",
+            "value": " field contains the name of the software license that the package is released under. The "
+          },
+          {
+            "type": "inline_code",
+            "code": "license-file"
+          },
+          {
+            "type": "text",
+            "value": " field contains the path to a file containing the text of the license (relative to this "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": ")."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " interprets the "
+          },
+          {
+            "type": "inline_code",
+            "code": "license"
+          },
+          {
+            "type": "text",
+            "value": " field as an "
+          },
+          {
+            "type": "link",
+            "href": "https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "SPDX 2.3 license expression"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". The name must be a known license from the "
+          },
+          {
+            "type": "link",
+            "href": "https://github.com/spdx/license-list-data/tree/v3.20",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "SPDX license list 3.20"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". See the "
+          },
+          {
+            "type": "link",
+            "href": "https://spdx.org/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "SPDX site"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for more information."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "SPDX license expressions support AND and OR operators to combine multiple licenses."
+          },
+          {
+            "type": "anchor",
+            "id": "fr-slash-1"
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-manifest.html#footnote-slash",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nlicense = \"MIT OR Apache-2.0\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Using "
+          },
+          {
+            "type": "inline_code",
+            "code": "OR"
+          },
+          {
+            "type": "text",
+            "value": " indicates the user may choose either license. Using "
+          },
+          {
+            "type": "inline_code",
+            "code": "AND"
+          },
+          {
+            "type": "text",
+            "value": " indicates the user must comply with both licenses simultaneously. The "
+          },
+          {
+            "type": "inline_code",
+            "code": "WITH"
+          },
+          {
+            "type": "text",
+            "value": " operator indicates a license with a special exception. Some examples:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "MIT OR Apache-2.0"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "LGPL-2.1-only AND MIT AND BSD-2-Clause"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "GPL-2.0-or-later WITH Bison-exception-2.2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If a package is using a nonstandard license, then the "
+          },
+          {
+            "type": "inline_code",
+            "code": "license-file"
+          },
+          {
+            "type": "text",
+            "value": " field may be specified in lieu of the "
+          },
+          {
+            "type": "inline_code",
+            "code": "license"
+          },
+          {
+            "type": "text",
+            "value": " field."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nlicense-file = \"LICENSE.txt\""
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Note"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ": "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " requires either "
+              },
+              {
+                "type": "inline_code",
+                "code": "license"
+              },
+              {
+                "type": "text",
+                "value": " or "
+              },
+              {
+                "type": "inline_code",
+                "code": "license-file"
+              },
+              {
+                "type": "text",
+                "value": " to be set."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-keywords-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "keywords"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "keywords"
+          },
+          {
+            "type": "text",
+            "value": " field is an array of strings that describe this package. This can help when searching for the package on a registry, and you may choose any words that would help someone find this crate."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nkeywords = [\"gamedev\", \"graphics\"]"
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Note"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ": "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " allows a maximum of 5 keywords. Each keyword must be ASCII text, have at most 20 characters, start with an alphanumeric character, and only contain letters, numbers, "
+              },
+              {
+                "type": "inline_code",
+                "code": "_"
+              },
+              {
+                "type": "text",
+                "value": ", "
+              },
+              {
+                "type": "inline_code",
+                "code": "-"
+              },
+              {
+                "type": "text",
+                "value": " or "
+              },
+              {
+                "type": "inline_code",
+                "code": "+"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-categories-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "categories"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "categories"
+          },
+          {
+            "type": "text",
+            "value": " field is an array of strings of the categories this package belongs to."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "categories = [\"command-line-utilities\", \"development-tools::cargo-plugins\"]"
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Note"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ": "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " has a maximum of 5 categories. Each category should match one of the strings available at "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/category_slugs",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "https://crates.io/category_slugs"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ", and must match exactly."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-workspace-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "workspace"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "workspace"
+          },
+          {
+            "type": "text",
+            "value": " field can be used to configure the workspace that this package will be a member of. If not specified this will be inferred as the first Cargo.toml with "
+          },
+          {
+            "type": "inline_code",
+            "code": "[workspace]"
+          },
+          {
+            "type": "text",
+            "value": " upwards in the filesystem. Setting this is useful if the member is not inside a subdirectory of the workspace root."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nworkspace = \"path/to/workspace/root\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This field cannot be specified if the manifest already has a "
+          },
+          {
+            "type": "inline_code",
+            "code": "[workspace]"
+          },
+          {
+            "type": "text",
+            "value": " table defined. That is, a crate cannot both be a root crate in a workspace (contain "
+          },
+          {
+            "type": "inline_code",
+            "code": "[workspace]"
+          },
+          {
+            "type": "text",
+            "value": ") and also be a member crate of another workspace (contain "
+          },
+          {
+            "type": "inline_code",
+            "code": "package.workspace"
+          },
+          {
+            "type": "text",
+            "value": ")."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For more information, see the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/workspaces.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "workspaces chapter"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-build-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "build"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "build"
+          },
+          {
+            "type": "text",
+            "value": " field specifies a file in the package root which is a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/build-scripts.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "build script"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for building native code. More information can be found in the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/build-scripts.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "build script guide"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nbuild = \"build.rs\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The default is "
+          },
+          {
+            "type": "inline_code",
+            "code": "\"build.rs\""
+          },
+          {
+            "type": "text",
+            "value": ", which loads the script from a file named "
+          },
+          {
+            "type": "inline_code",
+            "code": "build.rs"
+          },
+          {
+            "type": "text",
+            "value": " in the root of the package. Use "
+          },
+          {
+            "type": "inline_code",
+            "code": "build = \"custom_build_name.rs\""
+          },
+          {
+            "type": "text",
+            "value": " to specify a path to a different file or "
+          },
+          {
+            "type": "inline_code",
+            "code": "build = false"
+          },
+          {
+            "type": "text",
+            "value": " to disable automatic detection of the build script."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-links-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "links"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "links"
+          },
+          {
+            "type": "text",
+            "value": " field specifies the name of a native library that is being linked to. More information can be found in the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/build-scripts.html#the-links-manifest-key",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "links"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " section of the build script guide."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For example, a crate that links a native library called “git2” (e.g. "
+          },
+          {
+            "type": "inline_code",
+            "code": "libgit2.a"
+          },
+          {
+            "type": "text",
+            "value": " on Linux) may specify:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nlinks = \"git2\""
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-exclude-and-include-fields",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "exclude"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " fields"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "exclude"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " fields can be used to explicitly specify which files are included when packaging a project to be "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/publishing.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "published"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", and certain kinds of change tracking (described below). The patterns specified in the "
+          },
+          {
+            "type": "inline_code",
+            "code": "exclude"
+          },
+          {
+            "type": "text",
+            "value": " field identify a set of files that are not included, and the patterns in "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " specify files that are explicitly included."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\nexclude = [\"/ci\", \"images/\", \".*\"]"
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\ninclude = [\"/src\", \"COPYRIGHT\", \"/examples\", \"!/examples/big_example\"]"
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Note:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " Run "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/commands/cargo-package.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo package --list"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to verify which files will be included in the package."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The default if neither field is specified is to include all files from the root of the package, except for the exclusions listed below."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " is not specified, then the following files will be excluded:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "If the package is not in a git repository, all “hidden” files starting with a dot will be skipped."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "If the package is in a git repository, any files that are ignored by the "
+              },
+              {
+                "type": "link",
+                "href": "https://git-scm.com/docs/gitignore",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "gitignore"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " rules of the repository and global git configuration will be skipped."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " is specified, gitignore rules of the repository and global git configuration are not applied."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Regardless of whether "
+          },
+          {
+            "type": "inline_code",
+            "code": "exclude"
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " is specified, the following files are always excluded:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Any sub-packages will be skipped (any subdirectory that contains a "
+              },
+              {
+                "type": "inline_code",
+                "code": "Cargo.toml"
+              },
+              {
+                "type": "text",
+                "value": " file)."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "A directory named "
+              },
+              {
+                "type": "inline_code",
+                "code": "target"
+              },
+              {
+                "type": "text",
+                "value": " in the root of the package will be skipped."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The following files are always included:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "The "
+              },
+              {
+                "type": "inline_code",
+                "code": "Cargo.toml"
+              },
+              {
+                "type": "text",
+                "value": " file of the package itself is always included, it does not need to be listed in "
+              },
+              {
+                "type": "inline_code",
+                "code": "include"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "A minimized "
+              },
+              {
+                "type": "inline_code",
+                "code": "Cargo.lock"
+              },
+              {
+                "type": "text",
+                "value": " is automatically included. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/commands/cargo-package.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo package"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for more information."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "If a "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-manifest.html#the-license-and-license-file-fields",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "license-file"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " is specified, it is always included."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The options are mutually exclusive; setting "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " will override an "
+          },
+          {
+            "type": "inline_code",
+            "code": "exclude"
+          },
+          {
+            "type": "text",
+            "value": ". If you need to have exclusions to a set of "
+          },
+          {
+            "type": "inline_code",
+            "code": "include"
+          },
+          {
+            "type": "text",
+            "value": " files, use the "
+          },
+          {
+            "type": "inline_code",
+            "code": "!"
+          },
+          {
+            "type": "text",
+            "value": " operator described below."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The patterns should be "
+          },
+          {
+            "type": "link",
+            "href": "https://git-scm.com/docs/gitignore",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "gitignore"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "-style patterns. Briefly:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "foo"
+              },
+              {
+                "type": "text",
+                "value": " matches any file or directory with the name "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo"
+              },
+              {
+                "type": "text",
+                "value": " anywhere in the package. This is equivalent to the pattern "
+              },
+              {
+                "type": "inline_code",
+                "code": "**/foo"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "/foo"
+              },
+              {
+                "type": "text",
+                "value": " matches any file or directory with the name "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo"
+              },
+              {
+                "type": "text",
+                "value": " only in the root of the package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "foo/"
+              },
+              {
+                "type": "text",
+                "value": " matches any "
+              },
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "directory"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " with the name "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo"
+              },
+              {
+                "type": "text",
+                "value": " anywhere in the package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Common glob patterns like "
+              },
+              {
+                "type": "inline_code",
+                "code": "*"
+              },
+              {
+                "type": "text",
+                "value": ", "
+              },
+              {
+                "type": "inline_code",
+                "code": "?"
+              },
+              {
+                "type": "text",
+                "value": ", and "
+              },
+              {
+                "type": "inline_code",
+                "code": "[]"
+              },
+              {
+                "type": "text",
+                "value": " are supported: "
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "*"
+                      },
+                      {
+                        "type": "text",
+                        "value": " matches zero or more characters except "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "/"
+                      },
+                      {
+                        "type": "text",
+                        "value": ". For example, "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "*.html"
+                      },
+                      {
+                        "type": "text",
+                        "value": " matches any file or directory with the "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": ".html"
+                      },
+                      {
+                        "type": "text",
+                        "value": " extension anywhere in the package."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "?"
+                      },
+                      {
+                        "type": "text",
+                        "value": " matches any character except "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "/"
+                      },
+                      {
+                        "type": "text",
+                        "value": ". For example, "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "foo?"
+                      },
+                      {
+                        "type": "text",
+                        "value": " matches "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "food"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", but not "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "foo"
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "[]"
+                      },
+                      {
+                        "type": "text",
+                        "value": " allows for matching a range of characters. For example, "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "[ab]"
+                      },
+                      {
+                        "type": "text",
+                        "value": " matches either "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "a"
+                      },
+                      {
+                        "type": "text",
+                        "value": " or "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "b"
+                      },
+                      {
+                        "type": "text",
+                        "value": ". "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "[a-z]"
+                      },
+                      {
+                        "type": "text",
+                        "value": " matches letters a through z."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "**/"
+              },
+              {
+                "type": "text",
+                "value": " prefix matches in any directory. For example, "
+              },
+              {
+                "type": "inline_code",
+                "code": "**/foo/bar"
+              },
+              {
+                "type": "text",
+                "value": " matches the file or directory "
+              },
+              {
+                "type": "inline_code",
+                "code": "bar"
+              },
+              {
+                "type": "text",
+                "value": " anywhere that is directly under directory "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "/**"
+              },
+              {
+                "type": "text",
+                "value": " suffix matches everything inside. For example, "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo/**"
+              },
+              {
+                "type": "text",
+                "value": " matches all files inside directory "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo"
+              },
+              {
+                "type": "text",
+                "value": ", including all files in subdirectories below "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "/**/"
+              },
+              {
+                "type": "text",
+                "value": " matches zero or more directories. For example, "
+              },
+              {
+                "type": "inline_code",
+                "code": "a/**/b"
+              },
+              {
+                "type": "text",
+                "value": " matches "
+              },
+              {
+                "type": "inline_code",
+                "code": "a/b"
+              },
+              {
+                "type": "text",
+                "value": ", "
+              },
+              {
+                "type": "inline_code",
+                "code": "a/x/b"
+              },
+              {
+                "type": "text",
+                "value": ", "
+              },
+              {
+                "type": "inline_code",
+                "code": "a/x/y/b"
+              },
+              {
+                "type": "text",
+                "value": ", and so on."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "!"
+              },
+              {
+                "type": "text",
+                "value": " prefix negates a pattern. For example, a pattern of "
+              },
+              {
+                "type": "inline_code",
+                "code": "src/*.rs"
+              },
+              {
+                "type": "text",
+                "value": " and "
+              },
+              {
+                "type": "inline_code",
+                "code": "!foo.rs"
+              },
+              {
+                "type": "text",
+                "value": " would match all files with the "
+              },
+              {
+                "type": "inline_code",
+                "code": ".rs"
+              },
+              {
+                "type": "text",
+                "value": " extension inside the "
+              },
+              {
+                "type": "inline_code",
+                "code": "src"
+              },
+              {
+                "type": "text",
+                "value": " directory, except for any file named "
+              },
+              {
+                "type": "inline_code",
+                "code": "foo.rs"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The include/exclude list is also used for change tracking in some situations. For targets built with "
+          },
+          {
+            "type": "inline_code",
+            "code": "rustdoc"
+          },
+          {
+            "type": "text",
+            "value": ", it is used to determine the list of files to track to determine if the target should be rebuilt. If the package has a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/build-scripts.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "build script"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " that does not emit any "
+          },
+          {
+            "type": "inline_code",
+            "code": "rerun-if-*"
+          },
+          {
+            "type": "text",
+            "value": " directives, then the include/exclude list is used for tracking if the build script should be re-run if any of those files change."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-publish-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "publish"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "publish"
+          },
+          {
+            "type": "text",
+            "value": " field can be used to control which registries names the package may be published to:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\npublish = [\"some-registry-name\"]"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "To prevent a package from being published to a registry (like crates.io) by mistake, for instance to keep a package private in a company, you can omit the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-manifest.html#the-version-field",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "version"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " field. If you’d like to be more explicit, you can disable publishing:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\n# ...\npublish = false"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If publish array contains a single registry, "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo publish"
+          },
+          {
+            "type": "text",
+            "value": " command will use it when "
+          },
+          {
+            "type": "inline_code",
+            "code": "--registry"
+          },
+          {
+            "type": "text",
+            "value": " flag is not specified."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-metadata-table",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "metadata"
+          },
+          {
+            "type": "text",
+            "value": " table"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo by default will warn about unused keys in "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " to assist in detecting typos and such. The "
+          },
+          {
+            "type": "inline_code",
+            "code": "package.metadata"
+          },
+          {
+            "type": "text",
+            "value": " table, however, is completely ignored by Cargo and will not be warned about. This section can be used for tools which would like to store package configuration in "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": ". For example:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\nname = \"...\"\n# ...\n\n# Metadata used when generating an Android APK, for example.\n[package.metadata.android]\npackage-name = \"my-awesome-android-app\"\nassets = \"path/to/static\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "You’ll need to look in the documentation for your tool to see how to use this field. For Rust Projects that use "
+          },
+          {
+            "type": "inline_code",
+            "code": "package.metadata"
+          },
+          {
+            "type": "text",
+            "value": " tables, see:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "link",
+                "href": "https://docs.rs/about/metadata",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "docs.rs"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "There is a similar table at the workspace level at "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/workspaces.html#the-metadata-table",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "workspace.metadata"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". While cargo does not specify a format for the content of either of these tables, it is suggested that external tools may wish to use them in a consistent fashion, such as referring to the data in "
+          },
+          {
+            "type": "inline_code",
+            "code": "workspace.metadata"
+          },
+          {
+            "type": "text",
+            "value": " if data is missing from "
+          },
+          {
+            "type": "inline_code",
+            "code": "package.metadata"
+          },
+          {
+            "type": "text",
+            "value": ", if that makes sense for the tool in question."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "the-default-run-field",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "default-run"
+          },
+          {
+            "type": "text",
+            "value": " field"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "default-run"
+          },
+          {
+            "type": "text",
+            "value": " field in the "
+          },
+          {
+            "type": "inline_code",
+            "code": "[package]"
+          },
+          {
+            "type": "text",
+            "value": " section of the manifest can be used to specify a default binary picked by "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/commands/cargo-run.html",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "cargo run"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". For example, when there is both "
+          },
+          {
+            "type": "inline_code",
+            "code": "src/bin/a.rs"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "src/bin/b.rs"
+          },
+          {
+            "type": "text",
+            "value": ":"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\ndefault-run = \"a\""
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "the-lints-section",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[lints]"
+          },
+          {
+            "type": "text",
+            "value": " section"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Override the default level of lints from different tools by assigning them to a new level in a table, for example:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[lints.rust]\nunsafe_code = \"forbid\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This is short-hand for:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[lints.rust]\nunsafe_code = { level = \"forbid\", priority = 0 }"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "level"
+          },
+          {
+            "type": "text",
+            "value": " corresponds to the "
+          },
+          {
+            "type": "link",
+            "href": "https://doc.rust-lang.org/rustc/lints/levels.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "lint levels"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " in "
+          },
+          {
+            "type": "inline_code",
+            "code": "rustc"
+          },
+          {
+            "type": "text",
+            "value": ":"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "forbid"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "deny"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "warn"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "allow"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "priority"
+          },
+          {
+            "type": "text",
+            "value": " is a signed integer that controls which lints or lint groups override other lint groups:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "lower (particularly negative) numbers have lower priority, being overridden by higher numbers, and show up first on the command-line to tools like "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "To know which table under "
+          },
+          {
+            "type": "inline_code",
+            "code": "[lints]"
+          },
+          {
+            "type": "text",
+            "value": " a particular lint belongs under, it is the part before "
+          },
+          {
+            "type": "inline_code",
+            "code": "::"
+          },
+          {
+            "type": "text",
+            "value": " in the lint name. If there isn’t a "
+          },
+          {
+            "type": "inline_code",
+            "code": "::"
+          },
+          {
+            "type": "text",
+            "value": ", then the tool is "
+          },
+          {
+            "type": "inline_code",
+            "code": "rust"
+          },
+          {
+            "type": "text",
+            "value": ". For example a warning about "
+          },
+          {
+            "type": "inline_code",
+            "code": "unsafe_code"
+          },
+          {
+            "type": "text",
+            "value": " would be "
+          },
+          {
+            "type": "inline_code",
+            "code": "lints.rust.unsafe_code"
+          },
+          {
+            "type": "text",
+            "value": " but a lint about "
+          },
+          {
+            "type": "inline_code",
+            "code": "clippy::enum_glob_use"
+          },
+          {
+            "type": "text",
+            "value": " would be "
+          },
+          {
+            "type": "inline_code",
+            "code": "lints.clippy.enum_glob_use"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For example:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[lints.rust]\nunsafe_code = \"forbid\"\n\n[lints.clippy]\nenum_glob_use = \"deny\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Generally, these will only affect local development of the current package. Cargo only applies these to the current package and not to dependencies. As for dependents, Cargo suppresses lints from non-path dependencies with features like "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/rustc/lints/levels.html#capping-lints",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "--cap-lints"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "MSRV:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " Respected as of 1.74"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "the-hints-section",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[hints]"
+          },
+          {
+            "type": "text",
+            "value": " section"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[hints]"
+          },
+          {
+            "type": "text",
+            "value": " section allows specifying hints for compiling this package. Cargo will respect these hints by default when compiling this package, though the top-level package being built can override these values through the "
+          },
+          {
+            "type": "inline_code",
+            "code": "[profile]"
+          },
+          {
+            "type": "text",
+            "value": " mechanism. Hints are, by design, always safe for Cargo to ignore; if Cargo encounters a hint it doesn’t understand, or a hint it understands but with a value it doesn’t understand, it will warn, but not error. As a result, specifying hints in a crate does not impact the MSRV of the crate."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Individual hints may have an associated unstable feature gate that you need to pass in order to apply the configuration they specify, but if you don’t specify that unstable feature gate, you will again get only a warning, not an error."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "There are no stable hints at this time. See the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/unstable.html#profile-hint-mostly-unused-option",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "hint-mostly-unused documentation"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for information on an unstable hint."
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "MSRV:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " Respected as of 1.90."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "the-badges-section",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[badges]"
+          },
+          {
+            "type": "text",
+            "value": " section"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[badges]"
+          },
+          {
+            "type": "text",
+            "value": " section is for specifying status badges that can be displayed on a registry website when the package is published."
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "value": "Note: "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " previously displayed badges next to a crate on its website, but that functionality has been removed. Packages should place badges in its README file which will be displayed on "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " (see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-manifest.html#the-readme-field",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "readme"
+                  },
+                  {
+                    "type": "text",
+                    "value": " field"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ")."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[badges]\n# The `maintenance` table indicates the status of the maintenance of\n# the crate. This may be used by a registry, but is currently not\n# used by crates.io. See https://github.com/rust-lang/crates.io/issues/2437\n# and https://github.com/rust-lang/crates.io/issues/2438 for more details.\n#\n# The `status` field is required. Available options are:\n# - `actively-developed`: New features are being added and bugs are being fixed.\n# - `passively-maintained`: There are no plans for new features, but the maintainer intends to\n#   respond to issues that get filed.\n# - `as-is`: The crate is feature complete, the maintainer does not intend to continue working on\n#   it or providing support, but it works for the purposes it was designed for.\n# - `experimental`: The author wants to share it with the community but is not intending to meet\n#   anyone's particular use case.\n# - `looking-for-maintainer`: The current maintainer would like to transfer the crate to someone\n#   else.\n# - `deprecated`: The maintainer does not recommend using this crate (the description of the crate\n#   can describe why, there could be a better solution available or there could be problems with\n#   the crate that the author does not want to fix).\n# - `none`: Displays no badge on crates.io, since the maintainer has not chosen to specify\n#   their intentions, potential crate users will need to investigate on their own.\nmaintenance = { status = \"...\" }"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "dependency-sections",
+        "children": [
+          {
+            "type": "text",
+            "value": "Dependency sections"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "See the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/specifying-dependencies.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "specifying dependencies page"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for information on the "
+          },
+          {
+            "type": "inline_code",
+            "code": "[dependencies]"
+          },
+          {
+            "type": "text",
+            "value": ", "
+          },
+          {
+            "type": "inline_code",
+            "code": "[dev-dependencies]"
+          },
+          {
+            "type": "text",
+            "value": ", "
+          },
+          {
+            "type": "inline_code",
+            "code": "[build-dependencies]"
+          },
+          {
+            "type": "text",
+            "value": ", and target-specific "
+          },
+          {
+            "type": "inline_code",
+            "code": "[target.*.dependencies]"
+          },
+          {
+            "type": "text",
+            "value": " sections."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "the-profile-sections",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[profile.*]"
+          },
+          {
+            "type": "text",
+            "value": " sections"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "[profile]"
+          },
+          {
+            "type": "text",
+            "value": " tables provide a way to customize compiler settings such as optimizations and debug settings. See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/profiles.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "the Profiles chapter"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for more detail."
+          }
+        ]
+      },
+      {
+        "type": "thematic_break"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Previously multiple licenses could be separated with a "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "/"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", but that usage is deprecated. "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/mdbook-cargo-manifest.html#fr-slash-1",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "↩"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

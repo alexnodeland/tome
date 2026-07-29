@@ -1,0 +1,384 @@
+{
+  "title": "Dependencies",
+  "description": "crates.io is the Rust community’s central package registry that serves as a location to discover and download packages. cargo is configured to use it by default to find requested packages.",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "heading",
+        "level": 1,
+        "id": "dependencies",
+        "children": [
+          {
+            "type": "text",
+            "value": "Dependencies"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is the Rust community’s central "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/appendix/glossary.html#package-registry",
+            "title": "\"package-registry\" (glossary entry)",
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package registry"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " that serves as a location to discover and download "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/appendix/glossary.html#package",
+            "title": "\"package\" (glossary entry)",
+            "children": [
+              {
+                "type": "text",
+                "value": "packages"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo"
+          },
+          {
+            "type": "text",
+            "value": " is configured to use it by default to find requested packages."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "To depend on a library hosted on "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", add it to your "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "adding-a-dependency",
+        "children": [
+          {
+            "type": "text",
+            "value": "Adding a dependency"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If your "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " doesn’t already have a "
+          },
+          {
+            "type": "inline_code",
+            "code": "[dependencies]"
+          },
+          {
+            "type": "text",
+            "value": " section, add that, then list the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/appendix/glossary.html#crate",
+            "title": "\"crate\" (glossary entry)",
+            "children": [
+              {
+                "type": "text",
+                "value": "crate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " name and version that you would like to use. This example adds a dependency on the "
+          },
+          {
+            "type": "inline_code",
+            "code": "time"
+          },
+          {
+            "type": "text",
+            "value": " crate:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[dependencies]\ntime = \"0.1.12\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The version string is a "
+          },
+          {
+            "type": "link",
+            "href": "https://semver.org/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "SemVer"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " version requirement. The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/specifying-dependencies.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "specifying dependencies"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " docs have more information about the options you have here."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If you also wanted to add a dependency on the "
+          },
+          {
+            "type": "inline_code",
+            "code": "regex"
+          },
+          {
+            "type": "text",
+            "value": " crate, you would not need to add "
+          },
+          {
+            "type": "inline_code",
+            "code": "[dependencies]"
+          },
+          {
+            "type": "text",
+            "value": " for each crate listed. Here’s what your whole "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " file would look like with dependencies on the "
+          },
+          {
+            "type": "inline_code",
+            "code": "time"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "regex"
+          },
+          {
+            "type": "text",
+            "value": " crates:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "toml",
+        "code": "[package]\nname = \"hello_world\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[dependencies]\ntime = \"0.1.12\"\nregex = \"0.1.41\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Re-run "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo build"
+          },
+          {
+            "type": "text",
+            "value": ", and Cargo will fetch the new dependencies and all of their dependencies, compile them all, and update the "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.lock"
+          },
+          {
+            "type": "text",
+            "value": ":"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "bash",
+        "code": "$ cargo build\n      Updating crates.io index\n   Downloading memchr v0.1.5\n   Downloading libc v0.1.10\n   Downloading regex-syntax v0.2.1\n   Downloading memchr v0.1.5\n   Downloading aho-corasick v0.3.0\n   Downloading regex v0.1.41\n     Compiling memchr v0.1.5\n     Compiling libc v0.1.10\n     Compiling regex-syntax v0.2.1\n     Compiling memchr v0.1.5\n     Compiling aho-corasick v0.3.0\n     Compiling regex v0.1.41\n     Compiling hello_world v0.1.0 (file:///path/to/package/hello_world)"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "Cargo.lock"
+          },
+          {
+            "type": "text",
+            "value": " contains the exact information about which revision was used for all of these dependencies."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Now, if "
+          },
+          {
+            "type": "inline_code",
+            "code": "regex"
+          },
+          {
+            "type": "text",
+            "value": " gets updated, you will still build with the same revision until you choose to run "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo update"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "You can now use the "
+          },
+          {
+            "type": "inline_code",
+            "code": "regex"
+          },
+          {
+            "type": "text",
+            "value": " library in "
+          },
+          {
+            "type": "inline_code",
+            "code": "main.rs"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "rust",
+        "code": "use regex::Regex;\n\nfn main() {\n    let re = Regex::new(r\"^\\d{4}-\\d{2}-\\d{2}$\").unwrap();\n    println!(\"Did our date match? {}\", re.is_match(\"2014-01-01\"));\n}"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Running it will show:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "bash",
+        "code": "$ cargo run\n   Running `target/hello_world`\nDid our date match? true"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+
+<link rel="preconnect" href="https://www.googletagmanager.com">
+<script >(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-W8MVQXG');</script>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#00add8">
+<link rel="canonical" href="https://go.dev/doc/modules/gomod-ref">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="icon" href="/images/favicon-gopher.png" sizes="any">
+<link rel="apple-touch-icon" href="/images/favicon-gopher-plain.png"/>
+<link rel="icon" href="/images/favicon-gopher.svg" type="image/svg+xml">
+<link rel="me" href="https://hachyderm.io/@golang">
+
+  
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-W8MVQXG');</script>
+  
+<script src="/js/site.js"></script>
+<meta name="og:url" content="https://go.dev/doc/modules/gomod-ref">
+<meta name="og:title" content="go.mod file reference - The Go Programming Language">
+<title>go.mod file reference - The Go Programming Language</title>
+
+<meta name="og:image" content="https://go.dev/doc/gopher/gopher5logo.jpg">
+<meta name="twitter:image" content="https://go.dev/doc/gopher/gopherbelly300.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@golang">
+</head>
+<body class="Site">
+  
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W8MVQXG"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  
+
+
+<header class="Site-header js-siteHeader">
+  <div class="Header Header--dark">
+    <nav class="Header-nav">
+      <a href="/">
+        <img
+          class="js-headerLogo Header-logo"
+          src="/images/go-logo-white.svg"
+          alt="Go">
+      </a>
+      <div class="skip-navigation-wrapper">
+        <a class="skip-to-content-link" aria-label="Skip to main content" href="#main-content"> Skip to Main Content </a>
+      </div>
+      <div class="Header-rightContent">
+        <ul class="Header-menu">
+          <li class="Header-menuItem ">
+            <a href="#"  class="js-desktop-menu-hover" aria-label=Why&#32;Go aria-describedby="dropdown-description">
+              Why Go <i class="material-icons" aria-hidden="true">arrow_drop_down</i>
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+              <ul class="Header-submenu js-desktop-submenu-hover" aria-label="submenu">
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/solutions/case-studies">
+                          Case Studies
+                          
+                        </a>
+                    </div>
+                    <p>Common problems companies solve with Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/solutions/use-cases">
+                          Use Cases
+                          
+                        </a>
+                    </div>
+                    <p>Stories about how and why companies use Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/security/">
+                          Security
+                          
+                        </a>
+                    </div>
+                    <p>How Go can help keep you secure by default</p>
+                  </li>
+              </ul>
+          </li>
+          <li class="Header-menuItem ">
+            <a href="/learn/"  aria-label=Learn aria-describedby="dropdown-description">
+              Learn 
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+          </li>
+          <li class="Header-menuItem  Header-menuItem--active">
+            <a href="#"  class="js-desktop-menu-hover" aria-label=Docs aria-describedby="dropdown-description">
+              Docs <i class="material-icons" aria-hidden="true">arrow_drop_down</i>
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+              <ul class="Header-submenu js-desktop-submenu-hover" aria-label="submenu">
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/ref/spec">
+                          Go Spec
+                          
+                        </a>
+                    </div>
+                    <p>The official Go language specification</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/doc">
+                          Go User Manual
+                          
+                        </a>
+                    </div>
+                    <p>A complete introduction to building software with Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="https://pkg.go.dev/std">
+                          Standard library
+                          
+                        </a>
+                    </div>
+                    <p>Reference documentation for Go&#39;s standard library</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/doc/devel/release">
+                          Release Notes
+                          
+                        </a>
+                    </div>
+                    <p>Learn what&#39;s new in each Go release</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/doc/effective_go">
+                          Effective Go
+                          
+                        </a>
+                    </div>
+                    <p>Tips for writing clear, performant, and idiomatic Go code</p>
+                  </li>
+              </ul>
+          </li>
+          <li class="Header-menuItem ">
+            <a href="https://pkg.go.dev"  aria-label=Packages aria-describedby="dropdown-description">
+              Packages 
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+          </li>
+          <li class="Header-menuItem ">
+            <a href="#"  class="js-desktop-menu-hover" aria-label=Community aria-describedby="dropdown-description">
+              Community <i class="material-icons" aria-hidden="true">arrow_drop_down</i>
+            </a>
+            <div class="screen-reader-only" id="dropdown-description" hidden>
+              Press Enter to activate/deactivate dropdown
+            </div>
+              <ul class="Header-submenu js-desktop-submenu-hover" aria-label="submenu">
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/talks/">
+                          Recorded Talks
+                          
+                        </a>
+                    </div>
+                    <p>Videos from prior events</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="https://www.meetup.com/pro/go">
+                          Meetups
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                    </div>
+                    <p>Meet other local Go developers</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/wiki/Conferences">
+                          Conferences
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                    </div>
+                    <p>Learn and network with Go developers from around the world</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/blog">
+                          Go blog
+                          
+                        </a>
+                    </div>
+                    <p>The Go project&#39;s official blog.</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        <a href="/help">
+                          Go project
+                          
+                        </a>
+                    </div>
+                    <p>Get help and stay informed from Go</p>
+                  </li>
+                  <li class="Header-submenuItem">
+                    <div>
+                        Get connected
+                    </div>
+                    <p></p>
+                      <div class="Header-socialIcons">
+                        
+                        <a class="Header-socialIcon" aria-label="Get connected with google-groups (Opens in new window)" href="https://groups.google.com/g/golang-nuts"><img src="/images/logos/social/google-groups.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with github (Opens in new window)" href="https://github.com/golang"><img src="/images/logos/social/github.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with bluesky (Opens in new window)" href="https://bsky.app/profile/golang.org"><img src="/images/logos/social/bluesky.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with mastodon (Opens in new window)" href="https://hachyderm.io/@golang"><img src="/images/logos/social/mastodon.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with twitter (Opens in new window)" href="https://twitter.com/golang"><img src="/images/logos/social/twitter.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with reddit (Opens in new window)" href="https://www.reddit.com/r/golang/"><img src="/images/logos/social/reddit.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with slack (Opens in new window)" href="https://invite.slack.golangbridge.org/"><img src="/images/logos/social/slack.svg" /></a>
+                        <a class="Header-socialIcon" aria-label="Get connected with stack-overflow (Opens in new window)" href="https://stackoverflow.com/tags/go"><img src="/images/logos/social/stack-overflow.svg" /></a>
+                      </div>
+                  </li>
+              </ul>
+          </li>
+        </ul>
+        <button class="Header-navOpen js-headerMenuButton Header-navOpen--white" aria-label="Open navigation.">
+        </button>
+      </div>
+    </nav>
+    
+  </div>
+</header>
+<aside class="NavigationDrawer js-header">
+  <nav class="NavigationDrawer-nav">
+    <div class="NavigationDrawer-header">
+      <a href="/">
+        <img class="NavigationDrawer-logo" src="/images/go-logo-blue.svg" alt="Go.">
+      </a>
+    </div>
+    <ul class="NavigationDrawer-list">
+        
+          <li class="NavigationDrawer-listItem js-mobile-subnav-trigger  NavigationDrawer-hasSubnav">
+            <a href="#"><span>Why Go</span> <i class="material-icons">navigate_next</i></a>
+
+            <div class="NavigationDrawer NavigationDrawer-submenuItem">
+              <nav class="NavigationDrawer-nav">
+                <div class="NavigationDrawer-header">
+                  <a href="#"><i class="material-icons">navigate_before</i>Why Go</a>
+                </div>
+                <ul class="NavigationDrawer-list">
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/solutions/case-studies">
+                          Case Studies
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/solutions/use-cases">
+                          Use Cases
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/security/">
+                          Security
+                          
+                        </a>
+                      
+                    </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+
+        
+        
+          <li class="NavigationDrawer-listItem ">
+            <a href="/learn/">Learn</a>
+          </li>
+        
+        
+          <li class="NavigationDrawer-listItem js-mobile-subnav-trigger  NavigationDrawer-listItem--active NavigationDrawer-hasSubnav">
+            <a href="#"><span>Docs</span> <i class="material-icons">navigate_next</i></a>
+
+            <div class="NavigationDrawer NavigationDrawer-submenuItem">
+              <nav class="NavigationDrawer-nav">
+                <div class="NavigationDrawer-header">
+                  <a href="#"><i class="material-icons">navigate_before</i>Docs</a>
+                </div>
+                <ul class="NavigationDrawer-list">
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/ref/spec">
+                          Go Spec
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/doc">
+                          Go User Manual
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="https://pkg.go.dev/std">
+                          Standard library
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/doc/devel/release">
+                          Release Notes
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/doc/effective_go">
+                          Effective Go
+                          
+                        </a>
+                      
+                    </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+
+        
+        
+          <li class="NavigationDrawer-listItem ">
+            <a href="https://pkg.go.dev">Packages</a>
+          </li>
+        
+        
+          <li class="NavigationDrawer-listItem js-mobile-subnav-trigger  NavigationDrawer-hasSubnav">
+            <a href="#"><span>Community</span> <i class="material-icons">navigate_next</i></a>
+
+            <div class="NavigationDrawer NavigationDrawer-submenuItem">
+              <nav class="NavigationDrawer-nav">
+                <div class="NavigationDrawer-header">
+                  <a href="#"><i class="material-icons">navigate_before</i>Community</a>
+                </div>
+                <ul class="NavigationDrawer-list">
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/talks/">
+                          Recorded Talks
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="https://www.meetup.com/pro/go">
+                          Meetups
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/wiki/Conferences">
+                          Conferences
+                           <i class="material-icons">open_in_new</i>
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/blog">
+                          Go blog
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <a href="/help">
+                          Go project
+                          
+                        </a>
+                      
+                    </li>
+                    <li class="NavigationDrawer-listItem">
+                        <div>Get connected</div>
+                        <div class="Header-socialIcons">
+                          
+                            <a class="Header-socialIcon" href="https://groups.google.com/g/golang-nuts"><img src="/images/logos/social/google-groups.svg" /></a>
+                            <a class="Header-socialIcon" href="https://github.com/golang"><img src="/images/logos/social/github.svg" /></a>
+                            <a class="Header-socialIcon" href="https://bsky.app/profile/golang.org"><img src="/images/logos/social/bluesky.svg" /></a>
+                            <a class="Header-socialIcon" href="https://hachyderm.io/@golang"><img src="/images/logos/social/mastodon.svg" /></a>
+                            <a class="Header-socialIcon" href="https://twitter.com/golang"><img src="/images/logos/social/twitter.svg" /></a>
+                            <a class="Header-socialIcon" href="https://www.reddit.com/r/golang/"><img src="/images/logos/social/reddit.svg" /></a>
+                            <a class="Header-socialIcon" href="https://invite.slack.golangbridge.org/"><img src="/images/logos/social/slack.svg" /></a>
+                            <a class="Header-socialIcon" href="https://stackoverflow.com/tags/go"><img src="/images/logos/social/stack-overflow.svg" /></a>
+                        </div>
+                    </li>
+                </ul>
+              </div>
+            </div>
+          </li>
+
+        
+    </ul>
+  </nav>
+</aside>
+<div class="NavigationDrawer-scrim js-scrim" role="presentation"></div>
+<main class="SiteContent SiteContent--default" id="main-content">
+  
+
+
+<article class="Doc Article">
+
+
+
+
+
+<h1>go.mod file reference</h1>
+
+
+
+
+
+
+<div id="nav" class="TOC"></div>
+
+
+
+<div class='markdown'>
+<p>Each Go module is defined by a go.mod file that describes the module&rsquo;s
+properties, including its dependencies on other modules and on versions of Go.</p>
+<p>These properties include:</p>
+<ul>
+<li>The current module&rsquo;s <strong>module path</strong>. This should be a location from which
+the module can be downloaded by Go tools, such as the module code&rsquo;s
+repository location. This serves as a unique identifier, when combined
+with the module&rsquo;s version number. It is also the prefix of the package path for
+all packages in the module. For more about how Go locates the module, see the
+<a href="/ref/mod#vcs-find">Go Modules Reference</a>.</li>
+<li>The minimum <strong>version of Go</strong> required by the current module.</li>
+<li>A list of minimum versions of other <strong>modules required</strong> by the current module.</li>
+<li>Instructions, optionally, to <strong>replace</strong> a required module with another
+module version or a local directory, to <strong>exclude</strong> a specific version of
+a required module, or to <strong>ignore</strong> specific directories within the module
+when matching package patterns.</li>
+</ul>
+<p>Go generates a go.mod file when you run the <a href="/ref/mod#go-mod-init"><code>go mod init</code>
+command</a>. The following example creates a go.mod file,
+setting the module&rsquo;s module path to example/mymodule:</p>
+<pre><code>$ go mod init example/mymodule
+</code></pre>
+<p>Use <code>go</code> commands to manage dependencies. The commands ensure that the
+requirements described in your go.mod file remain consistent and the content of
+your go.mod file is valid. These commands include the <a href="/ref/mod#go-get"><code>go get</code></a>
+and <a href="/ref/mod#go-mod-tidy"><code>go mod tidy</code></a> and <a href="/ref/mod#go-mod-edit"><code>go mod edit</code></a>
+commands.</p>
+<p>For reference on <code>go</code> commands, see <a href="/cmd/go/">Command go</a>.
+You can get help from the command line by typing <code>go help</code> <em>command-name</em>, as
+with <code>go help mod tidy</code>.</p>
+<p><strong>See also</strong></p>
+<ul>
+<li>Go tools make changes to your go.mod file as you use them to manage
+dependencies. For more, see <a href="/doc/modules/managing-dependencies">Managing dependencies</a>.</li>
+<li>For more details and constraints related to go.mod files, see the <a href="/ref/mod#go-mod-file">Go modules
+reference</a>.</li>
+</ul>
+<h2 id="example">Example</h2>
+<p>A go.mod file includes directives as shown in the following example. These are
+described elsewhere in this topic.</p>
+<pre><code>module example.com/mymodule
+
+go 1.14
+
+require (
+    example.com/othermodule v1.2.3
+    example.com/thismodule v1.2.3
+    example.com/thatmodule v1.2.3
+)
+
+replace example.com/thatmodule =&gt; ../thatmodule
+exclude example.com/thismodule v1.3.0
+</code></pre>
+<h2 id="module">module</h2>
+<p>Declares the module&rsquo;s module path, which is the module&rsquo;s unique identifier
+(when combined with the module version number). The module path becomes the
+import prefix for all packages the module contains.</p>
+<p>For more, see <a href="/ref/mod#go-mod-file-module"><code>module</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="module-syntax">Syntax</h3>
+<pre>module <var>module-path</var></pre>
+<dl>
+    <dt>module-path</dt>
+    <dd>The module's module path, usually the repository location from which
+      the module can be downloaded by Go tools. For module versions v2 and
+      later, this value must end with the major version number, such as
+      <code>/v2</code>.</dd>
+</dl>
+<h3 id="module-examples">Examples</h3>
+<p>The following examples substitute <code>example.com</code> for a repository domain from
+which the module could be downloaded.</p>
+<ul>
+<li>Module declaration for a v0 or v1 module:
+<pre><code>module example.com/mymodule
+</code></pre>
+</li>
+<li>Module path for a v2 module:
+<pre><code>module example.com/mymodule/v2
+</code></pre>
+</li>
+</ul>
+<h3 id="module-notes">Notes</h3>
+<p>The module path must uniquely identify your module. For most modules, the path
+is a URL where the <code>go</code> command can find the code (or a redirect to the code).
+For modules that won&rsquo;t ever be downloaded directly, the module path
+can be just some name you control that will ensure uniqueness. The prefix
+<code>example/</code> is also reserved for use in examples like these.</p>
+<p>For more details, see <a href="/doc/modules/managing-dependencies#naming_module">Managing dependencies</a>.</p>
+<p>In practice, the module path is typically the module source&rsquo;s repository domain
+and path to the module code within the repository. The <code>go</code> command
+relies on this form when downloading module versions to resolve dependencies
+on the module user&rsquo;s behalf.</p>
+<p>Even if you&rsquo;re not at first intending to make your module available for use
+from other code, using its repository path is a best practice that will help
+you avoid having to rename the module if you publish it later.</p>
+<p>If at first you don&rsquo;t know the module&rsquo;s eventual repository location, consider
+temporarily using a safe substitute, such as the name of a domain you own or
+a name you control (such as your company name), along with a path following
+from the module&rsquo;s name or source directory. For more, see
+<a href="/doc/modules/managing-dependencies#naming_module">Managing dependencies</a>.</p>
+<p>For example, if you&rsquo;re developing in a <code>stringtools</code> directory, your temporary
+module path might be <code>&lt;company-name&gt;/stringtools</code>, as in the following example,
+where <em>company-name</em> is your company&rsquo;s name:</p>
+<pre><code>go mod init &lt;company-name&gt;/stringtools
+</code></pre>
+<h2 id="go">go</h2>
+<p>Indicates that the module was written assuming the semantics of the Go version
+specified by the directive.</p>
+<p>For more, see <a href="/ref/mod#go-mod-file-go"><code>go</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="go-syntax">Syntax</h3>
+<pre>go <var>minimum-go-version</var></pre>
+<dl>
+    <dt>minimum-go-version</dt>
+    <dd>The minimum version of Go required to compile packages in this module.</dd>
+</dl>
+<h3 id="go-examples">Examples</h3>
+<ul>
+<li>Module must run on Go version 1.14 or later:
+<pre><code>go 1.14
+</code></pre>
+</li>
+</ul>
+<h3 id="go-notes">Notes</h3>
+<p>The <code>go</code> directive sets the minimum version of Go required to use this module.
+Before Go 1.21, the directive was advisory only; now it is a mandatory requirement:
+Go toolchains refuse to use modules declaring newer Go versions.</p>
+<p>The <code>go</code> directive is an input into selecting which Go toolchain to run.
+See “<a href="/doc/toolchain">Go toolchains</a>” for details.</p>
+<p>The <code>go</code> directive affects use of new language features:</p>
+<ul>
+<li>For packages within the module, the compiler rejects use of language features
+introduced after the version specified by the <code>go</code> directive. For example, if
+a module has the directive <code>go 1.12</code>, its packages may not use numeric
+literals like <code>1_000_000</code>, which were introduced in Go 1.13.</li>
+<li>If an older Go version builds one of the module&rsquo;s packages and encounters a
+compile error, the error notes that the module was written for a newer Go
+version. For example, suppose a module has <code>go 1.13</code> and a package uses the
+numeric literal <code>1_000_000</code>. If that package is built with Go 1.12, the
+compiler notes that the code is written for Go 1.13.</li>
+</ul>
+<p>The <code>go</code> directive also affects the behavior of the <code>go</code> command:</p>
+<ul>
+<li>At <code>go 1.14</code> or higher, automatic <a href="/ref/mod#vendoring">vendoring</a> may be
+enabled.  If the file <code>vendor/modules.txt</code> is present and consistent with
+<code>go.mod</code>, there is no need to explicitly use the <code>-mod=vendor</code> flag.</li>
+<li>At <code>go 1.16</code> or higher, the <code>all</code> package pattern matches only packages
+transitively imported by packages and tests in the <a href="/ref/mod#glos-main-module">main
+module</a>. This is the same set of packages retained
+by <a href="/ref/mod#go-mod-vendor"><code>go mod vendor</code></a> since modules were introduced. In
+lower versions, <code>all</code> also includes tests of packages imported by packages in
+the main module, tests of those packages, and so on.</li>
+<li>At <code>go 1.17</code> or higher:
+<ul>
+<li>The <code>go.mod</code> file includes an explicit <a href="/ref/mod#go-mod-file-require"><code>require</code>
+directive</a> for each module that provides any
+package transitively imported by a package or test in the main module. (At
+<code>go 1.16</code> and lower, an indirect dependency is included only if <a href="/ref/mod#minimal-version-selection">minimal
+version selection</a> would otherwise
+select a different version.) This extra information enables <a href="/ref/mod#graph-pruning">module graph
+pruning</a> and <a href="/ref/mod#lazy-loading">lazy module
+loading</a>.</li>
+<li>Because there may be many more <code>// indirect</code> dependencies than in previous
+<code>go</code> versions, indirect dependencies are recorded in a separate block
+within the <code>go.mod</code> file.</li>
+<li><code>go mod vendor</code> omits <code>go.mod</code> and <code>go.sum</code> files for vendored
+dependencies. (That allows invocations of the <code>go</code> command within
+subdirectories of <code>vendor</code> to identify the correct main module.)</li>
+<li><code>go mod vendor</code> records the <code>go</code> version from each dependency&rsquo;s <code>go.mod</code>
+file in <code>vendor/modules.txt</code>.</li>
+</ul>
+</li>
+<li>At <code>go 1.21</code> or higher:
+<ul>
+<li>The <code>go</code> line declares a required minimum version of Go to use with this module.</li>
+<li>The <code>go</code> line must be greater than or equal to the <code>go</code> line of all dependencies.</li>
+<li>The <code>go</code> command no longer attempts to maintain compatibility with the previous older version of Go.</li>
+<li>The <code>go</code> command is more careful about keeping checksums of <code>go.mod</code> files in the <code>go.sum</code> file.</li>
+</ul>
+</li>
+</ul>
+<!-- If you update this list, also update /ref/mod#go-mod-file-go. -->
+<p>A <code>go.mod</code> file may contain at most one <code>go</code> directive. Most commands will add a
+<code>go</code> directive with the current Go version if one is not present.</p>
+<h2 id="toolchain">toolchain</h2>
+<p>Declares a suggested Go toolchain to use with this module.
+Only takes effect when the module is the main module
+and the default toolchain is older than the suggested toolchain.</p>
+<p>For more see “<a href="/doc/toolchain">Go toolchains</a>” and
+<a href="/ref/mod/#go-mod-file-toolchain"><code>toolchain</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="toolchain-syntax">Syntax</h3>
+<pre>toolchain <var>toolchain-name</var></pre>
+<dl>
+    <dt>toolchain-name</dt>
+    <dd>The suggested Go toolchain's name. Standard toolchain names take the form
+      <code>go<i>V</i></code> for a Go version <i>V</i>, as in
+      <code>go1.21.0</code> and <code>go1.18rc1</code>.
+      The special value <code>default</code> disables automatic toolchain switching.</dd>
+</dl>
+<h3 id="toolchain-examples">Examples</h3>
+<ul>
+<li>Suggest using Go 1.21.0 or newer:
+<pre><code>toolchain go1.21.0
+</code></pre>
+</li>
+</ul>
+<h3 id="toolchain-notes">Notes</h3>
+<p>See “<a href="/doc/toolchain">Go toolchains</a>” for details about how the <code>toolchain</code> line
+affects Go toolchain selection.</p>
+<h2 id="godebug">godebug</h2>
+<p>Indicates the default <a href="/doc/godebug">GODEBUG</a> settings to be applied to the main packages of this module.
+These override any toolchain defaults, and are overridden by explicit <code>//go:debug</code> lines in main packages.</p>
+<h3 id="godebug-syntax">Syntax</h3>
+<pre>godebug <var>debug-key</var>=<var>debug-value</var></pre>
+<dl>
+    <dt>debug-key</dt>
+    <dd>The name of the setting to be applied.
+      A list of settings and the versions they were introduced in can be found at
+      <a href="/doc/godebug#history">GODEBUG History</a>.
+    </dd>
+    <dt>debug-value</dt>
+    <dd>The value provided to the setting.
+      If not otherwise specified, <code>0</code> to disable and <code>1</code> to enable the named behavior.</dd>
+</dl>
+<h3 id="godebug-examples">Examples</h3>
+<ul>
+<li>Use the new 1.23 <code>asynctimerchan=0</code> behavior:
+<pre><code>godebug asynctimerchan=0
+</code></pre>
+</li>
+<li>Use the default GODEBUGs from Go 1.21, but the old <code>panicnil=1</code> behavior:
+<pre><code>godebug (
+    default=go1.21
+    panicnil=1
+)
+</code></pre>
+</li>
+</ul>
+<h3 id="godebug-notes">Notes</h3>
+<p>GODEBUG settings only apply for builds of main packages and test binaries in the current module.
+They have no effect when a module is used as a dependency.</p>
+<p>See “<a href="/doc/godebug">Go, Backwards Compatibility, and GODEBUG</a>” for details on backwards compatibility.</p>
+<h2 id="require">require</h2>
+<p>Declares a module as a dependency of the current module, specifying the
+minimum version of the module required.</p>
+<p>For more, see <a href="/ref/mod#go-mod-file-require"><code>require</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="require-syntax">Syntax</h3>
+<pre>require <var>module-path</var> <var>module-version</var></pre>
+<dl>
+    <dt>module-path</dt>
+    <dd>The module's module path, usually a concatenation of the module source's
+      repository domain and the module name. For module versions v2 and later,
+      this value must end with the major version number, such as <code>/v2</code>.</dd>
+    <dt>module-version</dt>
+    <dd>The module's version. This can be either a release version number, such
+      as v1.2.3, or a Go-generated pseudo-version number, such as
+      v0.0.0-20200921210052-fa0125251cc4.</dd>
+</dl>
+<h3 id="require-examples">Examples</h3>
+<ul>
+<li>Requiring a released version v1.2.3:
+<pre><code>require example.com/othermodule v1.2.3
+</code></pre>
+</li>
+<li>Requiring a version not yet tagged in its repository by using a pseudo-version
+number generated by Go tools:
+<pre><code>require example.com/othermodule v0.0.0-20200921210052-fa0125251cc4
+</code></pre>
+</li>
+</ul>
+<h3 id="require-notes">Notes</h3>
+<p>When you run a <code>go</code> command such as <code>go get</code>, Go inserts <code>require</code> directives
+for each module containing imported packages. When a module isn&rsquo;t yet tagged in
+its repository, Go assigns a pseudo-version number it generates when you run the
+command.</p>
+<p>You can have Go require a module from a location other than its repository by
+using the <a href="#replace"><code>replace</code> directive</a>.</p>
+<p>For more about version numbers, see <a href="/doc/modules/version-numbers">Module version numbering</a>.</p>
+<p>For more about managing dependencies, see the following:</p>
+<ul>
+<li><a href="/doc/modules/managing-dependencies#adding_dependency">Adding a dependency</a></li>
+<li><a href="/doc/modules/managing-dependencies#getting_version">Getting a specific dependency version</a></li>
+<li><a href="/doc/modules/managing-dependencies#discovering_updates">Discovering available updates</a></li>
+<li><a href="/doc/modules/managing-dependencies#upgrading">Upgrading or downgrading a dependency</a></li>
+<li><a href="/doc/modules/managing-dependencies#synchronizing">Synchronizing your code&rsquo;s dependencies</a></li>
+</ul>
+<h2 id="tool">tool</h2>
+<p>Adds a package as a dependency of the current module, and makes it available to run with <code>go tool</code> when the current working directory is within this module.</p>
+<h3 id="tool-syntax">Syntax</h3>
+<pre>tool <var>package-path</var></pre>
+<dl>
+    <dt>package-path</dt>
+    <dd>The tool's package path, a concatenation of the module containing
+        the tool and the (possibly empty) path to the package implementing
+        the tool within the module.</dd>
+</dl>
+<h3 id="tool-examples">Examples</h3>
+<ul>
+<li>Declaring a tool implemented in the current module:
+<pre><code>module example.com/mymodule
+
+tool example.com/mymodule/cmd/mytool
+</code></pre>
+</li>
+<li>Declaring a tool implemented in a separate module:
+<pre><code>module example.com/mymodule
+
+tool example.com/atool/cmd/atool
+
+require example.com/atool v1.2.3
+</code></pre>
+</li>
+</ul>
+<h3 id="tool-notes">Notes</h3>
+<p>You can use <code>go tool</code> to run tools declared in your module by fully qualified package path
+or, if there is no ambiguity, by the last path segment. In the first example
+above you could run <code>go tool mytool</code> or <code>go tool example.com/mymodule/cmd/mytool</code>.</p>
+<p>In workspace mode, you can use <code>go tool</code> to run a tool declared in any workspace module.</p>
+<p>Tools are built using the same module graph as the module itself. A <a href="#require"><code>require</code>
+directive</a> is needed to select the version of the module that
+implements the tool. Any <a href="#replace"><code>replace</code> directives</a>, or <a href="#exclude"><code>exclude</code>
+directives</a> also apply to the tool and its dependencies.</p>
+<p>For more information see <a href="/doc/modules/managing-dependencies#tools">Tool dependencies</a>.</p>
+<h2 id="replace">replace</h2>
+<p>Replaces the content of a module at a specific version (or all versions) with
+another module version or with a local directory. Go tools will use the
+replacement path when resolving the dependency.</p>
+<p>For more, see <a href="/ref/mod#go-mod-file-replace"><code>replace</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="replace-syntax">Syntax</h3>
+<pre>replace <var>module-path</var> <var>[module-version]</var> => <var>replacement-path</var> <var>[replacement-version]</var></pre>
+<dl>
+    <dt>module-path</dt>
+    <dd>The module path of the module to replace.</dd>
+    <dt>module-version</dt>
+    <dd>Optional. A specific version to replace. If this version number is
+      omitted, all versions of the module are replaced with the content on the
+      right side of the arrow.</dd>
+    <dt>replacement-path</dt>
+    <dd>The path at which Go should look for the required module. This can be a
+      module path or a path to a directory on the file system local to the
+      replacement module. If this is a module path, you must specify a
+      <em>replacement-version</em> value. If this is a local path, you may not use a
+      <em>replacement-version</em> value.</dd>
+    <dt>replacement-version</dt>
+    <dd>The version of the replacement module. The replacement version may only
+      be specified if <em>replacement-path</em> is a module path (not a local directory).</dd>
+</dl>
+<h3 id="replace-examples">Examples</h3>
+<ul>
+<li>
+<p>Replacing with a fork of the module repository</p>
+<p>In the following example, any version of example.com/othermodule is replaced
+with the specified fork of its code.</p>
+<pre><code>require example.com/othermodule v1.2.3
+
+replace example.com/othermodule =&gt; example.com/myfork/othermodule v1.2.3-fixed
+</code></pre>
+<p>When you replace one module path with another, do not change import statements
+for packages in the module you&rsquo;re replacing.</p>
+<p>For more on using a forked copy of module code, see <a href="/doc/modules/managing-dependencies#external_fork">Requiring external module
+code from your own repository fork</a>.</p>
+</li>
+<li>
+<p>Replacing with a different version number</p>
+<p>The following example specifies that version v1.2.3 should be used instead of
+any other version of the module.</p>
+<pre><code>require example.com/othermodule v1.2.2
+
+replace example.com/othermodule =&gt; example.com/othermodule v1.2.3
+</code></pre>
+<p>The following example replaces module version v1.2.5 with version v1.2.3 of
+the same module.</p>
+<pre><code>replace example.com/othermodule v1.2.5 =&gt; example.com/othermodule v1.2.3
+</code></pre>
+</li>
+<li>
+<p>Replacing with local code</p>
+<p>The following example specifies that a local directory should be used as a
+replacement for all versions of the module.</p>
+<pre><code>require example.com/othermodule v1.2.3
+
+replace example.com/othermodule =&gt; ../othermodule
+</code></pre>
+<p>The following example specifies that a local directory should be used as a
+replacement for v1.2.5 only.</p>
+<pre><code>require example.com/othermodule v1.2.5
+
+replace example.com/othermodule v1.2.5 =&gt; ../othermodule
+</code></pre>
+<p>For more on using a local copy of module code, see <a href="/doc/modules/managing-dependencies#local_directory">Requiring module code in a
+local directory</a>.</p>
+</li>
+</ul>
+<h3 id="replace-notes">Notes</h3>
+<p>Use the <code>replace</code> directive to temporarily substitute a module path value with
+another value when you want Go to use the other path to find the module&rsquo;s
+source. This has the effect of redirecting Go&rsquo;s search for the module to the
+replacement&rsquo;s location. You needn&rsquo;t change package import paths to use the
+replacement path.</p>
+<p>Use the <code>exclude</code> and <code>replace</code> directives to control build-time dependency
+resolution when building the current module. These directives are ignored in
+modules that depend on the current module.</p>
+<p>The <code>replace</code> directive can be useful in situations such as the following:</p>
+<ul>
+<li>You&rsquo;re developing a new module whose code is not yet in the repository. You
+want to test with clients using a local version.</li>
+<li>You&rsquo;ve identified an issue with a dependency, have cloned the dependency&rsquo;s
+repository, and you&rsquo;re testing a fix with the local repository.</li>
+</ul>
+<p>Note that a <code>replace</code> directive alone does not add a module to the
+<a href="/ref/mod#glos-module-graph">module graph</a>. A <a href="#require"><code>require</code> directive</a>
+that refers to a replaced module version is also needed, either in the main
+module&rsquo;s <code>go.mod</code> file or a dependency&rsquo;s <code>go.mod</code> file. If you don&rsquo;t have a
+specific version to replace, you can use a fake version, as in the example
+below. Note that this will break modules that depend on your module, since
+<code>replace</code> directives are only applied in the main module.</p>
+<pre><code>require example.com/mod v0.0.0-replace
+
+replace example.com/mod v0.0.0-replace =&gt; ./mod
+</code></pre>
+<p>For more on replacing a required module, including using Go tools to make the
+change, see:</p>
+<ul>
+<li><a href="/doc/modules/managing-dependencies#external_fork">Requiring external module code from your own repository
+fork</a></li>
+<li><a href="/doc/modules/managing-dependencies#local_directory">Requiring module code in a local
+directory</a></li>
+</ul>
+<p>For more about version numbers, see <a href="/doc/modules/version-numbers">Module version
+numbering</a>.</p>
+<h2 id="exclude">exclude</h2>
+<p>Specifies a module or module version to exclude from the current module&rsquo;s
+dependency graph.</p>
+<p>For more, see <a href="/ref/mod#go-mod-file-exclude"><code>exclude</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="exclude-syntax">Syntax</h3>
+<pre>exclude <var>module-path</var> <var>module-version</var></pre>
+<dl>
+    <dt>module-path</dt>
+    <dd>The module path of the module to exclude.</dd>
+    <dt>module-version</dt>
+    <dd>The specific version to exclude.</dd>
+</dl>
+<h3 id="exclude-example">Example</h3>
+<ul>
+<li>
+<p>Exclude example.com/theirmodule version v1.3.0</p>
+<pre><code>exclude example.com/theirmodule v1.3.0
+</code></pre>
+</li>
+</ul>
+<h3 id="exclude-notes">Notes</h3>
+<p>Use the <code>exclude</code> directive to exclude a specific version of a module that is
+indirectly required but can&rsquo;t be loaded for some reason. For example, you might
+use it to exclude a version of a module that has an invalid checksum.</p>
+<p>Use the <code>exclude</code> and <code>replace</code> directives to control build-time dependency
+resolution when building the current module (the main module you&rsquo;re building).
+These directives are ignored in modules that depend on the current module.</p>
+<p>You can use the <a href="/ref/mod#go-mod-edit"><code>go mod edit</code></a> command
+to exclude a module, as in the following example.</p>
+<pre><code>go mod edit -exclude=example.com/theirmodule@v1.3.0
+</code></pre>
+<p>For more about version numbers, see
+<a href="/doc/modules/version-numbers">Module version numbering</a>.</p>
+<h2 id="retract">retract</h2>
+<p>Indicates that a version or range of versions of the module defined by <code>go.mod</code>
+should not be depended upon. A <code>retract</code> directive is useful when a version was
+published prematurely or a severe problem was discovered after the version was
+published.</p>
+<p>For more, see <a href="/ref/mod#go-mod-file-retract"><code>retract</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="retract-syntax">Syntax</h3>
+<pre>
+retract <var>version</var> // <var>rationale</var>
+retract [<var>version-low</var>,<var>version-high</var>] // <var>rationale</var>
+</pre>
+<dl>
+  <dt>version</dt>
+  <dd>A single version to retract.</dd>
+  <dt>version-low</dt>
+  <dd>Lower bound of a range of versions to retract.</dd>
+  <dt>version-high</dt>
+  <dd>
+    Upper bound of a range of versions to retract. Both <var>version-low</var>
+    and <var>version-high</var> are included in the range.
+  </dd>
+  <dt>rationale</dt>
+  <dd>
+    Optional comment explaining the retraction. May be shown in messages to
+    the user.
+  </dd>
+</dl>
+<h3 id="retract-example">Example</h3>
+<ul>
+<li>
+<p>Retracting a single version</p>
+<pre><code>retract v1.1.0 // Published accidentally.
+</code></pre>
+</li>
+<li>
+<p>Retracting a range of versions</p>
+<pre><code>retract [v1.0.0,v1.0.5] // Build broken on some platforms.
+</code></pre>
+</li>
+</ul>
+<h3 id="retract-notes">Notes</h3>
+<p>Use the <code>retract</code> directive to indicate that a previous version of your module
+should not be used. Users will not automatically upgrade to a retracted version
+with <code>go get</code>, <code>go mod tidy</code>, or other commands. Users will not see a retracted
+version as an available update with <code>go list -m -u</code>.</p>
+<p>Retracted versions should remain available so users that already depend on them
+are able to build their packages. Even if a retracted version is deleted from
+the source repository, it may remain available on mirrors such as
+<a href="https://proxy.golang.org" rel="noreferrer" target="_blank">proxy.golang.org</a>. Users that depend on retracted
+versions may be notified when they run <code>go get</code> or <code>go list -m -u</code> on
+related modules.</p>
+<p>The <code>go</code> command discovers retracted versions by reading <code>retract</code> directives
+in the <code>go.mod</code> file in the latest version of a module. The latest version is,
+in order of precedence:</p>
+<ol>
+<li>Its highest release version, if any</li>
+<li>Its highest pre-release version, if any</li>
+<li>A pseudo-version for the tip of the repository&rsquo;s default branch.</li>
+</ol>
+<p>When you add a retraction, you almost always need to tag a new, higher version
+so the command will see it in the latest version of the module.</p>
+<p>You can publish a version whose sole purpose is to signal retractions. In this
+case, the new version may also retract itself.</p>
+<p>For example, if you accidentally tag <code>v1.0.0</code>, you can tag <code>v1.0.1</code> with the
+following directives:</p>
+<pre><code>retract v1.0.0 // Published accidentally.
+retract v1.0.1 // Contains retraction only.
+</code></pre>
+<p>Unfortunately, once a version is published, it cannot be changed. If you later
+tag <code>v1.0.0</code> at a different commit, the <code>go</code> command may detect a
+mismatched sum in <code>go.sum</code> or in the <a href="/ref/mod#checksum-database">checksum
+database</a>.</p>
+<p>Retracted versions of a module do not normally appear in the output of
+<code>go list -m -versions</code>, but you can use the <code>-retracted</code> to show them.
+For more, see <a href="/ref/mod#go-list-m"><code>go list -m</code></a> in the Go Modules Reference.</p>
+<h2 id="ignore">ignore</h2>
+<p>Specifies directory paths within the module that the <code>go</code> command should
+ignore when matching package patterns.</p>
+<p>For more, see <a href="/ref/mod#go-mod-file-ignore"><code>ignore</code> directive</a> in the
+Go Modules Reference.</p>
+<h3 id="ignore-syntax">Syntax</h3>
+<pre>
+ignore <var>path</var>
+</pre>
+<dl>
+  <dt>path</dt>
+  <dd>
+    A slash-separated path to ignore. If the path starts with <code>./</code>,
+    it is interpreted relative to the module root directory. Otherwise, any
+    directory with that name at any depth within the module is ignored.
+  </dd>
+</dl>
+<h3 id="ignore-examples">Examples</h3>
+<ul>
+<li>
+<p>Ignore a local directory relative to the module root</p>
+<pre><code>ignore ./node_modules
+</code></pre>
+</li>
+<li>
+<p>Ignore all directories named <code>generated</code> anywhere in the module</p>
+<pre><code>ignore generated
+</code></pre>
+</li>
+<li>
+<p>Ignore multiple paths using a block</p>
+<pre><code>ignore (
+    static
+    content/html
+    ./third_party/javascript
+)
+</code></pre>
+</li>
+</ul>
+<h3 id="ignore-notes">Notes</h3>
+<p>Use the <code>ignore</code> directive to prevent the <code>go</code> command from matching
+packages in generated or non-Go directories when using
+wildcard patterns like <code>./...</code>. Ignored directories and their contents
+are excluded from package patterns but are still present in the module
+file tree.</p>
+<p>The <code>ignore</code> directive only applies in the main module&rsquo;s <code>go.mod</code> file.
+It has no effect in <code>go.mod</code> files of dependencies.</p>
+</div>
+
+
+
+
+
+
+
+</article>
+
+
+
+</main>
+<footer class="Site-footer">
+  <div class="Footer">
+    <div class="Container">
+      <div class="Footer-links">
+          <div class="Footer-linkColumn">
+            <a href="/solutions/" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Why Go
+            </a>
+              <a href="/solutions/use-cases" class="Footer-link" aria-describedby="footer-description">
+                Use Cases
+              </a>
+              <a href="/solutions/case-studies" class="Footer-link" aria-describedby="footer-description">
+                Case Studies
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="/learn/" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Get Started
+            </a>
+              <a href="/play" class="Footer-link" aria-describedby="footer-description">
+                Playground
+              </a>
+              <a href="/tour/" class="Footer-link" aria-describedby="footer-description">
+                Tour
+              </a>
+              <a href="https://stackoverflow.com/questions/tagged/go?tab=Newest" class="Footer-link" aria-describedby="footer-description">
+                Stack Overflow
+              </a>
+              <a href="/help/" class="Footer-link" aria-describedby="footer-description">
+                Help
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="https://pkg.go.dev" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Packages
+            </a>
+              <a href="/pkg/" class="Footer-link" aria-describedby="footer-description">
+                Standard Library
+              </a>
+              <a href="https://pkg.go.dev/about" class="Footer-link" aria-describedby="footer-description">
+                About Go Packages
+              </a>
+              <a href="https://pkg.go.dev/api" class="Footer-link" aria-describedby="footer-description">
+                pkg.go.dev API
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="/project" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              About
+            </a>
+              <a href="/dl/" class="Footer-link" aria-describedby="footer-description">
+                Download
+              </a>
+              <a href="/blog/" class="Footer-link" aria-describedby="footer-description">
+                Blog
+              </a>
+              <a href="https://github.com/golang/go/issues" class="Footer-link" aria-describedby="footer-description">
+                Issue Tracker
+              </a>
+              <a href="/doc/devel/release" class="Footer-link" aria-describedby="footer-description">
+                Release Notes
+              </a>
+              <a href="/brand" class="Footer-link" aria-describedby="footer-description">
+                Brand Guidelines
+              </a>
+              <a href="/conduct" class="Footer-link" aria-describedby="footer-description">
+                Code of Conduct
+              </a>
+          </div>
+          <div class="Footer-linkColumn">
+            <a href="/wiki/#the-go-community" class="Footer-link Footer-link--primary" aria-describedby="footer-description">
+              Connect
+            </a>
+              <a href="https://bsky.app/profile/golang.org" class="Footer-link" aria-describedby="footer-description">
+                Bluesky
+              </a>
+              <a href="https://hachyderm.io/@golang" class="Footer-link" aria-describedby="footer-description">
+                Mastodon
+              </a>
+              <a href="https://www.twitter.com/golang" class="Footer-link" aria-describedby="footer-description">
+                Twitter
+              </a>
+              <a href="https://github.com/golang" class="Footer-link" aria-describedby="footer-description">
+                GitHub
+              </a>
+              <a href="https://invite.slack.golangbridge.org/" class="Footer-link" aria-describedby="footer-description">
+                Slack
+              </a>
+              <a href="https://reddit.com/r/golang" class="Footer-link" aria-describedby="footer-description">
+                r/golang
+              </a>
+              <a href="https://www.meetup.com/pro/go" class="Footer-link" aria-describedby="footer-description">
+                Meetup
+              </a>
+              <a href="https://golangweekly.com/" class="Footer-link" aria-describedby="footer-description">
+                Golang Weekly
+              </a>
+          </div>
+      </div>
+    </div>
+  </div>
+  <div class="screen-reader-only" id="footer-description" hidden>
+          Opens in new window.
+  </div>
+  <div class="Footer">
+    <div class="Container Container--fullBleed">
+      <div class="Footer-bottom">
+        <img class="Footer-gopher" src="/images/gophers/pilot-bust.svg" alt="The Go Gopher">
+        <ul class="Footer-listRow">
+          <li class="Footer-listItem">
+            <a href="/copyright" aria-describedby="footer-description">Copyright</a>
+          </li>
+          <li class="Footer-listItem">
+            <a href="/tos" aria-describedby="footer-description">Terms of Service</a>
+          </li>
+          <li class="Footer-listItem">
+            <a href="http://www.google.com/intl/en/policies/privacy/" aria-describedby="footer-description"
+              target="_blank"
+              rel="noopener">
+              Privacy Policy
+            </a>
+            </li>
+          <li class="Footer-listItem">
+            <a
+              href="/s/website-issue" aria-describedby="footer-description"
+              target="_blank"
+              rel="noopener"
+              >
+              Report an Issue
+            </a>
+          </li>
+          <li class="Footer-listItem go-Footer-listItem">
+            <button class="go-Button go-Button--text go-Footer-toggleTheme js-toggleTheme" aria-label="Toggle theme">
+              <img
+                data-value="auto"
+                class="go-Icon go-Icon--inverted"
+                height="24"
+                width="24"
+                src="/images/icons/brightness_6_gm_grey_24dp.svg"
+                alt="System theme">
+              <img
+                data-value="dark"
+                class="go-Icon go-Icon--inverted"
+                height="24"
+                width="24"
+                src="/images/icons/brightness_2_gm_grey_24dp.svg"
+                alt="Dark theme">
+              <img
+                data-value="light"
+                class="go-Icon go-Icon--inverted"
+                height="24"
+                width="24"
+                src="/images/icons/light_mode_gm_grey_24dp.svg"
+                alt="Light theme">
+            </button>
+          </li>
+        </ul>
+        <a class="Footer-googleLogo" target="_blank" href="https://google.com" rel="noopener">
+          <img class="Footer-googleLogoImg" src="/images/google-white.png" alt="Google logo">
+        </a>
+      </div>
+    </div>
+  </div>
+  <script src="/js/jquery.js"></script>
+  <script src="/js/carousels.js"></script>
+  <script src="/js/searchBox.js"></script>
+  <script src="/js/misc.js"></script>
+  <script src="/js/hats.js"></script>
+  <script src="/js/playground.js"></script>
+  <script src="/js/godocs.js"></script>
+  <script async src="/js/copypaste.js"></script>
+</footer>
+<section class="Cookie-notice js-cookieNotice">
+  <div>go.dev uses cookies from Google to deliver and enhance the quality of its services and to
+  analyze traffic. <a target=_blank href="https://policies.google.com/technologies/cookies">Learn more.</a></div>
+  <div><button class="go-Button">Okay</button></div>
+</section>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

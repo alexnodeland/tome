@@ -32,7 +32,15 @@ fn normalization_matches_the_golden_corpus() {
     let report = Golden::new("corpus/normalization")
         .golden_extension("json")
         .check(|case| {
-            let parsed = parse_page(&case.text(), &base_for(&case.name), Some("div.document"));
+            // No content selector, deliberately. The corpus spans six
+            // platforms — Sphinx, mdBook, rustdoc, Node, Hugo, and the Go
+            // site — and a selector tuned for one of them would be tested
+            // against five it does not fit. `None` exercises the automatic
+            // content-root discovery (`main`, `[role=main]`, `article`,
+            // `body`), which is the path a generic source with no
+            // `content_selector` takes, and therefore the one most pages
+            // will actually go through.
+            let parsed = parse_page(&case.text(), &base_for(&case.name), None);
             let normalized = normalize(parsed.body, &base_for(&case.name));
             // Pretty JSON so the diff on a change is line-oriented and
             // reviewable, not one giant line.

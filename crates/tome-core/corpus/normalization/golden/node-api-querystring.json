@@ -1,0 +1,1414 @@
+{
+  "title": "Query string",
+  "description": "Stability: 2 - Stable",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "heading",
+        "level": 1,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "Query string"
+          },
+          {
+            "type": "anchor",
+            "id": "querystring_query_string"
+          }
+        ]
+      },
+      {
+        "type": "strong",
+        "children": [
+          {
+            "type": "text",
+            "value": "Source Code: "
+          }
+        ]
+      },
+      {
+        "type": "link",
+        "href": "https://github.com/nodejs/node/blob/main/lib/querystring.js",
+        "title": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "lib/querystring.js"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "link",
+            "href": "https://corpus.test/documentation.html#stability-index",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Stability: 2"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " - Stable"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "node:querystring"
+          },
+          {
+            "type": "text",
+            "value": " module provides utilities for parsing and formatting URL query strings. It can be accessed using:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "javascript",
+        "code": "const querystring = require('node:querystring');\njscopy"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "querystring"
+          },
+          {
+            "type": "text",
+            "value": " is more performant than "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/url.html#class-urlsearchparams",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<URLSearchParams>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " but is not a standardized API. Use "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/url.html#class-urlsearchparams",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<URLSearchParams>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " when performance is not critical or when compatibility with browser code is desirable."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "querystring.decode()"
+          },
+          {
+            "type": "anchor",
+            "id": "querystring_querystring_decode"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": "Added in: v0.1.99"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.decode()"
+          },
+          {
+            "type": "text",
+            "value": " function is an alias for "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.parse()"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "querystring.encode()"
+          },
+          {
+            "type": "anchor",
+            "id": "querystring_querystring_encode"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": "Added in: v0.1.99"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.encode()"
+          },
+          {
+            "type": "text",
+            "value": " function is an alias for "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.stringify()"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "querystring.escape(str)"
+          },
+          {
+            "type": "anchor",
+            "id": "querystring_querystring_escape_str"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": "Added in: v0.1.25"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "str"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<string>"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.escape()"
+          },
+          {
+            "type": "text",
+            "value": " method performs URL percent-encoding on the given "
+          },
+          {
+            "type": "inline_code",
+            "code": "str"
+          },
+          {
+            "type": "text",
+            "value": " in a manner that is optimized for the specific requirements of URL query strings."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.escape()"
+          },
+          {
+            "type": "text",
+            "value": " method is used by "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.stringify()"
+          },
+          {
+            "type": "text",
+            "value": " and is generally not expected to be used directly. It is exported primarily to allow application code to provide a replacement percent-encoding implementation if necessary by assigning "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.escape"
+          },
+          {
+            "type": "text",
+            "value": " to an alternative function."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "querystring.parse(str[, sep[, eq[, options]]])"
+          },
+          {
+            "type": "anchor",
+            "id": "querystring_querystring_parse_str_sep_eq_options"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": "Added in: v0.1.25History"
+      },
+      {
+        "type": "table",
+        "headers": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Version"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Changes"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "cells": [
+              {
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "v8.0.0"
+                  }
+                ]
+              },
+              {
+                "children": [
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Multiple empty entries are now parsed correctly (e.g. "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "&=&="
+                      },
+                      {
+                        "type": "text",
+                        "value": ")."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "v6.0.0"
+                  }
+                ]
+              },
+              {
+                "children": [
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "The returned object no longer inherits from "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "Object.prototype"
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "v6.0.0, v4.2.4"
+                  }
+                ]
+              },
+              {
+                "children": [
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "The "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "eq"
+                      },
+                      {
+                        "type": "text",
+                        "value": " parameter may now have a length of more than "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "1"
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "str"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<string>"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " The URL query string to parse"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "sep"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<string>"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " The substring used to delimit key and value pairs in the query string. "
+              },
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Default:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "inline_code",
+                "code": "'&'"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "eq"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<string>"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ". The substring used to delimit keys and values in the query string. "
+              },
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Default:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "inline_code",
+                "code": "'='"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "options"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<Object>"
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "decodeURIComponent"
+                      },
+                      {
+                        "type": "text",
+                        "value": " "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "<Function>"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " The function to use when decoding percent-encoded characters in the query string. "
+                      },
+                      {
+                        "type": "strong",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Default:"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "querystring.unescape()"
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "maxKeys"
+                      },
+                      {
+                        "type": "text",
+                        "value": " "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#number_type",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "<number>"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " Specifies the maximum number of keys to parse. Specify "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "0"
+                      },
+                      {
+                        "type": "text",
+                        "value": " to remove key counting limitations. "
+                      },
+                      {
+                        "type": "strong",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Default:"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "1000"
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.parse()"
+          },
+          {
+            "type": "text",
+            "value": " method parses a URL query string ("
+          },
+          {
+            "type": "inline_code",
+            "code": "str"
+          },
+          {
+            "type": "text",
+            "value": ") into a collection of key and value pairs."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For example, the query string "
+          },
+          {
+            "type": "inline_code",
+            "code": "'foo=bar&abc=xyz&abc=123'"
+          },
+          {
+            "type": "text",
+            "value": " is parsed into:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "json",
+        "code": "{\n  \"foo\": \"bar\",\n  \"abc\": [\"xyz\", \"123\"]\n}\njsoncopy"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The object returned by the "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.parse()"
+          },
+          {
+            "type": "text",
+            "value": " method "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "does not"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " prototypically inherit from the JavaScript "
+          },
+          {
+            "type": "inline_code",
+            "code": "Object"
+          },
+          {
+            "type": "text",
+            "value": ". This means that typical "
+          },
+          {
+            "type": "inline_code",
+            "code": "Object"
+          },
+          {
+            "type": "text",
+            "value": " methods such as "
+          },
+          {
+            "type": "inline_code",
+            "code": "obj.toString()"
+          },
+          {
+            "type": "text",
+            "value": ", "
+          },
+          {
+            "type": "inline_code",
+            "code": "obj.hasOwnProperty()"
+          },
+          {
+            "type": "text",
+            "value": ", and others are not defined and "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "will not work"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "By default, percent-encoded characters within the query string will be assumed to use UTF-8 encoding. If an alternative character encoding is used, then an alternative "
+          },
+          {
+            "type": "inline_code",
+            "code": "decodeURIComponent"
+          },
+          {
+            "type": "text",
+            "value": " option will need to be specified:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "javascript",
+        "code": "// Assuming gbkDecodeURIComponent function already exists...\n\nquerystring.parse('w=%D6%D0%CE%C4&foo=bar', null, null,\n                  { decodeURIComponent: gbkDecodeURIComponent });\njscopy"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "querystring.stringify(obj[, sep[, eq[, options]]])"
+          },
+          {
+            "type": "anchor",
+            "id": "querystring_querystring_stringify_obj_sep_eq_options"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": "Added in: v0.1.25"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "obj"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<Object>"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " The object to serialize into a URL query string"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "sep"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<string>"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " The substring used to delimit key and value pairs in the query string. "
+              },
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Default:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "inline_code",
+                "code": "'&'"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "eq"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<string>"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ". The substring used to delimit keys and values in the query string. "
+              },
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Default:"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "inline_code",
+                "code": "'='"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "options"
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "encodeURIComponent"
+                      },
+                      {
+                        "type": "text",
+                        "value": " "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "<Function>"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " The function to use when converting URL-unsafe characters to percent-encoding in the query string. "
+                      },
+                      {
+                        "type": "strong",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Default:"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "querystring.escape()"
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.stringify()"
+          },
+          {
+            "type": "text",
+            "value": " method produces a URL query string from a given "
+          },
+          {
+            "type": "inline_code",
+            "code": "obj"
+          },
+          {
+            "type": "text",
+            "value": " by iterating through the object's \"own properties\"."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "It serializes the following types of values passed in "
+          },
+          {
+            "type": "inline_code",
+            "code": "obj"
+          },
+          {
+            "type": "text",
+            "value": ": "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<string>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " | "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#number_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<number>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " | "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#bigint_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<bigint>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " | "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#boolean_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<boolean>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " | "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<string>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "[] | "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#number_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<number>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "[] | "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#bigint_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<bigint>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "[] | "
+          },
+          {
+            "type": "link",
+            "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#boolean_type",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "<boolean>"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "[] The numeric values must be finite. Any other input values will be coerced to empty strings."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "javascript",
+        "code": "querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });\n// Returns 'foo=bar&baz=qux&baz=quux&corge='\n\nquerystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');\n// Returns 'foo:bar;baz:qux'\njscopy"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "By default, characters requiring percent-encoding within the query string will be encoded as UTF-8. If an alternative encoding is required, then an alternative "
+          },
+          {
+            "type": "inline_code",
+            "code": "encodeURIComponent"
+          },
+          {
+            "type": "text",
+            "value": " option will need to be specified:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "javascript",
+        "code": "// Assuming gbkEncodeURIComponent function already exists,\n\nquerystring.stringify({ w: '中文', foo: 'bar' }, null, null,\n                      { encodeURIComponent: gbkEncodeURIComponent });\njscopy"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "querystring.unescape(str)"
+          },
+          {
+            "type": "anchor",
+            "id": "querystring_querystring_unescape_str"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": "Added in: v0.1.25"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "str"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://developer.mozilla.org/docs/Web/JavaScript/Data_structures#string_type",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "<string>"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.unescape()"
+          },
+          {
+            "type": "text",
+            "value": " method performs decoding of URL percent-encoded characters on the given "
+          },
+          {
+            "type": "inline_code",
+            "code": "str"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.unescape()"
+          },
+          {
+            "type": "text",
+            "value": " method is used by "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.parse()"
+          },
+          {
+            "type": "text",
+            "value": " and is generally not expected to be used directly. It is exported primarily to allow application code to provide a replacement decoding implementation if necessary by assigning "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.unescape"
+          },
+          {
+            "type": "text",
+            "value": " to an alternative function."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "By default, the "
+          },
+          {
+            "type": "inline_code",
+            "code": "querystring.unescape()"
+          },
+          {
+            "type": "text",
+            "value": " method will attempt to use the JavaScript built-in "
+          },
+          {
+            "type": "inline_code",
+            "code": "decodeURIComponent()"
+          },
+          {
+            "type": "text",
+            "value": " method to decode. If that fails, a safer equivalent that does not throw on malformed URLs will be used."
+          }
+        ]
+      }
+    ]
+  }
+}

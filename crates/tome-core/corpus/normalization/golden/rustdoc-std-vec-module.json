@@ -1,0 +1,778 @@
+{
+  "title": "Module vec",
+  "description": "A contiguous growable array type with heap-allocated contents, written Vec<T>.",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "anchor",
+        "id": "main-content"
+      },
+      {
+        "type": "link",
+        "href": "https://corpus.test/index.html",
+        "title": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "std"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 1,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "Module vec"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": "1.0.0 · "
+      },
+      {
+        "type": "link",
+        "href": "https://corpus.test/src/alloc/lib.rs.html#242",
+        "title": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "Source"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "value": " Expand description"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A contiguous growable array type with heap-allocated contents, written "
+          },
+          {
+            "type": "inline_code",
+            "code": "Vec<T>"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Vectors have "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "O"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "(1) indexing, amortized "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "O"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "(1) push (to the end) and "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "O"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "(1) pop (from the end)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Vectors ensure they never allocate more than "
+          },
+          {
+            "type": "inline_code",
+            "code": "isize::MAX"
+          },
+          {
+            "type": "text",
+            "value": " bytes."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "examples",
+        "children": [
+          {
+            "type": "text",
+            "value": "Examples"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "You can explicitly create a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/struct.Vec.html",
+            "title": "struct std::vec::Vec",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Vec"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " with "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/struct.Vec.html#method.new",
+            "title": "associated function std::vec::Vec::new",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Vec::new"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ":"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": null,
+        "code": "let v: Vec<i32> = Vec::new();"
+      },
+      {
+        "type": "link",
+        "href": "https://play.rust-lang.org/?code=%23!%5Ballow(unused)%5D%0Afn+main()+%7B%0A++++let+v:+Vec%3Ci32%3E+=+Vec::new();%0A%7D&edition=2024",
+        "title": "Run code",
+        "children": []
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "…or by using the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/macro.vec.html",
+            "title": "macro std::vec",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "vec!"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " macro:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": null,
+        "code": "let v: Vec<i32> = vec![];\n\nlet v = vec![1, 2, 3, 4, 5];\n\nlet v = vec![0; 10]; // ten zeroes"
+      },
+      {
+        "type": "link",
+        "href": "https://play.rust-lang.org/?code=%23!%5Ballow(unused)%5D%0Afn+main()+%7B%0A++++let+v:+Vec%3Ci32%3E+=+vec!%5B%5D;%0A++++%0A++++let+v+=+vec!%5B1,+2,+3,+4,+5%5D;%0A++++%0A++++let+v+=+vec!%5B0;+10%5D;%0A%7D&edition=2024",
+        "title": "Run code",
+        "children": []
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "You can "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/struct.Vec.html#method.push",
+            "title": "method std::vec::Vec::push",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "push"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " values onto the end of a vector (which will grow the vector as needed):"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": null,
+        "code": "let mut v = vec![1, 2];\n\nv.push(3);"
+      },
+      {
+        "type": "link",
+        "href": "https://play.rust-lang.org/?code=%23!%5Ballow(unused)%5D%0Afn+main()+%7B%0A++++let+mut+v+=+vec!%5B1,+2%5D;%0A++++%0A++++v.push(3);%0A%7D&edition=2024",
+        "title": "Run code",
+        "children": []
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Popping values works in much the same way:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": null,
+        "code": "let mut v = vec![1, 2];\n\nlet two = v.pop();"
+      },
+      {
+        "type": "link",
+        "href": "https://play.rust-lang.org/?code=%23!%5Ballow(unused)%5D%0Afn+main()+%7B%0A++++let+mut+v+=+vec!%5B1,+2%5D;%0A++++%0A++++let+two+=+v.pop();%0A%7D&edition=2024",
+        "title": "Run code",
+        "children": []
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Vectors also support indexing (through the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/ops/trait.Index.html",
+            "title": "trait std::ops::Index",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Index"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/ops/trait.IndexMut.html",
+            "title": "trait std::ops::IndexMut",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "IndexMut"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " traits):"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": null,
+        "code": "let mut v = vec![1, 2, 3];\nlet three = v[2];\nv[1] = v[1] + 5;"
+      },
+      {
+        "type": "link",
+        "href": "https://play.rust-lang.org/?code=%23!%5Ballow(unused)%5D%0Afn+main()+%7B%0A++++let+mut+v+=+vec!%5B1,+2,+3%5D;%0A++++let+three+=+v%5B2%5D;%0A++++v%5B1%5D+=+v%5B1%5D+%2B+5;%0A%7D&edition=2024",
+        "title": "Run code",
+        "children": []
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "memory-layout",
+        "children": [
+          {
+            "type": "text",
+            "value": "Memory layout"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "When the type is non-zero-sized and the capacity is nonzero, "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/struct.Vec.html",
+            "title": "struct std::vec::Vec",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Vec"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " uses the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/alloc/struct.Global.html",
+            "title": "struct std::alloc::Global",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Global"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " allocator for its allocation. It is valid to convert both ways between such a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/struct.Vec.html",
+            "title": "struct std::vec::Vec",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Vec"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " and a raw pointer allocated with the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/alloc/struct.Global.html",
+            "title": "struct std::alloc::Global",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Global"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " allocator, provided that the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/alloc/struct.Layout.html",
+            "title": "struct std::alloc::Layout",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Layout"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " used with the allocator is correct for a sequence of "
+          },
+          {
+            "type": "inline_code",
+            "code": "capacity"
+          },
+          {
+            "type": "text",
+            "value": " elements of the type, and the first "
+          },
+          {
+            "type": "inline_code",
+            "code": "len"
+          },
+          {
+            "type": "text",
+            "value": " values pointed to by the raw pointer are valid. More precisely, a "
+          },
+          {
+            "type": "inline_code",
+            "code": "ptr: *mut T"
+          },
+          {
+            "type": "text",
+            "value": " that has been allocated with the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/alloc/struct.Global.html",
+            "title": "struct std::alloc::Global",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Global"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " allocator with "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/alloc/struct.Layout.html#method.array",
+            "title": "associated function std::alloc::Layout::array",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Layout::array::<T>(capacity)"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " may be converted into a vec using "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/struct.Vec.html#method.from_raw_parts",
+            "title": "associated function std::vec::Vec::from_raw_parts",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Vec::<T>::from_raw_parts(ptr, len, capacity)"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". Conversely, the memory backing a "
+          },
+          {
+            "type": "inline_code",
+            "code": "value: *mut T"
+          },
+          {
+            "type": "text",
+            "value": " obtained from "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/struct.Vec.html#method.as_mut_ptr",
+            "title": "method std::vec::Vec::as_mut_ptr",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Vec::<T>::as_mut_ptr"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " may be deallocated using the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/alloc/struct.Global.html",
+            "title": "struct std::alloc::Global",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Global"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " allocator with the same layout."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For zero-sized types (ZSTs), or when the capacity is zero, the "
+          },
+          {
+            "type": "inline_code",
+            "code": "Vec"
+          },
+          {
+            "type": "text",
+            "value": " pointer must be non-null and sufficiently aligned. The recommended way to build a "
+          },
+          {
+            "type": "inline_code",
+            "code": "Vec"
+          },
+          {
+            "type": "text",
+            "value": " of ZSTs if "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/macro.vec.html",
+            "title": "macro std::vec",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "vec!"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " cannot be used is to use "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/ptr/struct.NonNull.html#method.dangling",
+            "title": "associated function std::ptr::NonNull::dangling",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "ptr::NonNull::dangling"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "structs",
+        "children": [
+          {
+            "type": "text",
+            "value": "Structs"
+          }
+        ]
+      },
+      {
+        "type": "definition_list",
+        "items": [
+          {
+            "id": null,
+            "term": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/struct.Drain.html",
+                "title": "struct std::vec::Drain",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Drain"
+                  }
+                ]
+              }
+            ],
+            "definition": [
+              {
+                "type": "text",
+                "value": "A draining iterator for "
+              },
+              {
+                "type": "inline_code",
+                "code": "Vec<T>"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "id": null,
+            "term": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/struct.ExtractIf.html",
+                "title": "struct std::vec::ExtractIf",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "ExtractIf"
+                  }
+                ]
+              }
+            ],
+            "definition": [
+              {
+                "type": "text",
+                "value": "An iterator which uses a closure to determine if an element should be removed."
+              }
+            ]
+          },
+          {
+            "id": null,
+            "term": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/struct.IntoIter.html",
+                "title": "struct std::vec::IntoIter",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "IntoIter"
+                  }
+                ]
+              }
+            ],
+            "definition": [
+              {
+                "type": "text",
+                "value": "An iterator that moves out of a vector."
+              }
+            ]
+          },
+          {
+            "id": null,
+            "term": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/struct.Splice.html",
+                "title": "struct std::vec::Splice",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Splice"
+                  }
+                ]
+              }
+            ],
+            "definition": [
+              {
+                "type": "text",
+                "value": "A splicing iterator for "
+              },
+              {
+                "type": "inline_code",
+                "code": "Vec"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "id": null,
+            "term": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/struct.Vec.html",
+                "title": "struct std::vec::Vec",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Vec"
+                  }
+                ]
+              }
+            ],
+            "definition": [
+              {
+                "type": "text",
+                "value": "A contiguous growable array type, written as "
+              },
+              {
+                "type": "inline_code",
+                "code": "Vec<T>"
+              },
+              {
+                "type": "text",
+                "value": ", short for ‘vector’."
+              }
+            ]
+          },
+          {
+            "id": null,
+            "term": [
+              {
+                "type": "link",
+                "href": "https://corpus.test/struct.PeekMut.html",
+                "title": "struct std::vec::PeekMut",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "PeekMut"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "Experimental"
+              }
+            ],
+            "definition": [
+              {
+                "type": "text",
+                "value": "Structure wrapping a mutable reference to the last item in a "
+              },
+              {
+                "type": "inline_code",
+                "code": "Vec"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
