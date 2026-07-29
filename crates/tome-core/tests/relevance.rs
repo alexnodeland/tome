@@ -16,41 +16,58 @@
 //! diff has been looked at. A baseline that can be silently rewritten measures
 //! nothing.
 //!
-//! Everything is offline and deterministic: the index is built from the
-//! committed normalization goldens, so no HTML is parsed and no network is
-//! touched.
+//! Everything is offline and deterministic: the index is built from 339
+//! committed pages under `corpus/relevance/pages/`, each one a `StoredPage`
+//! exactly as `pipeline::pull` wrote it, so no HTML is parsed and no network
+//! is touched.
 //!
 //! # How much this gate is worth, measured
 //!
-//! **It is a strong diagnostic and a weak gate**, and that is not a guess —
-//! three perturbations were run against it when it was built:
+//! The corpus was 26 documents when this harness was first written, and at
+//! that size **it could not discriminate at all**: cutting the title boost
+//! 60×, additionally cutting the code boost 1500×, and removing the `code`
+//! field from the query entirely each moved MRR by ≤ 0.0036 and tripped
+//! nothing. With 26 documents there is rarely a strong wrong answer for a
+//! better-ranked right answer to beat.
+//!
+//! It was expanded to 339 documents for that reason. Re-running the
+//! perturbations at the new size:
 //!
 //! | Change | MRR | Queries moved | Gate fires? |
 //! |---|---|---|---|
-//! | Title boost 3.0 → 0.05 (60×) | 0.9168 → 0.9156 | 4 worse, 4 better | no |
-//! | …and code boost 1.5 → 0.001 (1500×) | 0.9168 → 0.9210 | 8 worse, 10 better | no |
-//! | Remove `code` from the query entirely | 0.9168 → 0.9132 | 9 worse, 8 better | no |
+//! | Title boost 3.0 → 0.05 (60×) | 0.7489 → 0.7625 | 17 worse, 28 better | no — net **improvement** |
+//! | Remove `code` from the query | 0.7489 → 0.7536 | 13 worse, 15 better | no — a genuine wash |
+//! | Search `body` only | 0.7489 → **0.4293** | 118 worse, 27 better | **yes**, both gates |
 //!
-//! Deleting a whole indexed field from search moved the aggregate by 0.0036.
-//! The reason is the corpus: with 26 documents there is usually no strong
-//! wrong answer for a better-ranked right answer to beat, so the metrics
-//! compress into a narrow band near the top.
+//! That is the behaviour wanted: decisive on real damage, silent on changes
+//! that are neutral or positive. The first two rows are not gate failures,
+//! they are **findings**, and both belong to S2-4:
 //!
-//! Two consequences, both load-bearing:
+//! - **A title boost of 3.0 is too high.** Cutting it improves MRR. Do not
+//!   act on that here; S2-4 is where boosts get tuned, with this harness as
+//!   the scoreboard.
+//! - **The `code` field contributes almost nothing.** Removing it is a wash,
+//!   because on these platforms method names are *also* headings, so `headers`
+//!   already carries them. That is worth knowing before S2-6 builds
+//!   symbol-aware search on the assumption that the code field is load-bearing.
 //!
-//! - **Do not read a passing run as "ranking is fine."** It means nothing
-//!   catastrophic happened. S2-4 cannot be scored against this corpus as it
-//!   stands; making boost tuning measurable needs materially more documents,
-//!   which is a corpus decision (fetching and licence-verifying more pages),
-//!   not a harness one.
-//! - **The per-query movement report is the part that works.** It caught every
-//!   one of those three perturbations. Read it, rather than the aggregate.
-//!
-//! What this *did* catch, on its very first run, was a real defect: twelve
+//! What the eval set caught on its very first run was a real defect: twelve
 //! symbol queries returning nothing because `()` and `[]` are query-parser
-//! syntax. Fixing that moved symbol recall@1 from 0.7465 to 0.9474. Finding
-//! defects is what this is good at; policing small ranking changes is not,
-//! yet.
+//! syntax. Fixing that moved symbol recall@1 from 0.7465 to 0.9474 on the old
+//! corpus.
+//!
+//! # What is currently weak
+//!
+//! `natural` sits at 0.0625 recall@1 — **the worst category by far**, and not
+//! a labelling artefact. One enormous FAQ page (`go:doc/faq`) ranks first for
+//! nearly every "how do I …" query, because it is long and full of
+//! question-shaped prose. `cargo:cargo/print.html`, which is the entire Cargo
+//! book concatenated onto one page, does the same to Cargo queries. Long
+//! single-page documents beating specific ones is the clearest ranking defect
+//! this corpus exposes, and it is S2-4's to fix.
+//!
+//! `misspelling` sits at 0.1667 and is *expected* to until S2-5 adds fuzzy
+//! matching.
 
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 
@@ -60,7 +77,6 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tome_core::model::{ContentHash, Page, PagePath, SourceId};
-use tome_core::normalize::NormalizedPage;
 use tome_core::search::SearchEngine;
 
 /// How deep a hit still counts. Also the depth `recall@10` reports, and the
@@ -79,42 +95,47 @@ const MARGIN: f64 = 0.02;
 /// How many more queries may get *worse* than get better before the run fails,
 /// independently of the aggregate.
 ///
-/// This second gate exists because the first one is weak, and the eval set
-/// demonstrated it: cutting the title boost 60× (3.0 → 0.05) moved MRR by
-/// 0.0012 — a sixteenth of `MARGIN` — while visibly reshuffling eight queries.
-/// On a 26-document corpus the aggregates are simply not sensitive enough to
-/// police ranking changes on their own, because there is rarely a strong wrong
-/// answer to be beaten by.
+/// This second gate exists because an aggregate can hide directional damage:
+/// a change that helps twenty easy queries slightly and breaks five important
+/// ones can leave MRR flat. Net movement sees that; the mean does not.
 ///
-/// Net movement is the sensitive signal, so it gets its own threshold. It is
-/// *net* rather than absolute because BM25 reorders ties freely: a change that
-/// moves four queries down and four up has not degraded anything, and a gate
-/// that fired on that would be suppressed within a week.
+/// It is *net* rather than absolute because BM25 reorders ties freely — a
+/// change that moves four queries down and four up has degraded nothing, and a
+/// gate that fired on that would be suppressed within a week.
 ///
-/// Set to 3 rather than something tighter because the three perturbations in
-/// the module docs produced net movements of 0, 0, and 1 — so this threshold
-/// is *also* not sensitive enough to catch them. It is here to catch
-/// directional damage the aggregate smooths over, not to substitute for a
-/// corpus large enough to discriminate.
+/// 3 is deliberately loose. The measured perturbations (module docs) produced
+/// net movements of 0, 0, and 91: real damage clears this threshold by an
+/// order of magnitude, so tightening it would only buy false positives.
 const MAX_NET_DEGRADED: usize = 3;
 
 // --------------------------------------------------------------- the inputs
 
 #[derive(Debug, Deserialize)]
 struct Corpus {
-    documents: Vec<DocumentEntry>,
+    sources: Vec<SourceEntry>,
 }
 
+/// One source's metadata. The *documents* are discovered by walking
+/// `pages/<id>/`, not listed here — 339 hand-maintained entries would be a
+/// second thing to keep in sync with the directory, and it would drift.
 #[derive(Debug, Deserialize)]
-struct DocumentEntry {
-    /// Base name of the golden in `corpus/normalization/golden/`.
-    file: String,
-    source: String,
-    path: String,
+struct SourceEntry {
+    id: String,
     category: String,
 }
 
-impl DocumentEntry {
+/// One indexable document, loaded from `pages/<source>/<path>.json`.
+struct Document {
+    source: String,
+    /// Recovered from the file's own `path` field rather than from its
+    /// location on disk: a `StoredPage` names itself, and trusting the
+    /// filesystem would let a case-insensitive volume rename a page silently.
+    path: String,
+    category: String,
+    page: tome_core::store::StoredPage,
+}
+
+impl Document {
     /// `source:path` — how query labels name a document.
     fn key(&self) -> String {
         format!("{}:{}", self.source, self.path)
@@ -195,35 +216,113 @@ fn corpus_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("corpus")
 }
 
-/// Build the eval index from the committed normalization goldens.
-fn build_index(dir: &Path, documents: &[DocumentEntry]) -> SearchEngine {
+/// Load every document under `pages/<source>/`.
+///
+/// Walking the tree rather than reading a manifest is deliberate: a manifest
+/// of 339 entries is a second copy of the directory listing, and the two
+/// would drift. `corpus.yaml` records only what the tree cannot say.
+fn load_documents(sources: &[SourceEntry]) -> Vec<Document> {
+    let root = corpus_dir().join("relevance/pages");
+    let mut documents = Vec::new();
+
+    for source in sources {
+        let dir = root.join(&source.id);
+        let mut stack = vec![dir.clone()];
+        let mut found = 0usize;
+
+        while let Some(current) = stack.pop() {
+            let entries = std::fs::read_dir(&current)
+                .unwrap_or_else(|e| panic!("read {}: {e}", current.display()));
+            for entry in entries {
+                let path = entry.expect("dir entry").path();
+                if path.is_dir() {
+                    stack.push(path);
+                    continue;
+                }
+                if path.extension().is_none_or(|e| e != "json") {
+                    continue;
+                }
+                let raw = std::fs::read_to_string(&path)
+                    .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+                let page: tome_core::store::StoredPage = serde_json::from_str(&raw)
+                    .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
+                documents.push(Document {
+                    source: source.id.clone(),
+                    path: page.path.as_str().to_owned(),
+                    category: source.category.clone(),
+                    page,
+                });
+                found += 1;
+            }
+        }
+        assert!(found > 0, "source {} has no pages", source.id);
+    }
+    documents
+}
+
+/// Build the eval index from the committed pages.
+fn build_index(dir: &Path, documents: &[Document]) -> SearchEngine {
     let engine = SearchEngine::open_at(dir).expect("open eval index");
-    let goldens = corpus_dir().join("normalization/golden");
 
     let mut session = engine.session().expect("index session");
-    for entry in documents {
-        let file = goldens.join(format!("{}.json", entry.file));
-        let raw = std::fs::read_to_string(&file)
-            .unwrap_or_else(|e| panic!("read golden {}: {e}", file.display()));
-        let page: NormalizedPage = serde_json::from_str(&raw)
-            .unwrap_or_else(|e| panic!("parse golden {}: {e}", file.display()));
-
+    for document in documents {
         let meta = Page::new(
-            SourceId::new(&entry.source).expect("source id"),
-            PagePath::new(&entry.path).expect("page path"),
-            page.title.clone().unwrap_or_default(),
+            SourceId::new(&document.source).expect("source id"),
+            PagePath::new(&document.path).expect("page path"),
+            document.page.title.clone(),
             // The eval never change-detects, so any valid hash will do.
             ContentHash::new("0".repeat(64)).expect("hash"),
         );
 
         session
-            .add_page(&meta, &entry.category, &page.body)
+            .add_page(&meta, &document.category, &document.page.body)
             .expect("index page");
     }
     session.commit().expect("commit eval index");
     drop(session);
 
     engine
+}
+
+/// Print what actually ranked top for queries that scored badly.
+///
+/// `TOME_RELEVANCE_DUMP=1`. This exists because a low score has two causes
+/// that look identical in the aggregate — the ranking is wrong, or the label
+/// is incomplete because some *other* page answers the query at least as well.
+/// On a 339-document corpus the second is common, and the only way to tell
+/// them apart is to read the results.
+fn dump_poor_results(engine: &SearchEngine, queries: &[Query], ranks: &BTreeMap<String, usize>) {
+    if std::env::var_os("TOME_RELEVANCE_DUMP").is_none() {
+        return;
+    }
+    for query in queries {
+        let rank = ranks.get(&query.id).copied().unwrap_or(0);
+        if (1..=3).contains(&rank) {
+            continue;
+        }
+        let hits = engine.search(&query.q, 5).unwrap_or_default();
+        println!(
+            "\n{} [{}] {:?}  rank={}",
+            query.id,
+            query.kind,
+            query.q,
+            if rank == 0 {
+                "—".to_owned()
+            } else {
+                rank.to_string()
+            }
+        );
+        println!("  want: {}", query.want.join(", "));
+        for (i, hit) in hits.iter().enumerate() {
+            println!(
+                "  {}. {}:{}  ({})",
+                i + 1,
+                hit.source.as_str(),
+                hit.path,
+                hit.title
+            );
+        }
+    }
 }
 
 /// Rank of the first acceptable hit, 1-based; 0 if none within `DEPTH`.
@@ -258,25 +357,32 @@ fn relevance_does_not_regress() {
     )
     .expect("parse queries.yaml");
 
-    // P2-019's floor, asserted rather than assumed: a corpus that quietly
-    // shrank below this would still produce plausible-looking metrics.
+    let documents = load_documents(&corpus.sources);
+
+    // P2-019's floors, and the Stage 2 exit gate's, asserted rather than
+    // assumed: a corpus that quietly shrank would still produce
+    // plausible-looking metrics — which is precisely how this measurement
+    // stops meaning anything.
     assert!(
         queries.queries.len() >= 200,
         "P2-019 requires at least 200 queries, found {}",
         queries.queries.len()
     );
-    let sources: std::collections::BTreeSet<_> =
-        corpus.documents.iter().map(|d| &d.source).collect();
     assert!(
-        sources.len() >= 5,
+        corpus.sources.len() >= 5,
         "P2-019 requires at least 5 fixture sources, found {}",
-        sources.len()
+        corpus.sources.len()
+    );
+    assert!(
+        documents.len() >= 150,
+        "the Stage 2 exit gate requires at least 150 documents, found {} — \
+         below this the metrics stop discriminating (see the module docs)",
+        documents.len()
     );
 
     // Every label must name a real document. A typo here would silently score
     // as "not found" forever and read as a permanent ranking failure.
-    let known: std::collections::BTreeSet<String> =
-        corpus.documents.iter().map(DocumentEntry::key).collect();
+    let known: std::collections::BTreeSet<String> = documents.iter().map(Document::key).collect();
     let mut unlabelled = Vec::new();
     for query in &queries.queries {
         for want in &query.want {
@@ -287,15 +393,15 @@ fn relevance_does_not_regress() {
     }
     assert!(
         unlabelled.is_empty(),
-        "queries name documents that are not in corpus.yaml:\n  {}",
+        "queries name documents that are not in the corpus:\n  {}",
         unlabelled.join("\n  ")
     );
 
     let index_dir = tempfile::tempdir().expect("tempdir");
-    let engine = build_index(index_dir.path(), &corpus.documents);
+    let engine = build_index(index_dir.path(), &documents);
     assert_eq!(
         engine.len().expect("doc count"),
-        corpus.documents.len() as u64,
+        documents.len() as u64,
         "every corpus document should be indexed"
     );
 
@@ -305,6 +411,7 @@ fn relevance_does_not_regress() {
         .map(|query| (query.id.clone(), rank_of(&engine, query)))
         .collect();
     let metrics = Metrics::from_ranks(&ranks);
+    dump_poor_results(&engine, &queries.queries, &ranks);
     let current = Baseline { metrics, ranks };
 
     let baseline_path = dir.join("baseline.json");

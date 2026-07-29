@@ -296,11 +296,17 @@ This is the stage that answers whether the product is possible.
 
 **Goal:** fast, relevant search, with a number attached to "relevant".
 **Entry gate:** S1 exit + **SPIKE-003** (Tantivy at 100k pages) has run — ✅ [ran 2026-07-29](../spikes/003-tantivy-scale.md). All four criteria pass with margin (439 MB peak indexing, 18.7 ms worst p95, 224 MB index, 3 MB idle). Three findings change how S2 is built: the writer budget is a **speed** knob not a memory one (use 512 MB); segment count is what degrades search, so set an explicit merge policy; and indexing is 3 orders of magnitude cheaper than crawling, so **S2-3's justification is avoiding re-crawls, not avoiding re-indexing**.
-**Exit gate:** relevance eval ≥ 0.90 recall@3, P95 < 100 ms on the benchmark corpus.
+**Exit gate:** relevance eval ≥ 0.90 recall@3 **over a corpus of at least 150 documents**, P95 <
+100 ms on the benchmark corpus.
+
+> The document floor was added 2026-07-29, after S2-1 measured that the metric is not
+> discriminating below it. On the original 26-document corpus, removing an entire indexed field
+> from the query moved MRR by 0.0036 — so `≥ 0.90 recall@3` was satisfiable by a corpus too small
+> to have a wrong answer worth beating. A threshold that a weaker system also passes is not a gate.
 
 | # | Work | Spec | Model |
 |---|------|------|-------|
-| S2-1 ✅ | **Relevance eval set + harness** | P2-019 | Opus — done 2026-07-29 — `corpus/relevance/` (212 labelled queries, 26 documents, 7 sources) + `tests/relevance.rs`. Found a real defect on its first run: `()` and `[]` are query-parser syntax, so twelve symbol queries returned nothing. Symbol recall@1 0.7465 → **0.9474** after the fix. **Also measured its own weakness** — see below |
+| S2-1 ✅ | **Relevance eval set + harness** | P2-019 | Opus — done 2026-07-29 — `corpus/relevance/` (207 labelled queries, 339 documents, 6 sources) + `tests/relevance.rs`. Found a real defect on its first run: `()` and `[]` are query-parser syntax, so twelve symbol queries returned nothing. Symbol recall@1 0.7465 → **0.9474** after the fix. **Also measured its own weakness** — see below |
 | S2-2 ✅ | Tantivy integration + schema | P2-001/002 | Opus — done 2026-07-29 — `tome-core/src/search/`: `schema.rs` (P2-002's seven fields), `tokenizer.rs` (camelCase/snake_case aware, emits the identifier *and* its parts), `extract.rs` (AST → fields), `mod.rs` (`SearchEngine` + `IndexSession`). SPIKE-003's harness removed as planned; its write-up stays |
 | S2-3 | Incremental indexing | P2-003 | Fable |
 | S2-4 | Ranking + boosts | P2-006 | Fable, scored by S2-1 |
@@ -317,21 +323,31 @@ This is the stage that answers whether the product is possible.
 agents it is *fast* guesswork — you will get twenty confident boost-factor changes and no way to
 tell which helped. The eval set is what converts search from an opinion into a gradient.
 
-**The eval set works as a diagnostic and not yet as a gate, and this is measured.**
-Three perturbations were run against it: cutting the title boost 60×, additionally cutting the code
-boost 1500×, and removing the `code` field from the query entirely. **None moved MRR by more than
-0.0036, and none tripped the gate.** With 26 documents there is rarely a strong wrong answer for a
-better-ranked right answer to beat, so the metrics compress near the top.
+**The eval set measured its own corpus into existence.** At its first size — 26 documents — three
+perturbations (title boost cut 60×, code boost cut 1500×, `code` field removed from the query
+entirely) each moved MRR by ≤ 0.0036 and tripped nothing. The metrics compressed near the top
+because with 26 documents there is rarely a strong wrong answer for a right one to beat.
 
-Two consequences for the rest of Stage 2:
+It was therefore expanded to **339 real pages across six sources** (2026-07-29, owner-approved),
+crawled with the real `tome pull` from the hosts already licence-verified for the normalization
+corpus. At that size it discriminates:
 
-- **S2-4 cannot be scored against this corpus as it stands.** Boost tuning would be measuring
-  noise, which is precisely the failure S2-1 exists to prevent — so the eval set has, usefully,
-  ruled out its own premature use. Making ranking measurable needs materially more documents, which
-  is a corpus decision (fetch and licence-verify more pages) rather than a harness one, and is
-  **owner input, not an agent's call**.
-- **The per-query movement report is the part that works.** It caught all three perturbations by
-  name. Read that, not the aggregate.
+| Perturbation | MRR | Movement | Gate |
+|---|---|---|---|
+| Title boost 3.0 → 0.05 | 0.7489 → 0.7625 | 17 worse, 28 better | silent — a net **improvement** |
+| Remove `code` from the query | 0.7489 → 0.7536 | 13 worse, 15 better | silent — a genuine wash |
+| Search `body` only | 0.7489 → **0.4293** | 118 worse, 27 better | **fires**, both thresholds |
+
+Three findings fall out, all of them S2-4's or S2-6's to act on, none to be acted on early:
+
+- **A title boost of 3.0 is too high** — cutting it *improves* MRR.
+- **The `code` field contributes almost nothing.** Removing it is a wash, because on these
+  platforms method names are also headings, so `headers` already carries them. Worth knowing before
+  S2-6 builds symbol-aware search assuming that field is load-bearing.
+- **Long single-page documents dominate natural-language queries.** `natural` sits at 0.0625
+  recall@1 — the worst category by far — because one enormous FAQ page ranks first for nearly every
+  "how do I …" query, and the Cargo book's single-page `print.html` does the same to Cargo queries.
+  This is the clearest ranking defect the corpus exposes.
 
 **S2-2 nonetheless landed first, and the table's order is the misleading part.** P2-019 lists
 P2-001 as a dependency for the obvious reason: a relevance harness needs an index to score. The
