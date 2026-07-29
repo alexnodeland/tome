@@ -232,11 +232,31 @@ a test written from the same misunderstanding as the code agrees with it. The go
   is 1 edit on a 3-character term (0 allowed). Both are in the eval corpus and both are expected to
   fail. Widening the schedule buys false positives everywhere: at distance 1 on three-character
   terms, `Vec` reaches `Vex`, `Vev`, `sec` and `hex`.
-- **Do not close the last of the relevance gate by choosing the parameter that crosses it.**
-  recall@3 sits at 0.8986 against a 0.90 gate — one query of 207 — and a neighbouring
-  configuration reaches 0.9034 while costing symbol accuracy. Picking it would be fitting the gate,
-  not passing it. The same goes for re-labelling queries to make the number rise: that destroys the
-  instrument, which is the one thing here that cannot be rebuilt in seconds.
+- **Do not close a relevance gap by choosing the parameter that crosses it.** During S2-5 recall@3
+  sat at 0.8986 against the 0.90 gate — one query of 207 — and a neighbour reached 0.9034 while
+  costing symbol accuracy. It was rejected: fitting a gate is not passing it. S2-6 then cleared the
+  gate at 0.9082 with a configuration that was the optimum on a *different* objective and dominated
+  its predecessor on every column, which is what passing looks like. The same goes for re-labelling
+  queries to make the number rise: that destroys the instrument, which is the one thing here that
+  cannot be rebuilt in seconds. Differences of one or two queries are inside the noise.
+- **Documentation sites do not declare their API in code blocks.** P2-015's technical note regexed
+  `fn\s+(\w+)` out of code blocks; measured over the 339-page corpus that yields `main`, `buf`,
+  `server`, `Foo`, `__init__`, `options` — the *examples'* scaffolding. `Vec` is declared once and
+  mentioned 321 times; `with_capacity` is declared **never**. The signatures are in **headings**
+  (`h4: pub fn with_capacity(capacity: usize) -> Vec<T>`), the kind is in the rustdoc **path**
+  (`struct.Vec.html`), and `search::symbols` reads those. This is the same fact behind S2-4's
+  finding that the `code` field barely matters.
+- **A field of every declaration is noise; a field of the page's one primary symbol is signal.**
+  Blending all declarations at boost 3.0 cost 0.08 MRR and 39 queries, because every rustdoc page
+  declares `from`, `into`, `borrow`, `fmt` and `try_from` as trait boilerplate and a *short* field
+  makes each a strong BM25 signal. Coordinate descent drove that boost to zero. The split is
+  `symbol` (primary, blended) versus `declarations` (all, reachable only by `@symbol`) — and
+  `declarations` must not be added to the ordinary query's field list. A test pins that.
+- **Changing `search::schema::build` makes every existing index unreadable.** Tantivy's
+  `open_or_create` returns `SchemaError`, which maps to `Error::IndexSchemaOutdated` so a *read*
+  command can name the remedy instead of deleting an index the user did not ask it to touch. Only
+  `open_or_rebuild` may discard. Adding a field is therefore a migration, cheap only because the
+  index lives in the cache.
 - **Stopwords are dropped from the query, never from the index**, so IDF is untouched and the
   policy can be changed or reverted with no reindex. Two refusals in `StopwordPolicy::apply` are
   load-bearing: a query containing a quote is returned untouched (a phrase with a hole matches

@@ -1,6 +1,6 @@
-# Continuation — picking up at S2-6 (symbol-aware search)
+# Continuation — picking up at S2-7 (search UI)
 
-**Written:** 2026-07-29, after S2-5 landed. **Rewrite or delete this file when S2-6 lands.**
+**Written:** 2026-07-29, after S2-6 landed. **Rewrite or delete this file when S2-7 lands.**
 
 In-flight state only: what is done, what is decided, what to do next. It deliberately carries **no**
 durable knowledge — mistakes and invariants live in [`.claude/traps.md`](traps.md), which does not go
@@ -17,61 +17,65 @@ stale. Do not let this file grow a "traps" section; an earlier one was deleted f
 | S2-3 ✅ | Incremental indexing | `tome pull` indexes; `tome search` queries |
 | S2-4 ✅ | Ranking + boosts | `search/ranking.rs`, tuned by measured sweep |
 | S2-5 ✅ | Fuzzy matching | `search/fuzzy.rs` — query correction, not `FuzzyTermQuery` |
-| **S2-6** | **Symbol-aware search** | **next** — read the `code` field finding below first |
-| S2-7 | Search UI | the app still has no search box |
+| S2-6 ✅ | Symbol-aware search | `search/symbols.rs` — from headings, not code blocks; `@symbol` |
+| **S2-7** | **Search UI** | **next** — the app still has no search box |
 | S2-8..12 | in-page search, detection corpus, platform detection, scrapers, benchmarks | |
 
 **Search works from the CLI and nowhere else.**
 
-## The exit gate, honestly
+## The relevance gate, honestly
 
-Stage 2's gate is **≥ 0.90 recall@3 over ≥ 150 documents**. Current:
+Stage 2's relevance gate is **≥ 0.90 recall@3 over ≥ 150 documents**. Current:
 
 ```
-  MRR         0.8351
+  MRR         0.8374
   recall@1    0.7585
-  recall@3    0.8986      ← gate wants 0.90. One query of 207.
+  recall@3    0.9082      ← gate wants 0.90. Met, not comfortably met.
   recall@10   0.9662
 
   by kind          n   recall@1  recall@3       MRR
-  acronym          9     0.7778    0.8889    0.8611
-  cross-source    18     0.5000    0.8333    0.6704
-  misspelling     12     0.5000    0.7500    0.6333
-  natural         16     0.3125    0.5000    0.4273    ← now the weakest
-  phrase          78     0.8974    0.9744    0.9405
-  symbol          74     0.8108    0.9459    0.8817
+  acronym          9     0.5556    1.0000    0.7593
+  cross-source    18     0.5000    0.7778    0.6750
+  misspelling     12     0.5000    0.7500    0.6389
+  natural         16     0.3750    0.5000    0.4633    ← weakest
+  phrase          78     0.8974    0.9872    0.9395
+  symbol          74     0.8243    0.9595    0.8919
 ```
 
-**Not met.** Do not report Stage 2 as passing.
+**The relevance number is met; Stage 2 is not done.** The exit gate also requires the search *UI*
+and the P2-018 benchmark (< 100 ms on the benchmark corpus), and neither exists. S2-7..S2-12 remain.
 
-**And do not close it by picking the parameter that crosses it.** `length_penalty` 0.2 reaches
-0.9034 and costs `symbol` MRR (0.8817 → 0.8606). That is fitting the gate, not passing it, and the
-owner ranked symbol first. Re-labelling queries to make the number rise is worse: it destroys the
-one instrument here that cannot be rebuilt in seconds.
+**Do not close future gaps by picking the parameter that crosses a threshold.** During S2-5 a
+neighbour reached 0.9034 and was rejected for exactly that reason; S2-6 then cleared the gate with a
+configuration that won on a different objective and dominated on every column. Re-labelling queries
+to raise the number is worse — it destroys the one instrument here that cannot be rebuilt in
+seconds. Differences of one or two queries are inside the noise.
 
 ---
 
-## What S2-6 should do
+## What S2-7 should do
 
-Symbol-aware search (P2-015), scored by the same harness. `symbol` is 74 of the 207 queries and
-sits at 0.8108 recall@1 — the owner's stated priority, and the PRD's differentiator, because it is
-what an agent asks for over MCP.
+The search UI (P2-004/005/008/016/017): a search box in the app, a results list, scoping, history
+and keyboard handling. Everything below it already works and is measured — this is the first Stage 2
+ticket that is mostly frontend.
 
-**Read this first, it is the whole context for the ticket.** The `code` field contributes almost
-nothing. Removing it from the query entirely was a wash (13 worse, 15 better), and S2-4 duly
-measured its boost down — the neighbourhood check says dropping it to 0.5 is *better* than 1.0 on
-MRR. The reason is that on these platforms method names are **also headings**, so `headers` already
-carries them.
+Things the backend already gives you, and which the UI should not reinvent:
 
-So the tempting shape for S2-6 — more machinery layered on the code field — is building on
-something the measurements say is not load-bearing. The alternative worth weighing is making the
-code field earn its place: index symbols as their own field with their own extraction (declarations
-rather than every token in every code block), rather than boosting a field that currently holds
-undifferentiated code text.
+- **`SearchEngine::search`** returns `Hit { source, path, title, score, symbol_kind }`. The
+  `symbol_kind` is `Some(Function | Type | Trait | Module | Constant | Macro)` for a reference page
+  and `None` for prose — it is what lets a result list show `Vec [type]` without opening anything.
+- **`SearchEngine::suggest`** is "did you mean?", and costs ~2 µs on a correctly spelled query.
+  Show it; a search that silently answers a different question is worse than one that says what it
+  did.
+- **`@symbol`** already works in the query string. The UI should not need to parse it.
+- **Snippets (P2-005) cannot use Tantivy's `SnippetGenerator`** — it needs a stored field and the
+  schema deliberately stores no body. Re-read the page from `PageStore` and highlight there, which
+  is the better place anyway: the store holds structured nodes, so a snippet can respect block
+  boundaries instead of slicing raw text.
+- **Highlighting is a render concern, not an AST mutation**, and emits CSS classes rather than
+  colours, so a theme change needs no re-highlighting.
 
-Whatever shape is chosen, the harness will say whether it worked. Run the sweep and the gate; do
-not reason about symbol quality from examples.
-
+### The tuning target, still standing
 ### The tuning target, still standing
 
 **Owner decision (2026-07-29): optimise symbol lookup first.** It is what an agent asks for over
@@ -80,10 +84,13 @@ recall for misspelling recall.
 
 ### What is weakest now
 
-`natural` (0.4273 MRR), and it is a genuine tension rather than a bug: the pages that answer a
+`natural` (0.4633 MRR), and it is a genuine tension rather than a bug: the pages that answer a
 "how do I …" question in prose are the enormous single-page ones (`go:doc/faq`,
 `cargo:cargo/print.html`) that the length penalty exists to demote. Closing it probably needs
-passage-level retrieval, not another boost. Not S2-6's.
+passage-level retrieval, not another boost. Not S2-7's.
+
+`cross-source` (0.6750) is second and is partly a labelling artefact: a query three platforms answer
+equally well has three right answers, and the labels name a subset.
 
 ---
 
@@ -94,6 +101,7 @@ cargo test -p tome-core --test relevance -- --nocapture                      # t
 TOME_RELEVANCE_DUMP=1 cargo test -p tome-core --test relevance -- --nocapture   # top-5 for poor queries
 cargo test -p tome-core --test relevance --release -- --ignored --nocapture sweep   # tune
 cargo test -p tome-core --test relevance --release -- --ignored --nocapture fuzzy_cost  # latency
+cargo test -p tome-core --test relevance --release -- --ignored --nocapture symbol_extraction  # symbols
 TOME_UPDATE_BASELINE=1 cargo test -p tome-core --test relevance              # accept a change
 git diff -- crates/tome-core/corpus/relevance/baseline.json
 ```
@@ -139,5 +147,5 @@ the whole point.
 
 Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · arm64.
 `cargo-deny` installed; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the gate says so).
-412 workspace Rust tests + 66 Vitest. `npm audit` hits the live registry and fails the gate when
+435 workspace Rust tests + 66 Vitest. `npm audit` hits the live registry and fails the gate when
 npmjs.org is down — that is an outage, not a finding.

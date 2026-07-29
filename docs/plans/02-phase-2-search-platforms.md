@@ -896,42 +896,74 @@ pub async fn detect_platform(url: &str) -> Result<(DetectedPlatform, f32)> {
 Enhance search to recognize and prioritize code symbols.
 
 #### Acceptance Criteria
-- [ ] Recognize patterns: fn, struct, class, def, function
-- [ ] Symbol queries prioritize symbol matches
-- [ ] Syntax: `@symbol` forces symbol search
-- [ ] Extract symbols during indexing
-- [ ] Language-specific symbol patterns
-- [ ] Symbol type in results (function, type, module)
+- [x] Recognize patterns: fn, struct, class, def, function — and `func`, `type`, `trait`, `mod`,
+  `const`, `interface`, `macro`; see `SymbolKind::from_keyword`
+- [x] Symbol queries prioritize symbol matches — the page's **primary** symbol is a boosted field
+- [x] Syntax: `@symbol` forces symbol search
+- [x] Extract symbols during indexing
+- [x] Language-specific symbol patterns — rustdoc paths and titles, source-style signatures, Sphinx
+  definition terms, and Node's bare `os.cpus()` headings
+- [x] Symbol type in results (function, type, module) — `Hit::symbol_kind`, shown by `tome search`
 
 #### Technical Notes
-```rust
-// During indexing
-fn extract_symbols(code: &str, language: &str) -> Vec<Symbol> {
-    match language {
-        "rust" => extract_rust_symbols(code),
-        "python" => extract_python_symbols(code),
-        "javascript" | "typescript" => extract_js_symbols(code),
-        _ => vec![],
-    }
-}
 
-// Rust patterns
-fn extract_rust_symbols(code: &str) -> Vec<Symbol> {
-    let patterns = [
-        (r"fn\s+(\w+)", SymbolType::Function),
-        (r"struct\s+(\w+)", SymbolType::Type),
-        (r"enum\s+(\w+)", SymbolType::Type),
-        (r"trait\s+(\w+)", SymbolType::Trait),
-        (r"mod\s+(\w+)", SymbolType::Module),
-    ];
-    // Extract matches
-}
+**The declarations are not in the code blocks.** The sketch that used to sit here regexed
+`fn\s+(\w+)` out of code blocks, per language. Run over the 339-page relevance corpus, that finds
+2 821 declarations whose most common names are:
+
+```text
+main, buf, server, Foo, foo, __init__, char, import, myURL, req, options
 ```
 
+Those are the *examples'* scaffolding. The symbols users actually search for barely appear as
+declarations at all: `Vec` is declared once and mentioned 321 times, `with_capacity` is declared
+**never** and mentioned 30, `os.cpus` never. A symbol field filled from code blocks would fail this
+ticket's own "no false positives for prose" criterion.
+
+The patterns were right and the *place* was wrong. Documentation generators put signatures in
+**headings**:
+
+```text
+path : std/vec/struct.Vec.html
+title: Struct Vec
+h4   : pub fn with_capacity(capacity: usize) -> Vec<T>
+```
+
+So `search::symbols` reads three things, in descending order of trust: the **page path** (rustdoc
+encodes the kind in the filename — `struct.Vec.html`), the **title** (`Struct Vec`), and
+**headings** (signatures, Sphinx definition terms, and Node's bare `os.cpus()` form). This is also
+why S2-4 measured the `code` field as barely load-bearing — `headers` was already carrying the
+method names.
+
+**Two fields, because two different questions are being asked.**
+
+| Field | Holds | Used by |
+|---|---|---|
+| `symbol` | the page's **primary** symbol — one term | ordinary ranking, boosted |
+| `declarations` | **every** symbol the page declares | `@symbol` only |
+
+Blending *all* declarations was measured and is bad: at boost 3.0 it cost 0.08 MRR and made 39
+queries worse, because a rustdoc page declares `from`, `into`, `borrow`, `fmt` and `try_from` as
+trait boilerplate and a short field makes each a strong BM25 signal. Coordinate descent then drove
+that boost to **zero** — the eval set saying the field was worth nothing blended. Restricted to the
+primary symbol it earns 1.5 and lifts `symbol` MRR from 0.8815 to 0.8919. As an *explicit* filter
+the full set is exactly right: someone typing `@borrow` wants the pages that declare `borrow`.
+
+**Adding these fields changes the index schema**, so every existing library's index is unreadable
+until rebuilt. `Error::IndexSchemaOutdated` says so and names the remedy; a read command must not
+silently delete an index to recover.
+
 #### Success Metrics
-- "@Vec" finds struct Vec immediately
-- Symbol extraction covers 80%+ of common patterns
-- No false positives for prose
+- ✅ "@Vec" finds struct Vec immediately — and, unlike a boost, returns *only* pages that declare
+  it. Both a reference page and a prose page contain the word; `@` separates them
+- ✅ Symbol extraction covers 80%+ of common patterns — measured by `symbol_extraction_report`:
+  2 632 symbols across 84 rust-std pages, 1 765 across 82 Python pages, 918 across 42 Node pages.
+  Go's 21 pages yield 0 and Kubernetes' 55 yield 1, correctly — they are tutorials and concept
+  prose, and declare nothing
+- ✅ No false positives for prose — the report caught the one real case (`Trait Implementations`
+  became the symbol `Implementations` on 35 of 84 rust-std pages) and it is fixed and pinned by a
+  test. Prose headings — `Examples`, `Guarantees`, `Capacity and reallocation` — yield nothing
+- ✅ Relevance: `symbol` recall@1 0.8108 → **0.8243**, MRR 0.8817 → **0.8919**
 
 ---
 

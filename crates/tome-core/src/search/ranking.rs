@@ -34,6 +34,23 @@ pub struct Ranking {
     pub headers: f32,
     pub body: f32,
     pub code: f32,
+    /// Weight on the page's **primary** symbol — the one thing the page is a
+    /// reference page for (S2-6).
+    ///
+    /// A match here is unambiguous in a way no other field's is: `Vec` in
+    /// `symbol` means *this page documents Vec*, where `Vec` in `body` might
+    /// be one sentence mentioning it.
+    ///
+    /// It weights the primary symbol only, and the distinction was expensive
+    /// to learn. Indexing **every** declaration and blending that at 3.0 cost
+    /// 0.08 MRR and 39 queries — a rustdoc page declares `from`, `into`,
+    /// `borrow`, `fmt` and `try_from` as trait boilerplate, and a short field
+    /// makes each of those a strong BM25 signal. Coordinate descent then drove
+    /// the boost to **zero**, which is the eval set saying the field was worth
+    /// nothing. Restricted to the primary symbol it earns 1.5 and lifts
+    /// `symbol` MRR from 0.8815 to 0.8919. Every declaration is still indexed,
+    /// in `declarations`, and reachable only through `@symbol`.
+    pub symbols: f32,
 
     /// Body length, in tokens, above which [`length_penalty`](Self::length_penalty)
     /// starts to apply. Below it a document is untouched.
@@ -103,43 +120,50 @@ impl Ranking {
     ///
     /// | | before S2-4 | tuned |
     /// |---|---|---|
-    /// | MRR | 0.7489 | **0.8351** |
+    /// | MRR | 0.7489 | **0.8374** |
     /// | recall@1 | 0.6377 | **0.7585** |
-    /// | recall@3 | 0.8357 | **0.8986** |
-    /// | `symbol` MRR | 0.8384 | **0.8817** |
-    /// | `natural` MRR | 0.2419 | **0.4273** |
-    /// | `misspelling` MRR | 0.3125 | **0.6333** |
+    /// | recall@3 | 0.8357 | **0.9082** |
+    /// | `symbol` MRR | 0.8384 | **0.8919** |
+    /// | `natural` MRR | 0.2419 | **0.4633** |
+    /// | `misspelling` MRR | 0.3125 | **0.6389** |
     ///
-    /// **recall@3 is 0.8986 against the Stage 2 exit gate's 0.90 — one query
-    /// short of 207.** A neighbouring configuration (`length_penalty` 0.2)
-    /// does reach 0.9034, and it is *not* taken: choosing a parameter because
-    /// it crosses a threshold is fitting the gate rather than passing it, and
-    /// that one costs `symbol` MRR (0.8817 → 0.8606), which the owner ranked
-    /// first. The honest reading is that the gate is borderline and the
-    /// remaining gap is inside the noise of a 207-query corpus.
+    /// **recall@3 clears the Stage 2 exit gate of 0.90**, at 188 of 207
+    /// queries. It got there on the third try and the route matters: S2-4's
+    /// tuning reached 0.8744, S2-5's typo tolerance 0.8986, and S2-6's symbol
+    /// field 0.9082. At no point was a parameter chosen *because* it crossed
+    /// the threshold — an earlier candidate that did exactly that was rejected,
+    /// because fitting a gate is not passing it.
     ///
-    /// Three of these values look wrong and are not:
+    /// Four of these values look wrong and are not:
     ///
-    /// - **`title` is below `body`.** A title is a handful of tokens, so BM25's
-    ///   own length normalisation already multiplies it heavily; an explicit
-    ///   boost on top of that was double-counting, which is why 3.0 lost to
-    ///   0.75 in every pass.
-    /// - **`code` is below `headers`.** Measured, and consistent with the
-    ///   earlier finding that removing the code field entirely is nearly a
-    ///   wash — on these platforms method names are *also* headings.
+    /// - **`title` is well below `body`.** A title is a handful of tokens, so
+    ///   BM25's own length normalisation already multiplies it heavily; an
+    ///   explicit boost on top was double-counting, which is why 3.0 lost to
+    ///   0.5 in every pass.
+    /// - **`code` is the lowest of all.** Measured repeatedly: removing the
+    ///   field from the query entirely is close to a wash, because on these
+    ///   platforms method names are *also* headings.
+    /// - **`length_penalty` is large (1.6) with a high pivot (4 000).**
+    ///   Together they leave ordinary pages alone and fall steeply on the
+    ///   single-page book dumps. Lowering the pivot to 1 000 costs 0.21 MRR —
+    ///   the sharpest cliff anywhere in the parameter space, because at that
+    ///   point the penalty starts hitting pages that are merely thorough.
     /// - **`fuzzy_max_distance` is 2 although 1 scores identically.** No query
     ///   in the corpus distinguishes them, so there is nothing to justify
-    ///   deviating from P2-009's specified schedule. A corpus with longer
-    ///   words would separate them.
+    ///   deviating from P2-009's specified schedule.
+    ///
+    /// Differences of one or two queries between neighbouring configurations
+    /// are inside the noise of a 207-query corpus. Do not chase them.
     pub const TUNED: Self = Self {
-        title: 0.75,
-        headers: 1.5,
+        title: 0.5,
+        headers: 2.0,
         body: 1.0,
-        code: 1.0,
-        length_pivot: 2_000,
-        length_penalty: 0.4,
+        code: 0.5,
+        symbols: 1.5,
+        length_pivot: 4_000,
+        length_penalty: 1.6,
         stopwords: StopwordPolicy::Function,
-        fuzzy: 0.6,
+        fuzzy: 0.8,
         fuzzy_max_distance: 2,
     };
 
@@ -153,6 +177,7 @@ impl Ranking {
         headers: 2.0,
         body: 1.0,
         code: 1.5,
+        symbols: 0.0,
         length_pivot: 0,
         length_penalty: 0.0,
         stopwords: StopwordPolicy::None,

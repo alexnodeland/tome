@@ -59,6 +59,33 @@ pub struct Fields {
     /// Hierarchical facet (`/Python/Standard Library`) for category
     /// filtering.
     pub category: Field,
+    /// The name of the symbol this page is a reference page *for* (S2-6) —
+    /// `Vec` on `struct.Vec.html`, and nothing at all on a tutorial.
+    ///
+    /// One term per page, and that is the point. This is the field the ordinary
+    /// ranking blends, because a match in it means "this page is about the
+    /// thing you asked for", which is unambiguous in a way no other field is.
+    pub symbol: Field,
+    /// Every symbol the page declares, including the primary one.
+    ///
+    /// **Not searched by ordinary queries** — only by `@symbol` (P2-015).
+    /// Measured: blending it made relevance markedly worse, because a
+    /// reference page declares `from`, `into`, `borrow`, `fmt` and `try_from`
+    /// as trait boilerplate, and a short field makes each of those a strong
+    /// BM25 signal. As an explicit filter it is exactly right — someone typing
+    /// `@borrow` wants the pages that declare `borrow` — and as an implicit
+    /// boost it is noise. See `Ranking::symbols`.
+    pub declarations: Field,
+    /// What the page's primary symbol *is* — `function`, `type`, `module` —
+    /// for P2-015's "symbol type in results".
+    ///
+    /// **Stored but not indexed**, and only the *primary* symbol's kind, not
+    /// every symbol's. One short string per page rather than a list that grows
+    /// with the page: a result names one thing, and SPIKE-003 finding 2 makes
+    /// anything per-symbol a running cost. Indexing it would be nearly free
+    /// (six distinct values), and is deliberately not done until something
+    /// wants to filter by it — see P2-016.
+    pub symbol_kind: Field,
     /// The page's content hash, for incremental indexing (S2-3).
     ///
     /// **Stored but deliberately NOT indexed.** Nothing ever queries a hash by
@@ -84,6 +111,10 @@ pub fn build() -> (Schema, Fields) {
             .set_index_option(tantivy::schema::IndexRecordOption::WithFreqsAndPositions),
     );
 
+    // The symbol fields share the code tokenizer so that `with_capacity` is
+    // findable as `capacity` and `os.cpus` as `cpus`, the same way `code` is.
+    let symbol_options = code_options.clone();
+
     let fields = Fields {
         source_id: builder.add_text_field("source_id", STRING | STORED | FAST),
         path: builder.add_text_field("path", STRING | STORED),
@@ -92,6 +123,9 @@ pub fn build() -> (Schema, Fields) {
         body: builder.add_text_field("body", TEXT),
         code: builder.add_text_field("code", code_options),
         category: builder.add_facet_field("category", INDEXED),
+        symbol: builder.add_text_field("symbol", symbol_options.clone()),
+        declarations: builder.add_text_field("declarations", symbol_options),
+        symbol_kind: builder.add_text_field("symbol_kind", STORED),
         content_hash: builder.add_text_field("content_hash", STORED),
     };
 
@@ -117,6 +151,10 @@ mod tests {
             ("body", fields.body),
             ("code", fields.code),
             ("category", fields.category),
+            ("symbol", fields.symbol),
+            ("declarations", fields.declarations),
+            ("symbol_kind", fields.symbol_kind),
+            ("content_hash", fields.content_hash),
         ] {
             assert_eq!(schema.get_field(name).expect("field present"), field);
         }
@@ -135,7 +173,7 @@ mod tests {
             .collect();
         assert_eq!(
             stored,
-            vec!["source_id", "path", "title", "content_hash"],
+            vec!["source_id", "path", "title", "symbol_kind", "content_hash"],
             "only result-display fields and the sync key are stored"
         );
     }

@@ -148,6 +148,10 @@ fn walk(node: &Node, out: &mut Extracted) {
 ///
 /// Used for headings, where the whole point is to keep one heading's words in
 /// one value.
+pub(super) fn inline_text_for_symbols(node: &Node, out: &mut String) {
+    inline_text(node, out);
+}
+
 fn inline_text(node: &Node, out: &mut String) {
     match node {
         Node::Text { value } => push(out, value),
