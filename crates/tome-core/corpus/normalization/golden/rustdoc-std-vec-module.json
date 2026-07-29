@@ -20,21 +20,6 @@
         ]
       },
       {
-        "type": "text",
-        "value": "1.0.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/alloc/lib.rs.html#242",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "paragraph",
         "children": [
           {

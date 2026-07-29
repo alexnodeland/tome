@@ -20,21 +20,6 @@
         ]
       },
       {
-        "type": "text",
-        "value": "1.26.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/fs.rs.html#383-393",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "code_block",
         "language": null,
         "code": "pub fn read_to_string<P: AsRef<Path>>(path: P) -> Result<String>"

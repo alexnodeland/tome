@@ -14,8 +14,10 @@
 
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 
+use tome_core::model::SourceType;
 use tome_core::normalize::normalize;
-use tome_core::parse::parse_page;
+use tome_core::parse::parse_page_with;
+use tome_core::scrape::profile_for;
 use tome_testkit::Golden;
 use url::Url;
 
@@ -40,7 +42,17 @@ fn normalization_matches_the_golden_corpus() {
             // `body`), which is the path a generic source with no
             // `content_selector` takes, and therefore the one most pages
             // will actually go through.
-            let parsed = parse_page(&case.text(), &base_for(&case.name), None);
+            //
+            // The **platform profile** (S2-11) does come from the case name,
+            // because that is what the product does: a source declares its
+            // type and the crawler looks the profile up. Testing the profiles
+            // against the generic path would test them against nothing.
+            let parsed = parse_page_with(
+                &case.text(),
+                &base_for(&case.name),
+                None,
+                profile_for(platform_of(&case.name)),
+            );
             let normalized = normalize(parsed.body, &base_for(&case.name));
             // Pretty JSON so the diff on a change is line-oriented and
             // reviewable, not one giant line.
@@ -49,4 +61,21 @@ fn normalization_matches_the_golden_corpus() {
         .expect("running the golden corpus");
 
     assert!(report.is_ok(), "{report}");
+}
+
+/// The platform a corpus case came from, by filename prefix.
+///
+/// The corpus is named `<platform>-<what-is-interesting>.html` by convention
+/// (`corpus/README.md`), so this reads the convention rather than adding a
+/// manifest that would have to be kept in step with the directory.
+///
+/// Cases with no profile — Node, Hugo, go.dev — return `Generic`, which is
+/// also what those sources are configured as.
+fn platform_of(name: &str) -> SourceType {
+    match name.split('-').next() {
+        Some("sphinx") => SourceType::ReadTheDocs,
+        Some("rustdoc") => SourceType::Rustdoc,
+        Some("mdbook") => SourceType::MdBook,
+        _ => SourceType::Generic,
+    }
 }

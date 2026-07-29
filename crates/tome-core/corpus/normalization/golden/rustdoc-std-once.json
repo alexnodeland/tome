@@ -20,21 +20,6 @@
         ]
       },
       {
-        "type": "text",
-        "value": "1.0.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#35-37",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "code_block",
         "language": null,
         "code": "pub struct Once { /* private fields */ }"
@@ -201,17 +186,6 @@
         "id": "impl-Once"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#77-339",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -239,18 +213,7 @@
       },
       {
         "type": "text",
-        "value": "1.2.0 (const: 1.32.0) · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#83-85",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -312,18 +275,7 @@
       },
       {
         "type": "text",
-        "value": "1.0.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#156-167",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -570,18 +522,7 @@
       },
       {
         "type": "text",
-        "value": "1.51.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#216-227",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -932,18 +873,7 @@
       },
       {
         "type": "text",
-        "value": "1.43.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#272-274",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -1177,18 +1107,7 @@
       },
       {
         "type": "text",
-        "value": "1.86.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#301-305",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -1303,18 +1222,7 @@
       },
       {
         "type": "text",
-        "value": "1.86.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#314-318",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -1411,18 +1319,7 @@
       },
       {
         "type": "text",
-        "value": "1.16.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#342-346",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -1464,17 +1361,6 @@
       {
         "type": "anchor",
         "id": "method.fmt"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#343-345",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -1549,18 +1435,7 @@
       },
       {
         "type": "text",
-        "value": "1.59.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#43",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -1605,18 +1480,7 @@
       },
       {
         "type": "text",
-        "value": "1.59.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/std/sync/once.rs.html#40",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
+        "value": " · "
       },
       {
         "type": "heading",
@@ -1895,17 +1759,6 @@
         "id": "impl-Any-for-T"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/core/any.rs.html#141",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -1949,17 +1802,6 @@
       {
         "type": "anchor",
         "id": "method.type_id"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/any.rs.html#142",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2034,17 +1876,6 @@
         "id": "impl-Borrow%3CT%3E-for-T"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/core/borrow.rs.html#212",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2088,17 +1919,6 @@
       {
         "type": "anchor",
         "id": "method.borrow"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/borrow.rs.html#214",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2157,17 +1977,6 @@
         "id": "impl-BorrowMut%3CT%3E-for-T"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/core/borrow.rs.html#221",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2211,17 +2020,6 @@
       {
         "type": "anchor",
         "id": "method.borrow_mut"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/borrow.rs.html#222",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2280,17 +2078,6 @@
         "id": "impl-From%3CT%3E-for-T"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#786",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2319,17 +2106,6 @@
       {
         "type": "anchor",
         "id": "method.from"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#789",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2369,17 +2145,6 @@
       {
         "type": "anchor",
         "id": "impl-Into%3CU%3E-for-T"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#768-770",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2425,17 +2190,6 @@
       {
         "type": "anchor",
         "id": "method.into"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#778",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2502,17 +2256,6 @@
         "id": "impl-TryFrom%3CU%3E-for-T"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#828-830",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2558,17 +2301,6 @@
         "id": "associatedtype.Error-1"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#832",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 4,
         "id": null,
@@ -2612,17 +2344,6 @@
       {
         "type": "anchor",
         "id": "method.try_from"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#835",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2704,17 +2425,6 @@
         "id": "impl-TryInto%3CU%3E-for-T"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#812-814",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2758,17 +2468,6 @@
       {
         "type": "anchor",
         "id": "associatedtype.Error"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#816",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2829,17 +2528,6 @@
       {
         "type": "anchor",
         "id": "method.try_into"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/convert/mod.rs.html#819",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
       },
       {
         "type": "heading",

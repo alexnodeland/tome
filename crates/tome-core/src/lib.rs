@@ -19,6 +19,7 @@ pub mod fetch;
 pub mod hash;
 pub mod highlight;
 pub mod html;
+pub mod man;
 pub mod model;
 pub mod normalize;
 pub mod parse;
@@ -26,6 +27,7 @@ pub mod paths;
 pub mod pipeline;
 pub mod render;
 pub mod sanitize;
+pub mod scrape;
 pub mod search;
 pub mod store;
 

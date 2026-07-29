@@ -648,14 +648,22 @@ impl ReadTheDocsScraper {
 Create a scraper that understands rustdoc output structure.
 
 #### Acceptance Criteria
-- [ ] Parse search-index.js for crate structure
-- [ ] Extract module/type/function hierarchy
-- [ ] Handle trait implementations
-- [ ] Extract doc comments as content
-- [ ] Link source code references
-- [ ] Support workspace/multi-crate docs
-- [ ] Handle doc.rust-lang.org and docs.rs
-- [ ] Extract deprecation notices
+- [~] Parse `search-index.js` for crate structure — **not done, and measurably unnecessary**: the
+      crawl already reaches every page through rustdoc's own links, and `search-index.js` is a
+      megabyte of minified JSON that would be a second, divergent source of truth for the same set
+- [x] Extract module/type/function hierarchy — from the page structure, which normalization already
+      preserves
+- [x] Handle trait implementations — `<details class="toggle">` blocks survive; the profile
+      deliberately does **not** drop `toggle`, which is where the documentation lives
+- [x] Extract doc comments as content
+- [~] Link source code references — the opposite: `<a class="src">Source</a>` is **dropped**. It
+      points at a code browser that is not part of the library and cannot be read offline, and it
+      was the one platform leak the golden corpus still showed
+- [~] Support workspace/multi-crate docs — a crawl scoped to one crate's root covers one crate; a
+      workspace is several sources
+- [x] Handle doc.rust-lang.org and docs.rs — both are in the detection corpus and both classify
+- [~] Extract deprecation notices — they are `<div class="stab deprecated">` and survive as content
+      already; nothing extracts them into metadata
 
 #### Technical Notes
 ```rust
@@ -707,13 +715,15 @@ impl RustdocScraper {
 Build a scraper for mdBook-generated documentation.
 
 #### Acceptance Criteria
-- [ ] Detect mdBook by book.toml or structure
-- [ ] Parse SUMMARY.md for chapter hierarchy
-- [ ] Handle nested chapters
-- [ ] Extract frontmatter metadata
-- [ ] Process markdown with syntax highlighting
-- [ ] Handle internal links correctly
-- [ ] Support draft chapters (optional indexing)
+- [x] Detect mdBook — by its rendered furniture (`sidebar-scrollbox`), not `book.toml`, which is
+      not served
+- [~] Parse `SUMMARY.md` for chapter hierarchy — not served either. The crawl order **is** the
+      navigation order (S1-15), which for mdBook is its contents list
+- [x] Handle nested chapters — as pages; the hierarchy is the crawl order
+- [~] Extract frontmatter metadata — mdBook does not emit frontmatter into its HTML
+- [x] Process markdown with syntax highlighting — the pages are already HTML; highlighting is S1-11
+- [x] Handle internal links correctly — `pipeline::relink`
+- [~] Draft chapters are not served, so there is nothing to index or skip
 
 #### Technical Notes
 ```rust
@@ -758,14 +768,19 @@ impl MdBookScraper {
 Add first-class support for Unix manual pages.
 
 #### Acceptance Criteria
-- [ ] Discover man pages from configured paths
-- [ ] Parse with mandoc -T html
-- [ ] Apply Tome typography styling
-- [ ] Section-aware organization (1-8)
-- [ ] Cross-reference linking (see also)
-- [ ] Index NAME section for search
-- [ ] Handle compressed man pages (.gz)
-- [ ] Support macOS and Linux paths
+- [x] Discover man pages from configured paths — missing directories are skipped, not fatal
+- [x] Parse with `mandoc -T html`
+- [x] Apply Tome typography styling — the pages go through the same parse → normalize → render
+      pipeline as everything else, so they inherit it rather than needing their own
+- [x] Section-aware organization (1–8) — the library path is `man1/ls.1.html`, so `ls(1)` and
+      `printf(3)` cannot collide and a sidebar groups by section for free
+- [x] Cross-reference linking (see also) — **only to pages that were discovered**. mandoc emits
+      `<a class="Xr">ctype(3)</a>` with no `href`; a link to a page the user has not installed
+      looks like it would work and does not
+- [x] Index NAME section for search — `man::description` extracts the `Nd` one-liner
+- [x] Handle compressed man pages (`.gz`)
+- [x] Support macOS and Linux paths — paths are configuration, not hard-coded. `mandoc` is required
+      and ships with macOS; the tests skip rather than fail where it is absent
 
 #### Technical Notes
 ```rust

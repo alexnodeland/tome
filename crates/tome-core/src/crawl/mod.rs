@@ -29,7 +29,7 @@ use crate::config::SourceConfig;
 use crate::error::Error;
 use crate::fetch::{FetchOutcome, Fetcher};
 use crate::model::{DocPage, DocSet, Page, PagePath, TocEntry};
-use crate::parse::parse_page;
+use crate::parse::parse_page_with;
 use url_filter::UrlFilter;
 
 pub use url_filter::Scope;
@@ -71,6 +71,9 @@ pub struct Crawler<'a> {
     max_pages: u32,
     max_asset_bytes: u64,
     content_selector: Option<String>,
+    /// Platform furniture rules for this source's type (S2-11). `None` is the
+    /// generic path.
+    profile: Option<&'static crate::scrape::Profile>,
 }
 
 impl<'a> Crawler<'a> {
@@ -85,9 +88,11 @@ impl<'a> Crawler<'a> {
                 scraper.max_pages,
                 scraper.content_selector.clone(),
             ),
-            // ReadTheDocs / rustdoc / mdBook crawl with the generic defaults
-            // until their structure-aware scrapers land (Stage 2). A remote
-            // source with a URL is crawlable; the others are not.
+            // ReadTheDocs / rustdoc / mdBook crawl with the generic limits and
+            // no content selector: their content roots are already what the
+            // generic root selection finds (`role="main"` for Sphinx, `<main>`
+            // for the other two). What they *do* get is a furniture profile,
+            // below — see `crate::scrape` for why that is the whole difference.
             SourceSpec::ReadTheDocs { .. }
             | SourceSpec::Rustdoc { .. }
             | SourceSpec::MdBook { .. } => (4, 5000, None),
@@ -102,6 +107,7 @@ impl<'a> Crawler<'a> {
             max_pages,
             max_asset_bytes: config.fetch.max_asset_bytes,
             content_selector,
+            profile: crate::scrape::profile_for(config.spec.source_type()),
         })
     }
 
@@ -244,7 +250,15 @@ impl<'a> Crawler<'a> {
         }
 
         let html = String::from_utf8_lossy(&fetched.body);
-        let parsed = parse_page(&html, &fetched.final_url, self.content_selector.as_deref());
+        // The platform profile comes from the source's declared type, so a
+        // rustdoc source gets rustdoc's furniture rules without the user
+        // writing a selector. `None` is the generic path, unchanged.
+        let parsed = parse_page_with(
+            &html,
+            &fetched.final_url,
+            self.content_selector.as_deref(),
+            self.profile,
+        );
 
         let path = self.page_path(&fetched.final_url);
         let title = parsed.title.clone().unwrap_or_else(|| path.to_string());

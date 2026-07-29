@@ -85,6 +85,15 @@ pub enum Error {
     #[error("Search failed: {message}")]
     Search { message: String },
 
+    /// Rendering a manual page failed (S2-11, P2-013).
+    ///
+    /// Carries the message because the remedy is usually specific and
+    /// actionable — a missing `mandoc`, an unreadable directory — and because
+    /// nothing here is user content: a man page path is a system path, not
+    /// reading history.
+    #[error("Manual page: {message}")]
+    Man { message: String },
+
     /// The index on disk was written against a different schema.
     ///
     /// Its own variant rather than a [`Search`](Self::Search) with a tantivy
