@@ -25,10 +25,10 @@ a sandboxed iframe with a library sidebar, a page outline, and back/forward.
 hash changed (S2-2, S2-3), `tome search` queries it, ranking is tuned against a measured eval set
 (S2-4), misspelled queries are corrected and told about (S2-5), and `@symbol` searches declared
 symbols only (S2-6). The relevance eval **clears its 0.90 recall@3 gate at 0.9082** — 188 queries
-of 207, which is met rather than comfortably met. **Search works in the app too** (S2-7): Cmd+K
-opens a modal with snippets, scoping, history and full keyboard control. **Stage 2 is not
-finished**: S2-8..12 (in-page search, detection corpus, platform detection, scrapers, the P2-018
-benchmark) do not exist, and the Stage 2 exit gate wants that benchmark. **Sync, annotations, MCP,
+of 207, which is met rather than comfortably met. **Search works in the app too**: ⌘K opens a
+modal with snippets, scoping, history and full keyboard control (S2-7), and ⌘F finds within the
+open page (S2-8). **Stage 2 is not finished**: S2-9..12 (detection corpus, platform detection, the
+four scrapers, the P2-018 benchmark) do not exist, and the Stage 2 exit gate wants that benchmark. **Sync, annotations, MCP,
 and the local HTTP API do not exist at all.**
 When asked whether something works, check rather than assume — much of this repo still describes
 intent rather than behaviour.

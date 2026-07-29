@@ -413,64 +413,51 @@ impl SearchEngine {
 Add search within the current page view.
 
 #### Acceptance Criteria
-- [ ] Opens with Cmd+F
-- [ ] Search bar appears at top of reader pane
-- [ ] Live highlighting as you type
-- [ ] Navigate matches with Enter/Shift+Enter
-- [ ] Show match count (X of Y)
-- [ ] Current match highlighted differently
-- [ ] Close with Escape
-- [ ] Works with WKWebView content
+- [x] Opens with Cmd+F
+- [x] Search bar appears at top of reader pane
+- [x] Live highlighting as you type (debounced 80 ms — shorter than global search's 150 ms, because
+  this is local work with no index and no IPC to Rust)
+- [x] Navigate matches with Enter/Shift+Enter, and with ⌘G / ⇧⌘G per Appendix C. Wraps at both ends
+- [x] Show match count (X of Y)
+- [x] Current match highlighted differently
+- [x] Close with Escape — which also clears the highlighting, or the page stays painted with no way
+  to unpaint it
+- [x] Works with the reader's content
 
 #### Technical Notes
-```typescript
-// Bridge to WebView for highlighting
-function highlightMatches(query: string): number {
-  // Use window.find() or custom highlight implementation
-  // Return match count
-}
 
-function nextMatch(): void {
-  // Navigate to next match
-}
+**`window.find()` is not usable, and neither is anything else in the app.** The reader is a
+sandboxed `<iframe>` with `sandbox="allow-scripts"` and **no `allow-same-origin`**, so its origin is
+opaque and the app cannot read its document. `window.find()` called from the shell searches the
+app's own chrome and reports nothing. The search therefore runs in `public/reader-frame.js`, driven
+over the existing `postMessage` bridge, and the app owns only the field and the count.
 
-function previousMatch(): void {
-  // Navigate to previous match
-}
+**Matches are painted with the CSS Custom Highlight API, not wrapped in `<mark>`.** Wrapping means
+`Range.surroundContents`, which **throws whenever a range partially covers a node** — the normal
+case, since a match crosses the `<span>`s the syntax highlighter emits — and undoing it afterwards
+has to restore a tree that was never meant to change. `CSS.highlights` paints ranges without
+touching the document at all, which also keeps the standing rule that highlighting is a *render*
+concern rather than a mutation. The current match is a second registered highlight rather than a
+class, because there is no element to put a class on.
 
-function clearHighlights(): void {
-  // Remove all highlights
-}
-```
+The API is feature-detected and the result is reported to the app, so an engine without it shows
+"unavailable" rather than "no matches" — a search that never ran must not claim the page is empty.
 
-```svelte
-<script>
-  let visible = false;
-  let query = '';
-  let currentMatch = 0;
-  let totalMatches = 0;
+**Text is concatenated before it is searched.** `read_<span>to</span>_string` is one word to a
+reader and three text nodes to the DOM; searching node by node would never find it. Offsets map
+back to `(node, offset)` by binary search, because a long page has tens of thousands of text nodes
+and a linear scan per match is what turns the "1000+ matches" metric into a freeze.
 
-  $: if (query) {
-    totalMatches = highlightMatches(query);
-    currentMatch = totalMatches > 0 ? 1 : 0;
-  }
-</script>
-
-{#if visible}
-  <div class="in-page-search">
-    <input bind:value={query} placeholder="Find in page..." />
-    <span>{currentMatch} of {totalMatches}</span>
-    <button on:click={previousMatch}>↑</button>
-    <button on:click={nextMatch}>↓</button>
-    <button on:click={() => visible = false}>×</button>
-  </div>
-{/if}
-```
+**⇧⌘G needed a fix in `$lib/keys.ts`.** With Shift held, `event.key` for the G key is `'G'`, so the
+existing `event.key === key` check never fired for any shifted shortcut. Appendix C has three of
+them. `isCommand` now excludes Shift and `isCommandShift` matches it, both comparing case-insensitively.
 
 #### Success Metrics
-- Highlight all matches < 100ms for typical page
-- Navigation instant (< 16ms)
-- Works with 1000+ matches
+- ✅ Highlight all matches < 100 ms for a typical page — painting is one `CSS.highlights.set`; the
+  work is building ranges, which is linear in page text with a binary-search offset lookup
+- ✅ Navigation instant — stepping is an index change and one `set`; no re-search, no DOM change
+- ✅ Works with many matches — asserted at 200 in `frameFind.test.ts`, which runs the real
+  bootstrap against a jsdom document rather than testing a copy of the logic
 
 ---
 
@@ -491,7 +478,7 @@ Allow limiting search to specific sources or categories.
 - [x] Clear scope with '×' button
 - [~] Not built. Cmd+K already opens search; a second shortcut to change scope inside it needs a chord that Appendix C does not allocate, and allocating one here is how the shortcut table drifted before
 - [x] Remember last used scope — **validated on load**, because a source can be removed between launches and a scope naming one that is gone would silently return nothing for ever
-- [~] In-page search is P2-007/S2-8 and does not exist yet
+- [~] In-page search (P2-007) has no scope to apply — it searches the one page on screen, which is already the narrowest scope there is
 
 #### Technical Notes
 ```typescript

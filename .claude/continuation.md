@@ -1,6 +1,6 @@
-# Continuation — picking up at S2-8 (in-page search)
+# Continuation — picking up at S2-9 (detection corpus)
 
-**Written:** 2026-07-29, after S2-7 landed. **Rewrite or delete this file when S2-8 lands.**
+**Written:** 2026-07-29, after S2-8 landed. **Rewrite or delete this file when S2-9 lands.**
 
 In-flight state only: what is done, what is decided, what to do next. It deliberately carries **no**
 durable knowledge — mistakes and invariants live in [`.claude/traps.md`](traps.md), which does not go
@@ -19,10 +19,11 @@ stale. Do not let this file grow a "traps" section; an earlier one was deleted f
 | S2-5 ✅ | Fuzzy matching | `search/fuzzy.rs` — query correction, not `FuzzyTermQuery` |
 | S2-6 ✅ | Symbol-aware search | `search/symbols.rs` — from headings, not code blocks; `@symbol` |
 | S2-7 ✅ | Search UI | `SearchModal.svelte` + `src-tauri/src/search.rs` + `search/snippet.rs` |
-| **S2-8** | **In-page search (⌘F)** | **next** — and it lives in the *frame*, not the app |
-| S2-9..12 | detection corpus, platform detection, scrapers, benchmarks | |
+| S2-8 ✅ | In-page search (⌘F) | `FindBar.svelte` + find in `public/reader-frame.js` |
+| **S2-9** | **Detection corpus + harness** | **next** — the gate S2-10 is scored against |
+| S2-10..12 | platform detection, scrapers, benchmarks | |
 
-**Search now works from the CLI and in the app.** ⌘K opens the modal.
+**Search works from the CLI and in the app.** ⌘K opens the modal; ⌘F finds within the open page.
 
 ## The relevance gate, honestly
 
@@ -54,31 +55,32 @@ seconds. Differences of one or two queries are inside the noise.
 
 ---
 
-## What S2-8 should do
+## What S2-9 should do
 
-In-page search (P2-007, ⌘F) — find within the page currently open, with next/previous match.
+The **detection corpus and harness** (P2-020): labelled fixtures of real documentation pages, and a
+test that scores platform detection against them. It is to S2-10 exactly what S2-1's relevance eval
+was to S2-4/5/6 — the thing that makes the next ticket measurable instead of an opinion.
 
-**The one structural fact that decides the whole ticket:** the reader is a sandboxed `<iframe>`
-with `sandbox="allow-scripts"` and no `allow-same-origin`, so the app **cannot reach the frame's
-document**. `document.querySelector` from the shell finds nothing inside it. In-page search
-therefore lives in `public/reader-frame.js`, driven over the existing `postMessage` bridge
-(`src/lib/reader/bridge.ts`), with the app owning only the search *field*.
+**Build it before S2-10, not after.** That ordering was not negotiable for search and is not here.
+Every measured finding in Stage 2 so far came from a harness that existed before the code it
+scored: the query-parser defect, the code-block symbol defect, the "all declarations" regression.
+Each was invisible to inspection and obvious to the corpus.
 
-Consequences worth knowing before starting:
+Two lessons from S2-1 that transfer directly:
 
-- **The single-letter reading keys belong in the frame too**, and this is the ticket that finally
-  makes `$lib/keys.ts`'s note load-bearing: `J`, `K`, `G`, `[`, `]` must not fire while a text
-  field has focus, and the guard has to be written against the *frame's* `activeElement`, not the
-  app's. Appendix C allocates ⌘G / ⌘⇧G for next/previous match.
-- **Highlighting is a render concern, not an AST mutation**, and emits CSS classes rather than
-  colours — so a theme change needs no re-highlighting. In-page match highlighting should follow
-  the same rule rather than rewriting the DOM's text nodes.
-- `surroundContents` throws when a range partially covers a node, which is the normal case for a
-  match spanning an inline element. The plan's sample carries a comment about it; keep it.
+- **A corpus too small cannot discriminate.** At 26 documents, removing an entire indexed field
+  moved MRR by 0.0036 and tripped nothing; the metrics compressed near the top because there was
+  rarely a strong wrong answer to beat. Size the detection corpus so a *wrong* detector visibly
+  fails it, and prove that by perturbing a working one.
+- **Only pages whose licence permits alteration and redistribution may be committed** (the
+  SPIKE-010 gate), each recorded in a `SOURCES.md`. `corpus/relevance/pages/SOURCES.md` is the
+  pattern.
 
-`SearchModal.svelte` is global search and should not grow an in-page mode — different document,
-different keyboard rules, different lifetime.
+S2-11's four scrapers are the canonical fan-out — four parallel implementations, one interface, all
+scored against this corpus — so the corpus is on the critical path for the largest remaining chunk
+of Stage 2.
 
+### The tuning target, still standing
 ### The tuning target, still standing
 ### The tuning target, still standing
 ### The tuning target, still standing
@@ -152,5 +154,5 @@ the whole point.
 
 Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · arm64.
 `cargo-deny` installed; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the gate says so).
-459 workspace Rust tests + 101 Vitest. `npm audit` hits the live registry and fails the gate when
+459 workspace Rust tests + 136 Vitest. `npm audit` hits the live registry and fails the gate when
 npmjs.org is down — that is an outage, not a finding.

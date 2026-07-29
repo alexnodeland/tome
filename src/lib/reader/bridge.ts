@@ -27,6 +27,14 @@ export type FrameMessage =
   | { type: 'navigate'; href: string; modified: boolean }
   | { type: 'scrolledTo'; id: string; found: boolean }
   | {
+      type: 'findResults';
+      total: number;
+      /** 1-based, or 0 when there is no current match. */
+      index: number;
+      /** Whether the frame's engine can paint highlights at all. */
+      supported: boolean;
+    }
+  | {
       type: 'scroll';
       top: number;
       height: number;
@@ -45,6 +53,7 @@ export interface ReaderFrameHandlers {
     activeId: string | null;
   }) => void;
   onLoaded?: (height: number) => void;
+  onFindResults?: (state: { total: number; index: number; supported: boolean }) => void;
 }
 
 /**
@@ -149,6 +158,30 @@ export class ReaderFrame {
     return this.token;
   }
 
+  /**
+   * Find text in the displayed page (S2-8, P2-007).
+   *
+   * The search runs **inside the frame**, and it has to: the frame is
+   * `sandbox="allow-scripts"` with no `allow-same-origin`, so its origin is
+   * opaque and the app cannot read its document at all. `window.find()` in
+   * the app would search the app's chrome and find nothing.
+   *
+   * The result comes back asynchronously through `onFindResults` rather than
+   * as a return value, because every leg of this bridge is `postMessage`.
+   */
+  find(query: string): void {
+    this.send({ type: 'find', query });
+  }
+
+  /** Step to the next (`1`) or previous (`-1`) match. Wraps at both ends. */
+  findStep(direction: 1 | -1): void {
+    this.send({ type: 'findStep', direction });
+  }
+
+  findClear(): void {
+    this.send({ type: 'findClear' });
+  }
+
   scrollTo(id: string, behavior: ScrollBehavior = 'smooth'): void {
     this.send({ type: 'scrollTo', id, behavior });
   }
@@ -220,6 +253,13 @@ export class ReaderFrame {
         // fast sequence of navigations does not restore the wrong scroll
         // position from an earlier one.
         if (message.token === this.token) this.handlers.onLoaded?.(message.height);
+        break;
+      case 'findResults':
+        this.handlers.onFindResults?.({
+          total: message.total,
+          index: message.index,
+          supported: message.supported,
+        });
         break;
       case 'scrolledTo':
         break;
