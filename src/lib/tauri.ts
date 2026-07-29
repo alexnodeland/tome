@@ -79,3 +79,74 @@ export async function readPage(sourceId: string, path: string): Promise<ReaderPa
 export async function openExternal(url: string): Promise<void> {
   return invoke<void>('open_external', { url });
 }
+
+/**
+ * One run of snippet text.
+ *
+ * **Render `text` as a text node, never as HTML.** A snippet is crawled page
+ * content, and it is drawn in the *app's* DOM rather than the sandboxed
+ * reader frame — where the app's origin and its IPC layer are reachable. That
+ * is why the backend sends spans and a boolean instead of a marked-up string:
+ * there is no markup to escape because there is no markup. An `{@html}` here
+ * would be the shortest path from a crawled page to script running with the
+ * app's privileges.
+ */
+export interface SnippetSpan {
+  text: string;
+  matched: boolean;
+}
+
+/** What kind of thing a page documents, when it documents one (P2-015). */
+export type SymbolKind = 'function' | 'type' | 'trait' | 'module' | 'constant' | 'macro';
+
+export interface SearchHit {
+  source_id: string;
+  source_name: string;
+  path: string;
+  title: string;
+  score: number;
+  symbol_kind: SymbolKind | null;
+  snippet: SnippetSpan[];
+}
+
+/** A term the user typed that matched nothing, and what it probably meant. */
+export interface SearchSuggestion {
+  typed: string;
+  meant: string;
+}
+
+export interface SearchResponse {
+  hits: SearchHit[];
+  /** Always present, never null — no empty-case branch needed. */
+  suggestions: SearchSuggestion[];
+  elapsed_ms: number;
+  /** Whether the ranked list hit `limit`. There is no total count: getting one
+   *  needs a second uncapped pass, and an invented number is worse than none. */
+  truncated: boolean;
+}
+
+/**
+ * Search the library.
+ *
+ * `scope` limits results to one source. Prefixing a term with `@` searches
+ * declared symbols only — the backend parses that, so the UI passes the query
+ * through unchanged.
+ */
+export async function search(
+  query: string,
+  scope: string | null,
+  limit: number,
+): Promise<SearchResponse> {
+  return invoke<SearchResponse>('search', { query, scope, limit });
+}
+
+/**
+ * Whether a source id still exists.
+ *
+ * The search scope is remembered across launches, and a source can be removed
+ * between them. Without this the UI would silently return no results for ever,
+ * scoped to something that is gone.
+ */
+export async function sourceExists(sourceId: string): Promise<boolean> {
+  return invoke<boolean>('source_exists', { sourceId });
+}

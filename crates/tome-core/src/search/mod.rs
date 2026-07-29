@@ -40,6 +40,7 @@ pub mod extract;
 pub mod fuzzy;
 pub mod ranking;
 pub mod schema;
+pub mod snippet;
 pub mod symbols;
 pub mod tokenizer;
 
@@ -63,6 +64,7 @@ pub use extract::Extracted;
 pub use fuzzy::Suggestion;
 pub use ranking::{Ranking, StopwordPolicy};
 pub use schema::{Fields, CODE_TOKENIZER};
+pub use snippet::Span;
 pub use symbols::{Symbol, SymbolKind, Symbols};
 
 /// Writer memory budget, in bytes.
@@ -386,6 +388,34 @@ impl SearchEngine {
         parser.set_field_boost(self.fields.code, ranking.code);
         parser.set_field_boost(self.fields.symbol, ranking.symbols);
         parser
+    }
+
+    /// The terms a snippet should highlight for `query` (S2-7).
+    ///
+    /// Not the same as the raw words the user typed, and the difference is the
+    /// point: stopwords have been dropped, punctuation neutralised, `@` sigils
+    /// stripped, and typo corrections **added**. A snippet highlighting what
+    /// was typed rather than what was searched would leave `enviroment`
+    /// unmarked on a page that matched because of `environment`, which reads
+    /// as a result that has nothing to do with the query.
+    pub fn highlight_terms(&self, query: &str) -> Result<Vec<String>> {
+        let forced = forced_symbols(query);
+        let prepared = if forced.is_empty() {
+            Ranking::TUNED.stopwords.apply(&plain_text_query(query))
+        } else {
+            plain_text_query(&forced.join(" "))
+        };
+
+        let mut terms = self.query_terms(&prepared)?;
+        if forced.is_empty() {
+            let searcher = self.reader.searcher();
+            for suggestion in self.corrections_for(&searcher, &prepared, &Ranking::TUNED)? {
+                terms.push(suggestion.meant);
+            }
+        }
+        terms.sort();
+        terms.dedup();
+        Ok(terms)
     }
 
     /// "Did you mean?" for a query, as P2-009 asks for (S2-5).

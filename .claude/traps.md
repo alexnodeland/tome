@@ -272,6 +272,30 @@ a test written from the same misunderstanding as the code agrees with it. The go
   `rusqlite`'s `bundled` already compiles SQLite from C. **The syntect comment's "no C toolchain
   assumptions" claim was already inaccurate when it was written.**
 
+## Traps — the search UI
+
+- **A snippet is crawled page content, and it is drawn in the *app's* DOM.** The reader's HTML is
+  safe because it lives in a sandboxed iframe with an opaque origin; a snippet does not, so the
+  app's origin and its IPC bridge are reachable from it. That is why `search::snippet` returns
+  `Vec<Span>` — text plus a boolean — instead of a marked-up string, and why there is **no
+  `{@html}` in `SearchModal.svelte` and must never be one**. A test pins it by feeding a snippet
+  containing `<script>` and asserting no element is created.
+- **A debounce does not serialise requests.** A slow query issued at keystroke 3 can resolve after
+  a fast one issued at keystroke 5, and the results list would then answer a question the user has
+  finished changing. Every search carries a sequence number and a stale response is dropped.
+- **A remembered scope must be revalidated on load.** A source can be removed between launches, and
+  a scope naming one that is gone returns nothing for ever with no error anywhere — the same class
+  of silent-empty failure as trusting the database for what is indexed.
+- **Highlight the terms that were *searched*, not the ones that were typed.** After a typo
+  correction they differ, and marking `enviroment` marks nothing, so a correct result looks
+  unrelated to the query. `SearchEngine::highlight_terms` returns the searched set: stopwords
+  dropped, `@` sigils stripped, corrections added.
+- **`scrollIntoView` is not available in every DOM the app renders into.** jsdom has no layout and
+  so no scrolling. An unguarded call from a *cosmetic* scroll produced a real unhandled rejection.
+- **A `#[tauri::command]` cannot be unit-tested**, because `tauri::State` cannot be constructed.
+  Commands here are thin wrappers over plain functions taking `&Paths`; a command that does its
+  work inline is a command that is never tested.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

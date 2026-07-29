@@ -10,6 +10,7 @@
 use tome_core::Paths;
 
 mod reader;
+mod search;
 
 /// Where this library lives on disk. Exposed so the UI can show it and so an
 /// integration test can assert the app and the CLI agree.
@@ -81,6 +82,8 @@ pub fn run() {
             reader::list_pages,
             reader::read_page,
             reader::open_external,
+            search::search,
+            search::source_exists,
         ])
         .run(tauri::generate_context!());
 
