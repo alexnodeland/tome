@@ -1,0 +1,4346 @@
+{
+  "title": "4. More Control Flow Tools",
+  "description": "As well as the while statement just introduced, Python uses a few more that we will encounter in this chapter.",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "anchor",
+        "id": "more-control-flow-tools"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-morecontrol"
+      },
+      {
+        "type": "heading",
+        "level": 1,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4. More Control Flow Tools"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "As well as the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#while",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "while"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement just introduced, Python uses a few more that we will encounter in this chapter."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "if-statements"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-if"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.1. "
+          },
+          {
+            "type": "inline_code",
+            "code": "if"
+          },
+          {
+            "type": "text",
+            "value": " Statements"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Perhaps the most well-known statement type is the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#if",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "if"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement. For example:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> x = int(input(\"Please enter an integer: \"))\nPlease enter an integer: 42\n>>> if x < 0:\n...     x = 0\n...     print('Negative changed to zero')\n... elif x == 0:\n...     print('Zero')\n... elif x == 1:\n...     print('Single')\n... else:\n...     print('More')\n...\nMore"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "There can be zero or more "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#elif",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "elif"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " parts, and the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#else",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "else"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " part is optional. The keyword ‘"
+          },
+          {
+            "type": "inline_code",
+            "code": "elif"
+          },
+          {
+            "type": "text",
+            "value": "’ is short for ‘else if’, and is useful to avoid excessive indentation. An "
+          },
+          {
+            "type": "inline_code",
+            "code": "if"
+          },
+          {
+            "type": "text",
+            "value": " … "
+          },
+          {
+            "type": "inline_code",
+            "code": "elif"
+          },
+          {
+            "type": "text",
+            "value": " … "
+          },
+          {
+            "type": "inline_code",
+            "code": "elif"
+          },
+          {
+            "type": "text",
+            "value": " … sequence is a substitute for the "
+          },
+          {
+            "type": "inline_code",
+            "code": "switch"
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "inline_code",
+            "code": "case"
+          },
+          {
+            "type": "text",
+            "value": " statements found in other languages."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If you’re comparing the same value to several constants, or checking for specific types or attributes, you may also find the "
+          },
+          {
+            "type": "inline_code",
+            "code": "match"
+          },
+          {
+            "type": "text",
+            "value": " statement useful. For more details see "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/sphinx-python-controlflow.html#tut-match",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "match Statements"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "for-statements"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-for"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.2. "
+          },
+          {
+            "type": "inline_code",
+            "code": "for"
+          },
+          {
+            "type": "text",
+            "value": " Statements"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#for",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "for"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement in Python differs a bit from what you may be used to in C or Pascal. Rather than always iterating over an arithmetic progression of numbers (like in Pascal), or giving the user the ability to define both the iteration step and halting condition (as C), Python’s "
+          },
+          {
+            "type": "inline_code",
+            "code": "for"
+          },
+          {
+            "type": "text",
+            "value": " statement iterates over the items of any sequence (a list or a string), in the order that they appear in the sequence. For example (no pun intended):"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> # Measure some strings:\n>>> words = ['cat', 'window', 'defenestrate']\n>>> for w in words:\n...     print(w, len(w))\n...\ncat 3\nwindow 6\ndefenestrate 12"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Code that modifies a collection while iterating over that same collection can be tricky to get right. Instead, it is usually more straight-forward to loop over a copy of the collection or to create a new collection:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "# Create a sample collection\nusers = {'Hans': 'active', 'Éléonore': 'inactive', '景太郎': 'active'}\n\n# Strategy:  Iterate over a copy\nfor user, status in users.copy().items():\n    if status == 'inactive':\n        del users[user]\n\n# Strategy:  Create a new collection\nactive_users = {}\nfor user, status in users.items():\n    if status == 'active':\n        active_users[user] = status"
+      },
+      {
+        "type": "anchor",
+        "id": "the-range-function"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-range"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.3. The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#range",
+            "title": "range",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "range()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " Function"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If you do need to iterate over a sequence of numbers, the built-in function "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#range",
+            "title": "range",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "range()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " comes in handy. It generates arithmetic progressions:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> for i in range(5):\n...     print(i)\n...\n0\n1\n2\n3\n4"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The given end point is never part of the generated sequence; "
+          },
+          {
+            "type": "inline_code",
+            "code": "range(10)"
+          },
+          {
+            "type": "text",
+            "value": " generates 10 values, the legal indices for items of a sequence of length 10. It is possible to let the range start at another number, or to specify a different increment (even negative; sometimes this is called the ‘step’):"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> list(range(5, 10))\n[5, 6, 7, 8, 9]\n\n>>> list(range(0, 10, 3))\n[0, 3, 6, 9]\n\n>>> list(range(-10, -100, -30))\n[-10, -40, -70]"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "To iterate over the indices of a sequence, you can combine "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#range",
+            "title": "range",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "range()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/functions.html#len",
+            "title": "len",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "len()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " as follows:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> a = ['Mary', 'had', 'a', 'little', 'lamb']\n>>> for i in range(len(a)):\n...     print(i, a[i])\n...\n0 Mary\n1 had\n2 a\n3 little\n4 lamb"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In most such cases, however, it is convenient to use the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/functions.html#enumerate",
+            "title": "enumerate",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "enumerate()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " function, see "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/datastructures.html#tut-loopidioms",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Looping Techniques"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A strange thing happens if you just print a range:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> range(10)\nrange(0, 10)"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In many ways the object returned by "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#range",
+            "title": "range",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "range()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " behaves as if it is a list, but in fact it isn’t. It is an object which returns the successive items of the desired sequence when you iterate over it, but it doesn’t really make the list, thus saving space."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "We say such an object is "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/glossary.html#term-iterable",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "iterable"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", that is, suitable as a target for functions and constructs that expect something from which they can obtain successive items until the supply is exhausted. We have seen that the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#for",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "for"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement is such a construct, while an example of a function that takes an iterable is "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/functions.html#sum",
+            "title": "sum",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "sum()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ":"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> sum(range(4))  # 0 + 1 + 2 + 3\n6"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Later we will see more functions that return iterables and take iterables as arguments. In chapter "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/datastructures.html#tut-structures",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Data Structures"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", we will discuss "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#list",
+            "title": "list",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "list()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " in more detail."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "break-and-continue-statements"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-break"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.4. "
+          },
+          {
+            "type": "inline_code",
+            "code": "break"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "continue"
+          },
+          {
+            "type": "text",
+            "value": " Statements"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#break",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "break"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement breaks out of the innermost enclosing "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#for",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "for"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#while",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "while"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " loop:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> for n in range(2, 10):\n...     for x in range(2, n):\n...         if n % x == 0:\n...             print(f\"{n} equals {x} * {n//x}\")\n...             break\n...\n4 equals 2 * 2\n6 equals 2 * 3\n8 equals 2 * 4\n9 equals 3 * 3"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#continue",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "continue"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement continues with the next iteration of the loop:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> for num in range(2, 10):\n...     if num % 2 == 0:\n...         print(f\"Found an even number {num}\")\n...         continue\n...     print(f\"Found an odd number {num}\")\n...\nFound an even number 2\nFound an odd number 3\nFound an even number 4\nFound an odd number 5\nFound an even number 6\nFound an odd number 7\nFound an even number 8\nFound an odd number 9"
+      },
+      {
+        "type": "anchor",
+        "id": "else-clauses-on-loops"
+      },
+      {
+        "type": "anchor",
+        "id": "break-and-continue-statements-and-else-clauses-on-loops"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-for-else"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.5. "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " Clauses on Loops"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In a "
+          },
+          {
+            "type": "inline_code",
+            "code": "for"
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "inline_code",
+            "code": "while"
+          },
+          {
+            "type": "text",
+            "value": " loop the "
+          },
+          {
+            "type": "inline_code",
+            "code": "break"
+          },
+          {
+            "type": "text",
+            "value": " statement may be paired with an "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause. If the loop finishes without executing the "
+          },
+          {
+            "type": "inline_code",
+            "code": "break"
+          },
+          {
+            "type": "text",
+            "value": ", the "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause executes."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#for",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "for"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " loop, the "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause is executed after the loop finishes its final iteration, that is, if no break occurred."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#while",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "while"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " loop, it’s executed after the loop’s condition becomes false."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In either kind of loop, the "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause is "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "value": "not"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " executed if the loop was terminated by a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#break",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "break"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". Of course, other ways of ending the loop early, such as a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#return",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "return"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " or a raised exception, will also skip execution of the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#else",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "else"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " clause."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This is exemplified in the following "
+          },
+          {
+            "type": "inline_code",
+            "code": "for"
+          },
+          {
+            "type": "text",
+            "value": " loop, which searches for prime numbers:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> for n in range(2, 10):\n...     for x in range(2, n):\n...         if n % x == 0:\n...             print(n, 'equals', x, '*', n//x)\n...             break\n...     else:\n...         # loop fell through without finding a factor\n...         print(n, 'is a prime number')\n...\n2 is a prime number\n3 is a prime number\n4 equals 2 * 2\n5 is a prime number\n6 equals 2 * 3\n7 is a prime number\n8 equals 2 * 4\n9 equals 3 * 3"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "(Yes, this is the correct code. Look closely: the "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause belongs to the "
+          },
+          {
+            "type": "inline_code",
+            "code": "for"
+          },
+          {
+            "type": "text",
+            "value": " loop, "
+          },
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "value": "not"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " the "
+          },
+          {
+            "type": "inline_code",
+            "code": "if"
+          },
+          {
+            "type": "text",
+            "value": " statement.)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "One way to think of the else clause is to imagine it paired with the "
+          },
+          {
+            "type": "inline_code",
+            "code": "if"
+          },
+          {
+            "type": "text",
+            "value": " inside the loop. As the loop executes, it will run a sequence like if/if/if/else. The "
+          },
+          {
+            "type": "inline_code",
+            "code": "if"
+          },
+          {
+            "type": "text",
+            "value": " is inside the loop, encountered a number of times. If the condition is ever true, a "
+          },
+          {
+            "type": "inline_code",
+            "code": "break"
+          },
+          {
+            "type": "text",
+            "value": " will happen. If the condition is never true, the "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause outside the loop will execute."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "When used with a loop, the "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause has more in common with the "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause of a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#try",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "try"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement than it does with that of "
+          },
+          {
+            "type": "inline_code",
+            "code": "if"
+          },
+          {
+            "type": "text",
+            "value": " statements: a "
+          },
+          {
+            "type": "inline_code",
+            "code": "try"
+          },
+          {
+            "type": "text",
+            "value": " statement’s "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause runs when no exception occurs, and a loop’s "
+          },
+          {
+            "type": "inline_code",
+            "code": "else"
+          },
+          {
+            "type": "text",
+            "value": " clause runs when no "
+          },
+          {
+            "type": "inline_code",
+            "code": "break"
+          },
+          {
+            "type": "text",
+            "value": " occurs. For more on the "
+          },
+          {
+            "type": "inline_code",
+            "code": "try"
+          },
+          {
+            "type": "text",
+            "value": " statement and exceptions, see "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/errors.html#tut-handling",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Handling Exceptions"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "pass-statements"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-pass"
+      },
+      {
+        "type": "anchor",
+        "id": "index-1"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.6. "
+          },
+          {
+            "type": "inline_code",
+            "code": "pass"
+          },
+          {
+            "type": "text",
+            "value": " Statements"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#pass",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "pass"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement does nothing. It can be used when a statement is required syntactically but the program requires no action. For example:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> while True:\n...     pass  # Busy-wait for keyboard interrupt (Ctrl+C)\n..."
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This is commonly used for creating minimal classes:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> class MyEmptyClass:\n...     pass\n..."
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Another place "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#pass",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "pass"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " can be used is as a place-holder for a function or conditional body when you are working on new code, allowing you to keep thinking at a more abstract level. The "
+          },
+          {
+            "type": "inline_code",
+            "code": "pass"
+          },
+          {
+            "type": "text",
+            "value": " is silently ignored:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def initlog(*args):\n...     pass   # Remember to implement this!\n..."
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For this last case, many people use the ellipsis literal "
+          },
+          {
+            "type": "inline_code",
+            "code": "..."
+          },
+          {
+            "type": "text",
+            "value": " instead of "
+          },
+          {
+            "type": "inline_code",
+            "code": "pass"
+          },
+          {
+            "type": "text",
+            "value": ". This use has no special meaning to Python, and is not part of the language definition (you could use any constant expression here), but "
+          },
+          {
+            "type": "inline_code",
+            "code": "..."
+          },
+          {
+            "type": "text",
+            "value": " is used conventionally as a placeholder body as well. See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#bltin-ellipsis-object",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "The Ellipsis Object"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "match-statements"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-match"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.7. "
+          },
+          {
+            "type": "inline_code",
+            "code": "match"
+          },
+          {
+            "type": "text",
+            "value": " Statements"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#match",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "match"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement takes an expression and compares its value to successive patterns given as one or more case blocks. This is superficially similar to a switch statement in C, Java or JavaScript (and many other languages), but it’s more similar to pattern matching in languages like Rust or Haskell. Only the first pattern that matches gets executed and it can also extract components (sequence elements or object attributes) from the value into variables. If no case matches, none of the branches is executed."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The simplest form compares a subject value against one or more literals:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def http_error(status):\n    match status:\n        case 400:\n            return \"Bad request\"\n        case 404:\n            return \"Not found\"\n        case 418:\n            return \"I'm a teapot\"\n        case _:\n            return \"Something's wrong with the internet\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Note the last block: the “variable name” "
+          },
+          {
+            "type": "inline_code",
+            "code": "_"
+          },
+          {
+            "type": "text",
+            "value": " acts as a "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "wildcard"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " and never fails to match."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "You can combine several literals in a single pattern using "
+          },
+          {
+            "type": "inline_code",
+            "code": "|"
+          },
+          {
+            "type": "text",
+            "value": " (“or”):"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "case 401 | 403 | 404:\n    return \"Not allowed\""
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Patterns can look like unpacking assignments, and can be used to bind variables:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "# point is an (x, y) tuple\nmatch point:\n    case (0, 0):\n        print(\"Origin\")\n    case (0, y):\n        print(f\"Y={y}\")\n    case (x, 0):\n        print(f\"X={x}\")\n    case (x, y):\n        print(f\"X={x}, Y={y}\")\n    case _:\n        raise ValueError(\"Not a point\")"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Study that one carefully! The first pattern has two literals, and can be thought of as an extension of the literal pattern shown above. But the next two patterns combine a literal and a variable, and the variable "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "binds"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " a value from the subject ("
+          },
+          {
+            "type": "inline_code",
+            "code": "point"
+          },
+          {
+            "type": "text",
+            "value": "). The fourth pattern captures two values, which makes it conceptually similar to the unpacking assignment "
+          },
+          {
+            "type": "inline_code",
+            "code": "(x, y) = point"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If you are using classes to structure your data you can use the class name followed by an argument list resembling a constructor, but with the ability to capture attributes into variables:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "class Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\ndef where_is(point):\n    match point:\n        case Point(x=0, y=0):\n            print(\"Origin\")\n        case Point(x=0, y=y):\n            print(f\"Y={y}\")\n        case Point(x=x, y=0):\n            print(f\"X={x}\")\n        case Point():\n            print(\"Somewhere else\")\n        case _:\n            print(\"Not a point\")"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "You can use positional parameters with some builtin classes that provide an ordering for their attributes (e.g. dataclasses). You can also define a specific position for attributes in patterns by setting the "
+          },
+          {
+            "type": "inline_code",
+            "code": "__match_args__"
+          },
+          {
+            "type": "text",
+            "value": " special attribute in your classes. If it’s set to (“x”, “y”), the following patterns are all equivalent (and all bind the "
+          },
+          {
+            "type": "inline_code",
+            "code": "y"
+          },
+          {
+            "type": "text",
+            "value": " attribute to the "
+          },
+          {
+            "type": "inline_code",
+            "code": "var"
+          },
+          {
+            "type": "text",
+            "value": " variable):"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "Point(1, var)\nPoint(1, y=var)\nPoint(x=1, y=var)\nPoint(y=var, x=1)"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A recommended way to read patterns is to look at them as an extended form of what you would put on the left of an assignment, to understand which variables would be set to what. Only the standalone names (like "
+          },
+          {
+            "type": "inline_code",
+            "code": "var"
+          },
+          {
+            "type": "text",
+            "value": " above) are assigned to by a match statement. Dotted names (like "
+          },
+          {
+            "type": "inline_code",
+            "code": "foo.bar"
+          },
+          {
+            "type": "text",
+            "value": "), attribute names (the "
+          },
+          {
+            "type": "inline_code",
+            "code": "x="
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "y="
+          },
+          {
+            "type": "text",
+            "value": " above) or class names (recognized by the “(…)” next to them like "
+          },
+          {
+            "type": "inline_code",
+            "code": "Point"
+          },
+          {
+            "type": "text",
+            "value": " above) are never assigned to."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Patterns can be arbitrarily nested. For example, if we have a short list of Points, with "
+          },
+          {
+            "type": "inline_code",
+            "code": "__match_args__"
+          },
+          {
+            "type": "text",
+            "value": " added, we could match it like this:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "class Point:\n    __match_args__ = ('x', 'y')\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\nmatch points:\n    case []:\n        print(\"No points\")\n    case [Point(0, 0)]:\n        print(\"The origin\")\n    case [Point(x, y)]:\n        print(f\"Single point {x}, {y}\")\n    case [Point(0, y1), Point(0, y2)]:\n        print(f\"Two on the Y axis at {y1}, {y2}\")\n    case _:\n        print(\"Something else\")"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "We can add an "
+          },
+          {
+            "type": "inline_code",
+            "code": "if"
+          },
+          {
+            "type": "text",
+            "value": " clause to a pattern, known as a “guard”. If the guard is false, "
+          },
+          {
+            "type": "inline_code",
+            "code": "match"
+          },
+          {
+            "type": "text",
+            "value": " goes on to try the next case block. Note that value capture happens before the guard is evaluated:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "match point:\n    case Point(x, y) if x == y:\n        print(f\"Y=X at {x}\")\n    case Point(x, y):\n        print(f\"Not on the diagonal\")"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Several other key features of this statement:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Like unpacking assignments, tuple and list patterns have exactly the same meaning and actually match arbitrary sequences. An important exception is that they don’t match iterators or strings."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Sequence patterns support extended unpacking: "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "[x, y, *rest]"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "(x, y,\n*rest)"
+                  },
+                  {
+                    "type": "text",
+                    "value": " work similar to unpacking assignments. The name after "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "*"
+                  },
+                  {
+                    "type": "text",
+                    "value": " may also be "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "_"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", so "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "(x, y, *_)"
+                  },
+                  {
+                    "type": "text",
+                    "value": " matches a sequence of at least two items without binding the remaining items."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Mapping patterns: "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "{\"bandwidth\": b, \"latency\": l}"
+                  },
+                  {
+                    "type": "text",
+                    "value": " captures the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "\"bandwidth\""
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "\"latency\""
+                  },
+                  {
+                    "type": "text",
+                    "value": " values from a dictionary. Unlike sequence patterns, extra keys are ignored. An unpacking like "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "**rest"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is also supported. (But "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "**_"
+                  },
+                  {
+                    "type": "text",
+                    "value": " would be redundant, so it is not allowed.)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Subpatterns may be captured using the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "as"
+                  },
+                  {
+                    "type": "text",
+                    "value": " keyword:"
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": "python",
+                "code": "case (Point(x1, y1), Point(x2, y2) as p2): ..."
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "will capture the second element of the input as "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "p2"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (as long as the input is a sequence of two points)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Most literals are compared by equality, however the singletons "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "True"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "False"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "None"
+                  },
+                  {
+                    "type": "text",
+                    "value": " are compared by identity."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Patterns may use named constants. These must be dotted names to prevent them from being interpreted as capture variables:"
+                  }
+                ]
+              },
+              {
+                "type": "code_block",
+                "language": "python",
+                "code": "from enum import Enum\nclass Color(Enum):\n    RED = 'red'\n    GREEN = 'green'\n    BLUE = 'blue'\n\ncolor = Color(input(\"Enter your choice of 'red', 'blue' or 'green': \"))\n\nmatch color:\n    case Color.RED:\n        print(\"I see red!\")\n    case Color.GREEN:\n        print(\"Grass is green\")\n    case Color.BLUE:\n        print(\"I'm feeling the blues :(\")"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For a more detailed explanation and additional examples, you can look into "
+          },
+          {
+            "type": "anchor",
+            "id": "index-2"
+          },
+          {
+            "type": "link",
+            "href": "https://peps.python.org/pep-0636/",
+            "title": null,
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "PEP 636"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " which is written in a tutorial format."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "defining-functions"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-functions"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.8. Defining Functions"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "We can create a function that writes the Fibonacci series to an arbitrary boundary:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def fib(n):    # write Fibonacci series less than n\n...     \"\"\"Print a Fibonacci series less than n.\"\"\"\n...     a, b = 0, 1\n...     while a < n:\n...         print(a, end=' ')\n...         a, b = b, a+b\n...     print()\n...\n>>> # Now call the function we just defined:\n>>> fib(2000)\n0 1 1 2 3 5 8 13 21 34 55 89 144 233 377 610 987 1597"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The keyword "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#def",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "def"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " introduces a function "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "definition"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". It must be followed by the function name and the parenthesized list of formal parameters. The statements that form the body of the function start at the next line, and must be indented."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The first statement of the function body can optionally be a string literal; this string literal is the function’s documentation string, or "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "docstring"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". (More about docstrings can be found in the section "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/sphinx-python-controlflow.html#tut-docstrings",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Documentation Strings"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ".) There are tools which use docstrings to automatically produce online or printed documentation, or to let the user interactively browse through code; it’s good practice to include docstrings in code that you write, so make a habit of it."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "execution"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " of a function introduces a new symbol table used for the local variables of the function. More precisely, all variable assignments in a function store the value in the local symbol table; whereas variable references first look in the local symbol table, then in the local symbol tables of enclosing functions, then in the global symbol table, and finally in the table of built-in names. Thus, global variables and variables of enclosing functions cannot be directly assigned a value within a function (unless, for global variables, named in a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#global",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "global"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement, or, for variables of enclosing functions, named in a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#nonlocal",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "nonlocal"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement), although they may be referenced."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The actual parameters (arguments) to a function call are introduced in the local symbol table of the called function when it is called; thus, arguments are passed using "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "call by value"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " (where the "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "value"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is always an object "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "reference"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", not the value of the object). "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/sphinx-python-controlflow.html#id2",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "[1"
+              },
+              {
+                "type": "text",
+                "value": "]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " When a function calls another function, or calls itself recursively, a new local symbol table is created for that call."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A function definition associates the function name with the function object in the current symbol table. The interpreter recognizes the object pointed to by that name as a user-defined function. Other names can also point to that same function object and can also be used to access the function:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> fib\n<function fib at 10042ed0>\n>>> f = fib\n>>> f(100)\n0 1 1 2 3 5 8 13 21 34 55 89"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Coming from other languages, you might object that "
+          },
+          {
+            "type": "inline_code",
+            "code": "fib"
+          },
+          {
+            "type": "text",
+            "value": " is not a function but a procedure since it doesn’t return a value. In fact, even functions without a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/simple_stmts.html#return",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "return"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement do return a value, albeit a rather boring one. This value is called "
+          },
+          {
+            "type": "inline_code",
+            "code": "None"
+          },
+          {
+            "type": "text",
+            "value": " (it’s a built-in name). Writing the value "
+          },
+          {
+            "type": "inline_code",
+            "code": "None"
+          },
+          {
+            "type": "text",
+            "value": " is normally suppressed by the interpreter if it would be the only value written. You can see it if you really want to using "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/functions.html#print",
+            "title": "print",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "print()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ":"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> fib(0)\n>>> print(fib(0))\nNone"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "It is simple to write a function that returns a list of the numbers of the Fibonacci series, instead of printing it:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def fib2(n):  # return Fibonacci series up to n\n...     \"\"\"Return a list containing the Fibonacci series up to n.\"\"\"\n...     result = []\n...     a, b = 0, 1\n...     while a < n:\n...         result.append(a)    # see below\n...         a, b = b, a+b\n...     return result\n...\n>>> f100 = fib2(100)    # call it\n>>> f100                # write the result\n[0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This example, as usual, demonstrates some new Python features:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "The "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/simple_stmts.html#return",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "return"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " statement returns with a value from a function. "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "return"
+                  },
+                  {
+                    "type": "text",
+                    "value": " without an expression argument returns "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "None"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Falling off the end of a function also returns "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "None"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "The statement "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "result.append(a)"
+                  },
+                  {
+                    "type": "text",
+                    "value": " calls a "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "method"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " of the list object "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "result"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". A method is a function that ‘belongs’ to an object and is named "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "obj.methodname"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", where "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "obj"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is some object (this may be an expression), and "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "methodname"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is the name of a method that is defined by the object’s type. Different types define different methods. Methods of different types may have the same name without causing ambiguity. (It is possible to define your own object types and methods, using "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "classes"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": ", see "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/classes.html#tut-classes",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Classes"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": ") The method "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/library/stdtypes.html#list.append",
+                    "title": "list.append",
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "append()"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " shown in the example is defined for list objects; it adds a new element at the end of the list. In this example it is equivalent to "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "result = result + [a]"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", but more efficient."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "more-on-defining-functions"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-defining"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9. More on Defining Functions"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "It is also possible to define functions with a variable number of arguments. There are three forms, which can be combined."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "default-argument-values"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-defaultargs"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.1. Default Argument Values"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The most useful form is to specify a default value for one or more arguments. This creates a function that can be called with fewer arguments than it is defined to allow. For example:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def ask_ok(prompt, retries=4, reminder='Please try again!'):\n    while True:\n        reply = input(prompt)\n        if reply in {'y', 'ye', 'yes'}:\n            return True\n        if reply in {'n', 'no', 'nop', 'nope'}:\n            return False\n        retries = retries - 1\n        if retries < 0:\n            raise ValueError('invalid user response')\n        print(reminder)"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This function can be called in several ways:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "giving only the mandatory argument: "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "ask_ok('Do you really want to quit?')"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "giving one of the optional arguments: "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "ask_ok('OK to overwrite the file?', 2)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "or even giving all arguments: "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "ask_ok('OK to overwrite the file?', 2, 'Come on, only yes or no!')"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This example also introduces the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/expressions.html#in",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "in"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " keyword. This tests whether or not a sequence contains a certain value."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The default values are evaluated at the point of function definition in the "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "defining"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " scope, so that"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "i = 5\n\ndef f(arg=i):\n    print(arg)\n\ni = 6\nf()"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "will print "
+          },
+          {
+            "type": "inline_code",
+            "code": "5"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "strong",
+            "children": [
+              {
+                "type": "text",
+                "value": "Important warning:"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " The default value is evaluated only once. This makes a difference when the default is a mutable object such as a list, dictionary, or instances of most classes. For example, the following function accumulates the arguments passed to it on subsequent calls:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def f(a, L=[]):\n    L.append(a)\n    return L\n\nprint(f(1))\nprint(f(2))\nprint(f(3))"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This will print"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "[1]\n[1, 2]\n[1, 2, 3]"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If you don’t want the default to be shared between subsequent calls, you can write the function like this instead:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def f(a, L=None):\n    if L is None:\n        L = []\n    L.append(a)\n    return L"
+      },
+      {
+        "type": "anchor",
+        "id": "keyword-arguments"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-keywordargs"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.2. Keyword Arguments"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Functions can also be called using "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/glossary.html#term-keyword-argument",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "keyword arguments"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " of the form "
+          },
+          {
+            "type": "inline_code",
+            "code": "kwarg=value"
+          },
+          {
+            "type": "text",
+            "value": ". For instance, the following function:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def parrot(voltage, state='a stiff', action='voom', type='Norwegian Blue'):\n    print(\"-- This parrot wouldn't\", action, end=' ')\n    print(\"if you put\", voltage, \"volts through it.\")\n    print(\"-- Lovely plumage, the\", type)\n    print(\"-- It's\", state, \"!\")"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "accepts one required argument ("
+          },
+          {
+            "type": "inline_code",
+            "code": "voltage"
+          },
+          {
+            "type": "text",
+            "value": ") and three optional arguments ("
+          },
+          {
+            "type": "inline_code",
+            "code": "state"
+          },
+          {
+            "type": "text",
+            "value": ", "
+          },
+          {
+            "type": "inline_code",
+            "code": "action"
+          },
+          {
+            "type": "text",
+            "value": ", and "
+          },
+          {
+            "type": "inline_code",
+            "code": "type"
+          },
+          {
+            "type": "text",
+            "value": "). This function can be called in any of the following ways:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "parrot(1000)                                          # 1 positional argument\nparrot(voltage=1000)                                  # 1 keyword argument\nparrot(voltage=1000000, action='VOOOOOM')             # 2 keyword arguments\nparrot(action='VOOOOOM', voltage=1000000)             # 2 keyword arguments\nparrot('a million', 'bereft of life', 'jump')         # 3 positional arguments\nparrot('a thousand', state='pushing up the daisies')  # 1 positional, 1 keyword"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "but all the following calls would be invalid:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "parrot()                     # required argument missing\nparrot(voltage=5.0, 'dead')  # non-keyword argument after a keyword argument\nparrot(110, voltage=220)     # duplicate value for the same argument\nparrot(actor='John Cleese')  # unknown keyword argument"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In a function call, keyword arguments must follow positional arguments. All the keyword arguments passed must match one of the arguments accepted by the function (e.g. "
+          },
+          {
+            "type": "inline_code",
+            "code": "actor"
+          },
+          {
+            "type": "text",
+            "value": " is not a valid argument for the "
+          },
+          {
+            "type": "inline_code",
+            "code": "parrot"
+          },
+          {
+            "type": "text",
+            "value": " function), and their order is not important. This also includes non-optional arguments (e.g. "
+          },
+          {
+            "type": "inline_code",
+            "code": "parrot(voltage=1000)"
+          },
+          {
+            "type": "text",
+            "value": " is valid too). No argument may receive a value more than once. Here’s an example that fails due to this restriction:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def function(a):\n...     pass\n...\n>>> function(0, a=0)\nTraceback (most recent call last):\n  File \"<stdin>\", line 1, in <module>\nTypeError: function() got multiple values for argument 'a'"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "When a final formal parameter of the form "
+          },
+          {
+            "type": "inline_code",
+            "code": "**name"
+          },
+          {
+            "type": "text",
+            "value": " is present, it receives a dictionary (see "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#typesmapping",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Mapping Types — dict"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ") containing all keyword arguments except for those corresponding to a formal parameter. This may be combined with a formal parameter of the form "
+          },
+          {
+            "type": "inline_code",
+            "code": "*name"
+          },
+          {
+            "type": "text",
+            "value": " (described in the next subsection) which receives a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/datastructures.html#tut-tuples",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "tuple"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " containing the positional arguments beyond the formal parameter list. ("
+          },
+          {
+            "type": "inline_code",
+            "code": "*name"
+          },
+          {
+            "type": "text",
+            "value": " must occur before "
+          },
+          {
+            "type": "inline_code",
+            "code": "**name"
+          },
+          {
+            "type": "text",
+            "value": ".) For example, if we define a function like this:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def cheeseshop(kind, *arguments, **keywords):\n    print(\"-- Do you have any\", kind, \"?\")\n    print(\"-- I'm sorry, we're all out of\", kind)\n    for arg in arguments:\n        print(arg)\n    print(\"-\" * 40)\n    for kw in keywords:\n        print(kw, \":\", keywords[kw])"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "It could be called like this:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "cheeseshop(\"Limburger\", \"It's very runny, sir.\",\n           \"It's really very, VERY runny, sir.\",\n           shopkeeper=\"Michael Palin\",\n           client=\"John Cleese\",\n           sketch=\"Cheese Shop Sketch\")"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "and of course it would print:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "text",
+        "code": "-- Do you have any Limburger ?\n-- I'm sorry, we're all out of Limburger\nIt's very runny, sir.\nIt's really very, VERY runny, sir.\n----------------------------------------\nshopkeeper : Michael Palin\nclient : John Cleese\nsketch : Cheese Shop Sketch"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Note that the order in which the keyword arguments are printed is guaranteed to match the order in which they were provided in the function call."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "special-parameters"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.3. Special parameters"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "By default, arguments may be passed to a Python function either by position or explicitly by keyword. For readability and performance, it makes sense to restrict the way arguments can be passed so that a developer need only look at the function definition to determine if items are passed by position, by position or keyword, or by keyword."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A function definition may look like:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "text",
+        "code": "def f(pos1, pos2, /, pos_or_kwd, *, kwd1, kwd2):\n      -----------    ----------     ----------\n        |             |                  |\n        |        Positional or keyword   |\n        |                                - Keyword only\n         -- Positional only"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "where "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "*"
+          },
+          {
+            "type": "text",
+            "value": " are optional. If used, these symbols indicate the kind of parameter by how the arguments may be passed to the function: positional-only, positional-or-keyword, and keyword-only. Keyword parameters are also referred to as named parameters."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "positional-or-keyword-arguments"
+      },
+      {
+        "type": "heading",
+        "level": 4,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.3.1. Positional-or-Keyword Arguments"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "*"
+          },
+          {
+            "type": "text",
+            "value": " are not present in the function definition, arguments may be passed to a function by position or by keyword."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "positional-only-parameters"
+      },
+      {
+        "type": "heading",
+        "level": 4,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.3.2. Positional-Only Parameters"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Looking at this in a bit more detail, it is possible to mark certain parameters as "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "positional-only"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". If "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "positional-only"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", the parameters’ order matters, and the parameters cannot be passed by keyword. Positional-only parameters are placed before a "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " (forward-slash). The "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " is used to logically separate the positional-only parameters from the rest of the parameters. If there is no "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " in the function definition, there are no positional-only parameters."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Parameters following the "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " may be "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "positional-or-keyword"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "keyword-only"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "keyword-only-arguments"
+      },
+      {
+        "type": "heading",
+        "level": 4,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.3.3. Keyword-Only Arguments"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "To mark parameters as "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "keyword-only"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", indicating the parameters must be passed by keyword argument, place an "
+          },
+          {
+            "type": "inline_code",
+            "code": "*"
+          },
+          {
+            "type": "text",
+            "value": " in the arguments list just before the first "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "keyword-only"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " parameter."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "function-examples"
+      },
+      {
+        "type": "heading",
+        "level": 4,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.3.4. Function Examples"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Consider the following example function definitions paying close attention to the markers "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "*"
+          },
+          {
+            "type": "text",
+            "value": ":"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def standard_arg(arg):\n...     print(arg)\n...\n>>> def pos_only_arg(arg, /):\n...     print(arg)\n...\n>>> def kwd_only_arg(*, arg):\n...     print(arg)\n...\n>>> def combined_example(pos_only, /, standard, *, kwd_only):\n...     print(pos_only, standard, kwd_only)"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The first function definition, "
+          },
+          {
+            "type": "inline_code",
+            "code": "standard_arg"
+          },
+          {
+            "type": "text",
+            "value": ", the most familiar form, places no restrictions on the calling convention and arguments may be passed by position or keyword:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> standard_arg(2)\n2\n\n>>> standard_arg(arg=2)\n2"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The second function "
+          },
+          {
+            "type": "inline_code",
+            "code": "pos_only_arg"
+          },
+          {
+            "type": "text",
+            "value": " is restricted to only use positional parameters as there is a "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " in the function definition:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> pos_only_arg(1)\n1\n\n>>> pos_only_arg(arg=1)\nTraceback (most recent call last):\n  File \"<stdin>\", line 1, in <module>\nTypeError: pos_only_arg() got some positional-only arguments passed as keyword arguments: 'arg'"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The third function "
+          },
+          {
+            "type": "inline_code",
+            "code": "kwd_only_arg"
+          },
+          {
+            "type": "text",
+            "value": " only allows keyword arguments as indicated by a "
+          },
+          {
+            "type": "inline_code",
+            "code": "*"
+          },
+          {
+            "type": "text",
+            "value": " in the function definition:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> kwd_only_arg(3)\nTraceback (most recent call last):\n  File \"<stdin>\", line 1, in <module>\nTypeError: kwd_only_arg() takes 0 positional arguments but 1 was given\n\n>>> kwd_only_arg(arg=3)\n3"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "And the last uses all three calling conventions in the same function definition:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> combined_example(1, 2, 3)\nTraceback (most recent call last):\n  File \"<stdin>\", line 1, in <module>\nTypeError: combined_example() takes 2 positional arguments but 3 were given\n\n>>> combined_example(1, 2, kwd_only=3)\n1 2 3\n\n>>> combined_example(1, standard=2, kwd_only=3)\n1 2 3\n\n>>> combined_example(pos_only=1, standard=2, kwd_only=3)\nTraceback (most recent call last):\n  File \"<stdin>\", line 1, in <module>\nTypeError: combined_example() got some positional-only arguments passed as keyword arguments: 'pos_only'"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Finally, consider this function definition which has a potential collision between the positional argument "
+          },
+          {
+            "type": "inline_code",
+            "code": "name"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "**kwds"
+          },
+          {
+            "type": "text",
+            "value": " which has "
+          },
+          {
+            "type": "inline_code",
+            "code": "name"
+          },
+          {
+            "type": "text",
+            "value": " as a key:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def foo(name, **kwds):\n    return 'name' in kwds"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "There is no possible call that will make it return "
+          },
+          {
+            "type": "inline_code",
+            "code": "True"
+          },
+          {
+            "type": "text",
+            "value": " as the keyword "
+          },
+          {
+            "type": "inline_code",
+            "code": "'name'"
+          },
+          {
+            "type": "text",
+            "value": " will always bind to the first parameter. For example:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> foo(1, **{'name': 2})\nTraceback (most recent call last):\n  File \"<stdin>\", line 1, in <module>\nTypeError: foo() got multiple values for argument 'name'\n>>>"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "But using "
+          },
+          {
+            "type": "inline_code",
+            "code": "/"
+          },
+          {
+            "type": "text",
+            "value": " (positional only arguments), it is possible since it allows "
+          },
+          {
+            "type": "inline_code",
+            "code": "name"
+          },
+          {
+            "type": "text",
+            "value": " as a positional argument and "
+          },
+          {
+            "type": "inline_code",
+            "code": "'name'"
+          },
+          {
+            "type": "text",
+            "value": " as a key in the keyword arguments:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def foo(name, /, **kwds):\n...     return 'name' in kwds\n...\n>>> foo(1, **{'name': 2})\nTrue"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In other words, the names of positional-only parameters can be used in "
+          },
+          {
+            "type": "inline_code",
+            "code": "**kwds"
+          },
+          {
+            "type": "text",
+            "value": " without ambiguity."
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "recap"
+      },
+      {
+        "type": "heading",
+        "level": 4,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.3.5. Recap"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The use case will determine which parameters to use in the function definition:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def f(pos1, pos2, /, pos_or_kwd, *, kwd1, kwd2):"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "As guidance:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Use positional-only if you want the name of the parameters to not be available to the user. This is useful when parameter names have no real meaning, if you want to enforce the order of the arguments when the function is called or if you need to take some positional parameters and arbitrary keywords."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Use keyword-only when names have meaning and the function definition is more understandable by being explicit with names or you want to prevent users relying on the position of the argument being passed."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "For an API, use positional-only to prevent breaking API changes if the parameter’s name is modified in the future."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "anchor",
+        "id": "arbitrary-argument-lists"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-arbitraryargs"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.4. Arbitrary Argument Lists"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Finally, the least frequently used option is to specify that a function can be called with an arbitrary number of arguments. These arguments will be wrapped up in a tuple (see "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/datastructures.html#tut-tuples",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Tuples and Sequences"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "). Before the variable number of arguments, zero or more normal arguments may occur."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": "def write_multiple_items(file, separator, *args):\n    file.write(separator.join(args))"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Normally, these "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "variadic"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " arguments will be last in the list of formal parameters, because they scoop up all remaining input arguments that are passed to the function. Any formal parameters which occur after the "
+          },
+          {
+            "type": "inline_code",
+            "code": "*args"
+          },
+          {
+            "type": "text",
+            "value": " parameter are ‘keyword-only’ arguments, meaning that they can only be used as keywords rather than positional arguments."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def concat(*args, sep=\"/\"):\n...     return sep.join(args)\n...\n>>> concat(\"earth\", \"mars\", \"venus\")\n'earth/mars/venus'\n>>> concat(\"earth\", \"mars\", \"venus\", sep=\".\")\n'earth.mars.venus'"
+      },
+      {
+        "type": "anchor",
+        "id": "unpacking-argument-lists"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-unpacking-arguments"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.5. Unpacking Argument Lists"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The reverse situation occurs when the arguments are already in a list or tuple but need to be unpacked for a function call requiring separate positional arguments. For instance, the built-in "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#range",
+            "title": "range",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "range()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " function expects separate "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "start"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "stop"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " arguments. If they are not available separately, write the function call with the "
+          },
+          {
+            "type": "inline_code",
+            "code": "*"
+          },
+          {
+            "type": "text",
+            "value": "-operator to unpack the arguments out of a list or tuple:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> list(range(3, 6))            # normal call with separate arguments\n[3, 4, 5]\n>>> args = [3, 6]\n>>> list(range(*args))            # call with arguments unpacked from a list\n[3, 4, 5]"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "In the same fashion, dictionaries can deliver keyword arguments with the "
+          },
+          {
+            "type": "inline_code",
+            "code": "**"
+          },
+          {
+            "type": "text",
+            "value": "-operator:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def parrot(voltage, state='a stiff', action='voom'):\n...     print(\"-- This parrot wouldn't\", action, end=' ')\n...     print(\"if you put\", voltage, \"volts through it.\", end=' ')\n...     print(\"E's\", state, \"!\")\n...\n>>> d = {\"voltage\": \"four million\", \"state\": \"bleedin' demised\", \"action\": \"VOOM\"}\n>>> parrot(**d)\n-- This parrot wouldn't VOOM if you put four million volts through it. E's bleedin' demised !"
+      },
+      {
+        "type": "anchor",
+        "id": "lambda-expressions"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-lambda"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.6. Lambda Expressions"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Small anonymous functions can be created with the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/expressions.html#lambda",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "lambda"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " keyword. This function returns the sum of its two arguments: "
+          },
+          {
+            "type": "inline_code",
+            "code": "lambda a, b: a+b"
+          },
+          {
+            "type": "text",
+            "value": ". Lambda functions can be used wherever function objects are required. They are syntactically restricted to a single expression. Semantically, they are just syntactic sugar for a normal function definition. Like nested function definitions, lambda functions can reference variables from the containing scope:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def make_incrementor(n):\n...     return lambda x: x + n\n...\n>>> f = make_incrementor(42)\n>>> f(0)\n42\n>>> f(1)\n43"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The above example uses a lambda expression to return a function. Another use is to pass a small function as an argument. For instance, "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/library/stdtypes.html#list.sort",
+            "title": "list.sort",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "list.sort()"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " takes a sorting key function "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "key"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " which can be a lambda function:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> pairs = [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]\n>>> pairs.sort(key=lambda pair: pair[1])\n>>> pairs\n[(4, 'four'), (1, 'one'), (3, 'three'), (2, 'two')]"
+      },
+      {
+        "type": "anchor",
+        "id": "documentation-strings"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-docstrings"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.7. Documentation Strings"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Here are some conventions about the content and formatting of documentation strings."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The first line should always be a short, concise summary of the object’s purpose. For brevity, it should not explicitly state the object’s name or type, since these are available by other means (except if the name happens to be a verb describing a function’s operation). This line should begin with a capital letter and end with a period."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "If there are more lines in the documentation string, the second line should be blank, visually separating the summary from the rest of the description. The following lines should be one or more paragraphs describing the object’s calling conventions, its side effects, etc."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The Python parser strips indentation from multi-line string literals when they serve as module, class, or function docstrings."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Here is an example of a multi-line docstring:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def my_function():\n...     \"\"\"Do nothing, but document it.\n...\n...     No, really, it doesn't do anything:\n...\n...         >>> my_function()\n...         >>>\n...     \"\"\"\n...     pass\n...\n>>> print(my_function.__doc__)\nDo nothing, but document it.\n\nNo, really, it doesn't do anything:\n\n    >>> my_function()\n    >>>"
+      },
+      {
+        "type": "anchor",
+        "id": "function-annotations"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-annotations"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.9.8. Function Annotations"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#function",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Function annotations"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " are completely optional metadata information about the types used by user-defined functions (see "
+          },
+          {
+            "type": "anchor",
+            "id": "index-8"
+          },
+          {
+            "type": "link",
+            "href": "https://peps.python.org/pep-3107/",
+            "title": null,
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "PEP 3107"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "anchor",
+            "id": "index-9"
+          },
+          {
+            "type": "link",
+            "href": "https://peps.python.org/pep-0484/",
+            "title": null,
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "PEP 484"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for more information)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "link",
+            "href": "https://corpus.test/glossary.html#term-function-annotation",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Annotations"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " are stored in the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/datamodel.html#object.__annotations__",
+            "title": "object.__annotations__",
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "__annotations__"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " attribute of the function as a dictionary and have no effect on any other part of the function. Parameter annotations are defined by a colon after the parameter name, followed by an expression evaluating to the value of the annotation. Return annotations are defined by a literal "
+          },
+          {
+            "type": "inline_code",
+            "code": "->"
+          },
+          {
+            "type": "text",
+            "value": ", followed by an expression, between the parameter list and the colon denoting the end of the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/compound_stmts.html#def",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "def"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " statement. The following example has a required argument, an optional argument, and the return value annotated:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "python",
+        "code": ">>> def f(ham: str, eggs: str = 'eggs') -> str:\n...     print(\"Annotations:\", f.__annotations__)\n...     print(\"Arguments:\", ham, eggs)\n...     return ham + ' and ' + eggs\n...\n>>> f('spam')\nAnnotations: {'ham': <class 'str'>, 'return': <class 'str'>, 'eggs': <class 'str'>}\nArguments: spam eggs\n'spam and eggs'"
+      },
+      {
+        "type": "anchor",
+        "id": "intermezzo-coding-style"
+      },
+      {
+        "type": "anchor",
+        "id": "tut-codingstyle"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": null,
+        "children": [
+          {
+            "type": "text",
+            "value": "4.10. Intermezzo: Coding Style"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Now that you are about to write longer, more complex pieces of Python, it is a good time to talk about "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "coding style"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". Most languages can be written (or more concisely, "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "formatted"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ") in different styles; some are more readable than others. Making it easy for others to read your code is always a good idea, and adopting a nice coding style helps tremendously for that."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For Python, "
+          },
+          {
+            "type": "anchor",
+            "id": "index-11"
+          },
+          {
+            "type": "link",
+            "href": "https://peps.python.org/pep-0008/",
+            "title": null,
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "PEP 8"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " has emerged as the style guide that most projects adhere to; it promotes a very readable and eye-pleasing coding style. Every Python developer should read it at some point; here are the most important points extracted for you:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Use 4-space indentation, and no tabs."
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "4 spaces are a good compromise between small indentation (allows greater nesting depth) and large indentation (easier to read). Tabs introduce confusion, and are best left out."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Wrap lines so that they don’t exceed 79 characters."
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "This helps users with small displays and makes it possible to have several code files side-by-side on larger displays."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Use blank lines to separate functions and classes, and larger blocks of code inside functions."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "When possible, put comments on a line of their own."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Use docstrings."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Use spaces around operators and after commas, but not directly inside bracketing constructs: "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "a = f(1, 2) + g(3, 4)"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Name your classes and functions consistently; the convention is to use "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "UpperCamelCase"
+                  },
+                  {
+                    "type": "text",
+                    "value": " for classes and "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "lowercase_with_underscores"
+                  },
+                  {
+                    "type": "text",
+                    "value": " for functions and methods. Always use "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "self"
+                  },
+                  {
+                    "type": "text",
+                    "value": " as the name for the first method argument (see "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/classes.html#tut-firstclasses",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "A First Look at Classes"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " for more on classes and methods)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Don’t use fancy encodings if your code is meant to be used in international environments. Python’s default, UTF-8, or even plain ASCII work best in any case."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Likewise, don’t use non-ASCII characters in identifiers if there is only the slightest chance people speaking a different language will read or maintain the code."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Footnotes"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,3100 @@
+{
+  "title": "Glossary",
+  "description": "An artifact is the file or set of files created as a result of the compilation process. This includes linkable libraries, executable binaries, and generated documentation.",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "heading",
+        "level": 1,
+        "id": "glossary",
+        "children": [
+          {
+            "type": "text",
+            "value": "Glossary"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "artifact",
+        "children": [
+          {
+            "type": "text",
+            "value": "Artifact"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "An "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "artifact"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is the file or set of files created as a result of the compilation process. This includes linkable libraries, executable binaries, and generated documentation."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "cargo",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "Cargo"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is the Rust "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package-manager",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package manager"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", and the primary topic of this book."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "cargolock",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo.lock"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#lock-file",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "lock file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "cargotoml",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo.toml"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "manifest"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "crate",
+        "children": [
+          {
+            "type": "text",
+            "value": "Crate"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A Rust "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "crate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is either a library or an executable program, referred to as either a "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "library crate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " or a "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "binary crate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", respectively."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Every "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#target",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "target"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " defined for a Cargo "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "package"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "crate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Loosely, the term "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "crate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " may refer to either the source code of the target or to the compiled artifact that the target produces. It may also refer to a compressed package fetched from a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#registry",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "registry"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The source code for a given crate may be subdivided into "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#module",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "modules"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "edition",
+        "children": [
+          {
+            "type": "text",
+            "value": "Edition"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "Rust edition"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a developmental landmark of the Rust language. The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/manifest.html#the-edition-field",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "edition of a package"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is specified in the "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "manifest"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", and individual targets can specify which edition they use. See the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/edition-guide/index.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Edition Guide"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for more information."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "feature",
+        "children": [
+          {
+            "type": "text",
+            "value": "Feature"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The meaning of "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "feature"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " depends on the context:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "A "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/features.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "feature"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " is a named flag which allows for conditional compilation. A feature can refer to an optional dependency, or an arbitrary name defined in a "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "Cargo.toml"
+                  },
+                  {
+                    "type": "text",
+                    "value": " "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "manifest"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " that can be checked within source code."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Cargo has "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/unstable.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "unstable feature flags"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " which can be used to enable experimental behavior of Cargo itself."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "The Rust compiler and Rustdoc have their own unstable feature flags (see "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://doc.rust-lang.org/nightly/unstable-book/index.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "The Unstable Book"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://doc.rust-lang.org/nightly/rustdoc/unstable-features.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "The Rustdoc Book"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": ")."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "CPU targets have "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/attributes/codegen.html#the-target_feature-attribute",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target features"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " which specify capabilities of a CPU."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "index",
+        "children": [
+          {
+            "type": "text",
+            "value": "Index"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "index"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is the searchable list of "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#crate",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " in a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#registry",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "registry"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "lock-file",
+        "children": [
+          {
+            "type": "text",
+            "value": "Lock file"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.lock"
+          },
+          {
+            "type": "text",
+            "value": " "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "lock file"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a file that captures the exact version of every dependency used in a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#workspace",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "workspace"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " or "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". It is automatically generated by Cargo. See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/guide/cargo-toml-vs-cargo-lock.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Cargo.toml vs Cargo.lock"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "manifest",
+        "children": [
+          {
+            "type": "text",
+            "value": "Manifest"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/manifest.html",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "manifest"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a description of a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "package"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " or a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#workspace",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "workspace"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " in a file named "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/workspaces.html",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "virtual manifest"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " file that only describes a workspace, and does not include a package."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "member",
+        "children": [
+          {
+            "type": "text",
+            "value": "Member"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "member"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " that belongs to a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#workspace",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "workspace"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "module",
+        "children": [
+          {
+            "type": "text",
+            "value": "Module"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Rust’s module system is used to organize code into logical units called "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "modules"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", which provide isolated namespaces within the code."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The source code for a given "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#crate",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crate"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " may be subdivided into one or more separate modules. This is usually done to organize the code into areas of related functionality or to control the visible scope (public/private) of symbols within the source (structs, functions, and so on)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+            "title": null,
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "Cargo.toml"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " file is primarily concerned with the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "package"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " it defines, its crates, and the packages of the crates on which they depend. Nevertheless, you will see the term “module” often when working with Rust, so you should understand its relationship to a given crate."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "package",
+        "children": [
+          {
+            "type": "text",
+            "value": "Package"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "package"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a collection of source files and a "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "manifest"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " file which describes the package. A package has a name and version which is used for specifying dependencies between packages."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A package contains multiple "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#target",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "targets"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", each of which is a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#crate",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crate"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". The "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " file describes the type of the crates (binary or library) within the package, along with some metadata about each one — how each is to be built, what their direct dependencies are, etc., as described throughout this book."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "package root"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is the directory where the package’s "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " manifest is located. (Compare with "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#workspace",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "workspace root"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ".)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/pkgid-spec.html",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package ID specification"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", or "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "SPEC"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", is a string used to uniquely reference a specific version of a package from a specific source."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Small to medium sized Rust projects will only need a single package, though it is common for them to have multiple crates."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Larger projects may involve multiple packages, in which case Cargo "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#workspace",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "workspaces"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " can be used to manage common dependencies and other related metadata between the packages."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "package-manager",
+        "children": [
+          {
+            "type": "text",
+            "value": "Package manager"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Broadly speaking, a "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "package manager"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a program (or collection of related programs) in a software ecosystem that automates the process of obtaining, installing, and upgrading artifacts. Within a programming language ecosystem, a package manager is a developer-focused tool whose primary functionality is to download library artifacts and their dependencies from some central repository; this capability is often combined with the ability to perform software builds (by invoking the language-specific compiler)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#cargo",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Cargo"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is the package manager within the Rust ecosystem. Cargo downloads your Rust "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "package"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "’s dependencies ("
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#artifact",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "artifacts"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " known as "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#crate",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "), compiles your packages, makes distributable packages, and (optionally) uploads them to "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ", the Rust community’s "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#registry",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package registry"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "package-registry",
+        "children": [
+          {
+            "type": "text",
+            "value": "Package registry"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#registry",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "registry"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "project",
+        "children": [
+          {
+            "type": "text",
+            "value": "Project"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Another name for a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "package"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "registry",
+        "children": [
+          {
+            "type": "text",
+            "value": "Registry"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "registry"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a service that contains a collection of downloadable "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#crate",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " that can be installed or used as dependencies for a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". The default registry in the Rust ecosystem is "
+          },
+          {
+            "type": "link",
+            "href": "https://crates.io/",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "crates.io"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". The registry has an "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#index",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "index"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " which contains a list of all crates, and tells Cargo how to download the crates that are needed."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "source",
+        "children": [
+          {
+            "type": "text",
+            "value": "Source"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "source"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a provider that contains "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#crate",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " that may be included as dependencies for a "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ". There are several kinds of sources:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Registry source"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-glossary.html#registry",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "registry"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Local registry source"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — A set of crates stored as compressed files on the filesystem. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/source-replacement.html#local-registry-sources",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Local Registry Sources"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Directory source"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — A set of crates stored as uncompressed files on the filesystem. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/source-replacement.html#directory-sources",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Directory Sources"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Path source"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — An individual package located on the filesystem (such as a "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/specifying-dependencies.html#specifying-path-dependencies",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "path dependency"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ") or a set of multiple packages (such as "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/overriding-dependencies.html#paths-overrides",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "path overrides"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ")."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Git source"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — Packages located in a git repository (such as a "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/specifying-dependencies.html#specifying-dependencies-from-git-repositories",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "git dependency"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " or "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/source-replacement.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "git source"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ")."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/source-replacement.html",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "Source Replacement"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for more information."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "spec",
+        "children": [
+          {
+            "type": "text",
+            "value": "Spec"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "See "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "package ID specification"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "target",
+        "children": [
+          {
+            "type": "text",
+            "value": "Target"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The meaning of the term "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "target"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " depends on the context:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Cargo Target"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " — Cargo "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "packages"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " consist of "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "targets"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " which correspond to "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/mdbook-cargo-glossary.html#artifact",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "artifacts"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " that will be produced. Packages can have library, binary, example, test, and benchmark targets. The "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/cargo-targets.html#configuring-a-target",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "list of targets"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " are configured in the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "Cargo.toml"
+                  },
+                  {
+                    "type": "text",
+                    "value": " "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "manifest"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": ", often inferred automatically by the "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/guide/project-layout.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "directory layout"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " of the source files."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Target Directory"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " — Cargo places built artifacts in the "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " directory. By default this is a directory named "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "target"
+                  },
+                  {
+                    "type": "text",
+                    "value": " at the "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/mdbook-cargo-glossary.html#workspace",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "workspace"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " root, or the package root if not using a workspace. The directory may be changed with the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "--target-dir"
+                  },
+                  {
+                    "type": "text",
+                    "value": " command-line option, the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "CARGO_TARGET_DIR"
+                  },
+                  {
+                    "type": "text",
+                    "value": " "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/environment-variables.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "environment variable"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "build.target-dir"
+                  },
+                  {
+                    "type": "text",
+                    "value": " "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/config.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "config option"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": ". For more information see the "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/build-cache.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "build cache"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " documentation."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Target Architecture"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " — The OS and machine architecture for the built artifacts are typically referred to as a "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "strong",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Target Triple"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " — A triple is a specific format for specifying a target architecture. Triples may be referred to as a "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "target triple"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " which is the architecture for the artifact produced, and the "
+                  },
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "host triple"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": " which is the architecture that the compiler is running on. The target triple can be specified with the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "--target"
+                  },
+                  {
+                    "type": "text",
+                    "value": " command-line option or the "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "build.target"
+                  },
+                  {
+                    "type": "text",
+                    "value": " "
+                  },
+                  {
+                    "type": "link",
+                    "href": "https://corpus.test/reference/config.html",
+                    "title": null,
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "config option"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The general format of the triple is "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "<arch><sub>-<vendor>-<sys>-<abi>"
+                  },
+                  {
+                    "type": "text",
+                    "value": " where:"
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "arch"
+                      },
+                      {
+                        "type": "text",
+                        "value": " = The base CPU architecture, for example "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "x86_64"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "i686"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "arm"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "thumb"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "mips"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", etc."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "sub"
+                      },
+                      {
+                        "type": "text",
+                        "value": " = The CPU sub-architecture, for example "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "arm"
+                      },
+                      {
+                        "type": "text",
+                        "value": " has "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "v7"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "v7s"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "v5te"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", etc."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "vendor"
+                      },
+                      {
+                        "type": "text",
+                        "value": " = The vendor, for example "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "unknown"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "apple"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "pc"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "nvidia"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", etc."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "sys"
+                      },
+                      {
+                        "type": "text",
+                        "value": " = The system name, for example "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "linux"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "windows"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "darwin"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", etc. "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "none"
+                      },
+                      {
+                        "type": "text",
+                        "value": " is typically used for bare-metal without an OS."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "abi"
+                      },
+                      {
+                        "type": "text",
+                        "value": " = The ABI, for example "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "gnu"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "android"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "eabi"
+                      },
+                      {
+                        "type": "text",
+                        "value": ", etc."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Some parameters may be omitted. Run "
+                  },
+                  {
+                    "type": "inline_code",
+                    "code": "rustc --print target-list"
+                  },
+                  {
+                    "type": "text",
+                    "value": " for a list of supported targets."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "test-targets",
+        "children": [
+          {
+            "type": "text",
+            "value": "Test Targets"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "test targets"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " generate binaries which help verify proper operation and correctness of code. There are two types of test artifacts:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Unit test"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — A "
+              },
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "unit test"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " is an executable binary compiled directly from a library or a binary target. It contains the entire contents of the library or binary code, and runs "
+              },
+              {
+                "type": "inline_code",
+                "code": "#[test]"
+              },
+              {
+                "type": "text",
+                "value": " annotated functions, intended to verify individual units of code."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "strong",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Integration test target"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " — An "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/cargo-targets.html#integration-tests",
+                "title": null,
+                "children": [
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "integration test target"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " is an executable binary compiled from a "
+              },
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "test target"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " which is a distinct "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-glossary.html#crate",
+                "title": null,
+                "children": [
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "crate"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " whose source is located in the "
+              },
+              {
+                "type": "inline_code",
+                "code": "tests"
+              },
+              {
+                "type": "text",
+                "value": " directory or specified by the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/cargo-targets.html#configuring-a-target",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "[[test]]"
+                  },
+                  {
+                    "type": "text",
+                    "value": " table"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " in the "
+              },
+              {
+                "type": "inline_code",
+                "code": "Cargo.toml"
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+                "title": null,
+                "children": [
+                  {
+                    "type": "emphasis",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "manifest"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ". It is intended to only test the public API of a library, or execute a binary to verify its operation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "workspace",
+        "children": [
+          {
+            "type": "text",
+            "value": "Workspace"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/workspaces.html",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "workspace"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a collection of one or more "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "packages"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " that share common dependency resolution (with a shared "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.lock"
+          },
+          {
+            "type": "text",
+            "value": " "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#lock-file",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "lock file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "), output directory, and various settings such as profiles."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "A "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/reference/workspaces.html",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "virtual workspace"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is a workspace where the root "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#manifest",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "manifest"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " does not define a package, and only lists the workspace "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#member",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "members"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The "
+          },
+          {
+            "type": "emphasis",
+            "children": [
+              {
+                "type": "text",
+                "value": "workspace root"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " is the directory where the workspace’s "
+          },
+          {
+            "type": "inline_code",
+            "code": "Cargo.toml"
+          },
+          {
+            "type": "text",
+            "value": " manifest is located. (Compare with "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/mdbook-cargo-glossary.html#package",
+            "title": null,
+            "children": [
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "package root"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": ".)"
+          }
+        ]
+      }
+    ]
+  }
+}

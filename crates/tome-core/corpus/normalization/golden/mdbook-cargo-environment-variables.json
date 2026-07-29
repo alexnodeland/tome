@@ -1,0 +1,4731 @@
+{
+  "title": "Environment Variables",
+  "description": "Cargo sets and reads a number of environment variables which your code can detect or override. Here is a list of the variables Cargo sets, organized by when it interacts with them:",
+  "body": {
+    "type": "document",
+    "children": [
+      {
+        "type": "heading",
+        "level": 1,
+        "id": "environment-variables",
+        "children": [
+          {
+            "type": "text",
+            "value": "Environment Variables"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo sets and reads a number of environment variables which your code can detect or override. Here is a list of the variables Cargo sets, organized by when it interacts with them:"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "environment-variables-cargo-reads",
+        "children": [
+          {
+            "type": "text",
+            "value": "Environment variables Cargo reads"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "You can override these environment variables to change Cargo’s behavior on your system:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_LOG"
+              },
+              {
+                "type": "text",
+                "value": " — Cargo uses the "
+              },
+              {
+                "type": "link",
+                "href": "https://docs.rs/tracing",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "tracing"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " crate to display debug log messages. The "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_LOG"
+              },
+              {
+                "type": "text",
+                "value": " environment variable can be set to enable debug logging, with a value such as "
+              },
+              {
+                "type": "inline_code",
+                "code": "trace"
+              },
+              {
+                "type": "text",
+                "value": ", "
+              },
+              {
+                "type": "inline_code",
+                "code": "debug"
+              },
+              {
+                "type": "text",
+                "value": ", or "
+              },
+              {
+                "type": "inline_code",
+                "code": "warn"
+              },
+              {
+                "type": "text",
+                "value": ". Usually it is only used during debugging. For more details refer to the "
+              },
+              {
+                "type": "link",
+                "href": "https://doc.crates.io/contrib/implementation/debugging.html#logging",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Debug logging"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HOME"
+              },
+              {
+                "type": "text",
+                "value": " — Cargo maintains a local cache of the registry index and of git checkouts of crates. By default these are stored under "
+              },
+              {
+                "type": "inline_code",
+                "code": "$HOME/.cargo"
+              },
+              {
+                "type": "text",
+                "value": " ("
+              },
+              {
+                "type": "inline_code",
+                "code": "%USERPROFILE%\\.cargo"
+              },
+              {
+                "type": "text",
+                "value": " on Windows), but this variable overrides the location of this directory. Once a crate is cached it is not removed by the clean command. For more details refer to the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/guide/cargo-home.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "guide"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TARGET_DIR"
+              },
+              {
+                "type": "text",
+                "value": " — Location of where to place all generated artifacts, relative to the current working directory. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildtarget-dir",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.target-dir"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to set via config."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO"
+              },
+              {
+                "type": "text",
+                "value": " — If set, Cargo will forward this value instead of setting it to its own auto-detected path when it builds crates and when it executes build scripts and external subcommands. This value is not directly executed by Cargo, and should always point at a command that behaves exactly like "
+              },
+              {
+                "type": "inline_code",
+                "code": "cargo"
+              },
+              {
+                "type": "text",
+                "value": ", as that’s what users of the variable will be expecting."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTC"
+              },
+              {
+                "type": "text",
+                "value": " — Instead of running "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": ", Cargo will execute this specified compiler instead. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to set via config."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTC_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " — Instead of simply running "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": ", Cargo will execute this specified wrapper, passing as its command-line arguments the rustc invocation, with the first argument being the path to the actual rustc. Useful to set up a build cache tool such as "
+              },
+              {
+                "type": "inline_code",
+                "code": "sccache"
+              },
+              {
+                "type": "text",
+                "value": ". See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc-wrapper",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc-wrapper"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to set via config. Setting this to the empty string overwrites the config and resets cargo to not use a wrapper."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTC_WORKSPACE_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " — Instead of simply running "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": ", for workspace members Cargo will execute this specified wrapper, passing as its command-line arguments the rustc invocation, with the first argument being the path to the actual rustc. When building a single-package project without workspaces, that package is considered to be the workspace. It affects the filename hash so that artifacts produced by the wrapper are cached separately. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc-workspace-wrapper",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc-workspace-wrapper"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to set via config. Setting this to the empty string overwrites the config and resets cargo to not use a wrapper for workspace members. If both "
+              },
+              {
+                "type": "inline_code",
+                "code": "RUSTC_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " and "
+              },
+              {
+                "type": "inline_code",
+                "code": "RUSTC_WORKSPACE_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " are set, then they will be nested: the final invocation is "
+              },
+              {
+                "type": "inline_code",
+                "code": "$RUSTC_WRAPPER $RUSTC_WORKSPACE_WRAPPER $RUSTC"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTDOC"
+              },
+              {
+                "type": "text",
+                "value": " — Instead of running "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustdoc"
+              },
+              {
+                "type": "text",
+                "value": ", Cargo will execute this specified "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustdoc"
+              },
+              {
+                "type": "text",
+                "value": " instance instead. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustdoc",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustdoc"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to set via config."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTDOCFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — A space-separated list of custom flags to pass to all "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustdoc"
+              },
+              {
+                "type": "text",
+                "value": " invocations that Cargo performs. In contrast with "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/commands/cargo-rustdoc.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo rustdoc"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ", this is useful for passing a flag to "
+              },
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "all"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustdoc"
+              },
+              {
+                "type": "text",
+                "value": " instances. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustdocflags",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustdocflags"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for some more ways to set flags. This string is split by whitespace; for a more robust encoding of multiple arguments, see "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_ENCODED_RUSTDOCFLAGS"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_ENCODED_RUSTDOCFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — A list of custom flags separated by "
+              },
+              {
+                "type": "inline_code",
+                "code": "0x1f"
+              },
+              {
+                "type": "text",
+                "value": " (ASCII Unit Separator) to pass to all "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustdoc"
+              },
+              {
+                "type": "text",
+                "value": " invocations that Cargo performs."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — A space-separated list of custom flags to pass to all compiler invocations that Cargo performs. In contrast with "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/commands/cargo-rustc.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo rustc"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ", this is useful for passing a flag to "
+              },
+              {
+                "type": "emphasis",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "all"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " compiler instances. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustflags",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustflags"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for some more ways to set flags. This string is split by whitespace; for a more robust encoding of multiple arguments, see "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_ENCODED_RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_ENCODED_RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — A list of custom flags separated by "
+              },
+              {
+                "type": "inline_code",
+                "code": "0x1f"
+              },
+              {
+                "type": "text",
+                "value": " (ASCII Unit Separator) to pass to all compiler invocations that Cargo performs."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_INCREMENTAL"
+              },
+              {
+                "type": "text",
+                "value": " — If this is set to 1 then Cargo will force "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/profiles.html#incremental",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "incremental compilation"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to be enabled for the current compilation, and when set to 0 it will force disabling it. If this env var isn’t present then cargo’s defaults will otherwise be used. See also "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildincremental",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.incremental"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " config value."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_CACHE_RUSTC_INFO"
+              },
+              {
+                "type": "text",
+                "value": " — If this is set to 0 then Cargo will not try to cache compiler version information."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "HTTPS_PROXY"
+              },
+              {
+                "type": "text",
+                "value": " or "
+              },
+              {
+                "type": "inline_code",
+                "code": "https_proxy"
+              },
+              {
+                "type": "text",
+                "value": " or "
+              },
+              {
+                "type": "inline_code",
+                "code": "http_proxy"
+              },
+              {
+                "type": "text",
+                "value": " — The HTTP proxy to use, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpproxy",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.proxy"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for more detail."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "HTTP_TIMEOUT"
+              },
+              {
+                "type": "text",
+                "value": " — The HTTP timeout in seconds, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httptimeout",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.timeout"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for more detail."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "TERM"
+              },
+              {
+                "type": "text",
+                "value": " — If this is set to "
+              },
+              {
+                "type": "inline_code",
+                "code": "dumb"
+              },
+              {
+                "type": "text",
+                "value": ", it disables the progress bar."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "BROWSER"
+              },
+              {
+                "type": "text",
+                "value": " — The web browser to execute to open documentation with "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/commands/cargo-doc.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo doc"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "’s "
+              },
+              {
+                "type": "inline_code",
+                "code": "--open"
+              },
+              {
+                "type": "text",
+                "value": " flag, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#docbrowser",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "doc.browser"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for more details."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTFMT"
+              },
+              {
+                "type": "text",
+                "value": " — Instead of running "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustfmt"
+              },
+              {
+                "type": "text",
+                "value": ", "
+              },
+              {
+                "type": "link",
+                "href": "https://github.com/rust-lang/rustfmt",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo fmt"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " will execute this specified "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustfmt"
+              },
+              {
+                "type": "text",
+                "value": " instance instead."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "configuration-environment-variables",
+        "children": [
+          {
+            "type": "text",
+            "value": "Configuration environment variables"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo reads environment variables for some configuration values. See the "
+          },
+          {
+            "type": "link",
+            "href": "https://corpus.test/config.html#environment-variables",
+            "title": null,
+            "children": [
+              {
+                "type": "text",
+                "value": "configuration chapter"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " for more details. In summary, the supported environment variables are:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_ALIAS_<name>"
+              },
+              {
+                "type": "text",
+                "value": " — Command aliases, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#alias",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "alias"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_JOBS"
+              },
+              {
+                "type": "text",
+                "value": " — Number of parallel jobs, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildjobs",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.jobs"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_RUSTC"
+              },
+              {
+                "type": "text",
+                "value": " — The "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " executable, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_RUSTC_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " — The "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " wrapper, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc-wrapper",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc-wrapper"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " — The "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " wrapper for workspace members only, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc-workspace-wrapper",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc-workspace-wrapper"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_RUSTDOC"
+              },
+              {
+                "type": "text",
+                "value": " — The "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustdoc"
+              },
+              {
+                "type": "text",
+                "value": " executable, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustdoc",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustdoc"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_TARGET"
+              },
+              {
+                "type": "text",
+                "value": " — The default target platform, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildtarget",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.target"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_TARGET_DIR"
+              },
+              {
+                "type": "text",
+                "value": " — The default output directory, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildtarget-dir",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.target-dir"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_BUILD_DIR"
+              },
+              {
+                "type": "text",
+                "value": " — The default build directory, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildbuild-dir",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.build-dir"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — Extra "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " flags, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustflags",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustflags"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_RUSTDOCFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — Extra "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustdoc"
+              },
+              {
+                "type": "text",
+                "value": " flags, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustdocflags",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustdocflags"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_INCREMENTAL"
+              },
+              {
+                "type": "text",
+                "value": " — Incremental compilation, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildincremental",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.incremental"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BUILD_DEP_INFO_BASEDIR"
+              },
+              {
+                "type": "text",
+                "value": " — Dep-info relative directory, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#builddep-info-basedir",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.dep-info-basedir"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_CACHE_AUTO_CLEAN_FREQUENCY"
+              },
+              {
+                "type": "text",
+                "value": " — Configures how often automatic cache cleaning runs, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#cacheauto-clean-frequency",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cache.auto-clean-frequency"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_CARGO_NEW_VCS"
+              },
+              {
+                "type": "text",
+                "value": " — The default source control system with "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/commands/cargo-new.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo new"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ", see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#cargo-newvcs",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo-new.vcs"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_FUTURE_INCOMPAT_REPORT_FREQUENCY"
+              },
+              {
+                "type": "text",
+                "value": " — How often we should generate a future incompat report notification, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#future-incompat-reportfrequency",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "future-incompat-report.frequency"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_DEBUG"
+              },
+              {
+                "type": "text",
+                "value": " — Enables HTTP debugging, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpdebug",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.debug"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_PROXY"
+              },
+              {
+                "type": "text",
+                "value": " — Enables HTTP proxy, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpproxy",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.proxy"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_TIMEOUT"
+              },
+              {
+                "type": "text",
+                "value": " — The HTTP timeout, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httptimeout",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.timeout"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_CAINFO"
+              },
+              {
+                "type": "text",
+                "value": " — The TLS certificate Certificate Authority file, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpcainfo",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.cainfo"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_PROXY_CAINFO"
+              },
+              {
+                "type": "text",
+                "value": " — The proxy TLS certificate Certificate Authority file, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpproxy-cainfo",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.proxy-cainfo"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_CHECK_REVOKE"
+              },
+              {
+                "type": "text",
+                "value": " — Disables TLS certificate revocation checks, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpcheck-revoke",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.check-revoke"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_SSL_VERSION"
+              },
+              {
+                "type": "text",
+                "value": " — The TLS version to use, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpssl-version",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.ssl-version"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_LOW_SPEED_LIMIT"
+              },
+              {
+                "type": "text",
+                "value": " — The HTTP low-speed limit, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httplow-speed-limit",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.low-speed-limit"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_MULTIPLEXING"
+              },
+              {
+                "type": "text",
+                "value": " — Whether HTTP/2 multiplexing is used, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpmultiplexing",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.multiplexing"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_HTTP_USER_AGENT"
+              },
+              {
+                "type": "text",
+                "value": " — The HTTP user-agent header, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#httpuser-agent",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "http.user-agent"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_INSTALL_ROOT"
+              },
+              {
+                "type": "text",
+                "value": " — The default directory for "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/commands/cargo-install.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "cargo install"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ", see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#installroot",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "install.root"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_NET_RETRY"
+              },
+              {
+                "type": "text",
+                "value": " — Number of times to retry network errors, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#netretry",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "net.retry"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_NET_GIT_FETCH_WITH_CLI"
+              },
+              {
+                "type": "text",
+                "value": " — Enables the use of the "
+              },
+              {
+                "type": "inline_code",
+                "code": "git"
+              },
+              {
+                "type": "text",
+                "value": " executable to fetch, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#netgit-fetch-with-cli",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "net.git-fetch-with-cli"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_NET_OFFLINE"
+              },
+              {
+                "type": "text",
+                "value": " — Offline mode, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#netoffline",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "net.offline"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_BUILD_OVERRIDE_<key>"
+              },
+              {
+                "type": "text",
+                "value": " — Override build script profile, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamebuild-override",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.build-override"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_CODEGEN_UNITS"
+              },
+              {
+                "type": "text",
+                "value": " — Set code generation units, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamecodegen-units",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.codegen-units"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_DEBUG"
+              },
+              {
+                "type": "text",
+                "value": " — What kind of debug info to include, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamedebug",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.debug"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_DEBUG_ASSERTIONS"
+              },
+              {
+                "type": "text",
+                "value": " — Enable/disable debug assertions, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamedebug-assertions",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.debug-assertions"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_INCREMENTAL"
+              },
+              {
+                "type": "text",
+                "value": " — Enable/disable incremental compilation, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenameincremental",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.incremental"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_LTO"
+              },
+              {
+                "type": "text",
+                "value": " — Link-time optimization, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamelto",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.lto"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_OVERFLOW_CHECKS"
+              },
+              {
+                "type": "text",
+                "value": " — Enable/disable overflow checks, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenameoverflow-checks",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.overflow-checks"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_OPT_LEVEL"
+              },
+              {
+                "type": "text",
+                "value": " — Set the optimization level, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenameopt-level",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.opt-level"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_PANIC"
+              },
+              {
+                "type": "text",
+                "value": " — The panic strategy to use, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamepanic",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.panic"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_RPATH"
+              },
+              {
+                "type": "text",
+                "value": " — The rpath linking option, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamerpath",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.rpath"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_SPLIT_DEBUGINFO"
+              },
+              {
+                "type": "text",
+                "value": " — Controls debug file output behavior, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamesplit-debuginfo",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.split-debuginfo"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PROFILE_<name>_STRIP"
+              },
+              {
+                "type": "text",
+                "value": " — Controls stripping of symbols and/or debuginfos, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#profilenamestrip",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "profile.<name>.strip"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_REGISTRIES_<name>_CREDENTIAL_PROVIDER"
+              },
+              {
+                "type": "text",
+                "value": " — Credential provider for a registry, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#registriesnamecredential-provider",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "registries.<name>.credential-provider"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_REGISTRIES_<name>_INDEX"
+              },
+              {
+                "type": "text",
+                "value": " — URL of a registry index, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#registriesnameindex",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "registries.<name>.index"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_REGISTRIES_<name>_TOKEN"
+              },
+              {
+                "type": "text",
+                "value": " — Authentication token of a registry, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#registriesnametoken",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "registries.<name>.token"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_REGISTRY_CREDENTIAL_PROVIDER"
+              },
+              {
+                "type": "text",
+                "value": " — Credential provider for "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ", see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#registrycredential-provider",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "registry.credential-provider"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_REGISTRY_DEFAULT"
+              },
+              {
+                "type": "text",
+                "value": " — Default registry for the "
+              },
+              {
+                "type": "inline_code",
+                "code": "--registry"
+              },
+              {
+                "type": "text",
+                "value": " flag, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#registrydefault",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "registry.default"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_REGISTRY_GLOBAL_CREDENTIAL_PROVIDERS"
+              },
+              {
+                "type": "text",
+                "value": " — Credential providers for registries that do not have a specific provider defined. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#registryglobal-credential-providers",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "registry.global-credential-providers"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_REGISTRY_TOKEN"
+              },
+              {
+                "type": "text",
+                "value": " — Authentication token for "
+              },
+              {
+                "type": "link",
+                "href": "https://crates.io/",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "crates.io"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ", see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#registrytoken",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "registry.token"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TARGET_<triple>_LINKER"
+              },
+              {
+                "type": "text",
+                "value": " — The linker to use, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#targettriplelinker",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "target.<triple>.linker"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ". The triple must be "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#environment-variables",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "converted to uppercase and underscores"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TARGET_<triple>_RUNNER"
+              },
+              {
+                "type": "text",
+                "value": " — The executable runner, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#targettriplerunner",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "target.<triple>.runner"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TARGET_<triple>_RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — Extra "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " flags for a target, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#targettriplerustflags",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "target.<triple>.rustflags"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TERM_QUIET"
+              },
+              {
+                "type": "text",
+                "value": " — Quiet mode, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#termquiet",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "term.quiet"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TERM_VERBOSE"
+              },
+              {
+                "type": "text",
+                "value": " — The default terminal verbosity, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#termverbose",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "term.verbose"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TERM_COLOR"
+              },
+              {
+                "type": "text",
+                "value": " — The default color mode, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#termcolor",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "term.color"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TERM_PROGRESS_WHEN"
+              },
+              {
+                "type": "text",
+                "value": " — The default progress bar showing mode, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#termprogresswhen",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "term.progress.when"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TERM_PROGRESS_WIDTH"
+              },
+              {
+                "type": "text",
+                "value": " — The default progress bar width, see "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#termprogresswidth",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "term.progress.width"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "environment-variables-cargo-sets-for-crates",
+        "children": [
+          {
+            "type": "text",
+            "value": "Environment variables Cargo sets for crates"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo exposes these environment variables to your crate when it is compiled. Note that this applies for running binaries with "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo run"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo test"
+          },
+          {
+            "type": "text",
+            "value": " as well. To get the value of any of these variables in a Rust program, do this:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "rust",
+        "code": "let version = env!(\"CARGO_PKG_VERSION\");"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "version"
+          },
+          {
+            "type": "text",
+            "value": " will now contain the value of "
+          },
+          {
+            "type": "inline_code",
+            "code": "CARGO_PKG_VERSION"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Note that if one of these values is not provided in the manifest, the corresponding environment variable is set to the empty string, "
+          },
+          {
+            "type": "inline_code",
+            "code": "\"\""
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO"
+              },
+              {
+                "type": "text",
+                "value": " — Path to the "
+              },
+              {
+                "type": "inline_code",
+                "code": "cargo"
+              },
+              {
+                "type": "text",
+                "value": " binary performing the build."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_MANIFEST_DIR"
+              },
+              {
+                "type": "text",
+                "value": " — The directory containing the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_MANIFEST_PATH"
+              },
+              {
+                "type": "text",
+                "value": " — The path to the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_VERSION"
+              },
+              {
+                "type": "text",
+                "value": " — The full version of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_VERSION_MAJOR"
+              },
+              {
+                "type": "text",
+                "value": " — The major version of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_VERSION_MINOR"
+              },
+              {
+                "type": "text",
+                "value": " — The minor version of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_VERSION_PATCH"
+              },
+              {
+                "type": "text",
+                "value": " — The patch version of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_VERSION_PRE"
+              },
+              {
+                "type": "text",
+                "value": " — The pre-release version of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_AUTHORS"
+              },
+              {
+                "type": "text",
+                "value": " — Colon separated list of authors from the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_NAME"
+              },
+              {
+                "type": "text",
+                "value": " — The name of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_DESCRIPTION"
+              },
+              {
+                "type": "text",
+                "value": " — The description from the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_HOMEPAGE"
+              },
+              {
+                "type": "text",
+                "value": " — The home page from the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_REPOSITORY"
+              },
+              {
+                "type": "text",
+                "value": " — The repository from the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_LICENSE"
+              },
+              {
+                "type": "text",
+                "value": " — The license from the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_LICENSE_FILE"
+              },
+              {
+                "type": "text",
+                "value": " — The license file from the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_RUST_VERSION"
+              },
+              {
+                "type": "text",
+                "value": " — The Rust version from the manifest of your package. Note that this is the minimum Rust version supported by the package, not the current Rust version."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_README"
+              },
+              {
+                "type": "text",
+                "value": " — Path to the README file of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_CRATE_NAME"
+              },
+              {
+                "type": "text",
+                "value": " — The name of the crate that is currently being compiled. It is the name of the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/cargo-targets.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Cargo target"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " with "
+              },
+              {
+                "type": "inline_code",
+                "code": "-"
+              },
+              {
+                "type": "text",
+                "value": " converted to "
+              },
+              {
+                "type": "inline_code",
+                "code": "_"
+              },
+              {
+                "type": "text",
+                "value": ", such as the name of the library, binary, example, integration test, or benchmark."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BIN_NAME"
+              },
+              {
+                "type": "text",
+                "value": " — The name of the binary that is currently being compiled. Only set for "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/cargo-targets.html#binaries",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "binaries"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " or binary "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/cargo-targets.html#examples",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "examples"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ". This name does not include any file extension, such as "
+              },
+              {
+                "type": "inline_code",
+                "code": ".exe"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "OUT_DIR"
+              },
+              {
+                "type": "text",
+                "value": " — If the package has a build script, this is set to the folder where the build script should place its output. See below for more information. (Only set during compilation.) Cargo does not guarantee that this directory is empty, and it is not cleaned between builds."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BIN_EXE_<name>"
+              },
+              {
+                "type": "text",
+                "value": " — The absolute path to a binary target’s executable. This is only set when building an "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/cargo-targets.html#integration-tests",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "integration test"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " or benchmark. This may be used with the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/std/macro.env.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "env"
+                  },
+                  {
+                    "type": "text",
+                    "value": " macro"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " to find the executable to run for testing purposes. The "
+              },
+              {
+                "type": "inline_code",
+                "code": "<name>"
+              },
+              {
+                "type": "text",
+                "value": " is the name of the binary target, exactly as-is. For example, "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_BIN_EXE_my-program"
+              },
+              {
+                "type": "text",
+                "value": " for a binary named "
+              },
+              {
+                "type": "inline_code",
+                "code": "my-program"
+              },
+              {
+                "type": "text",
+                "value": ". Binaries are automatically built when the test is built, unless the binary has required features that are not enabled."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PRIMARY_PACKAGE"
+              },
+              {
+                "type": "text",
+                "value": " — This environment variable will be set if the package being built is primary. Primary packages are the ones the user selected on the command-line, either with "
+              },
+              {
+                "type": "inline_code",
+                "code": "-p"
+              },
+              {
+                "type": "text",
+                "value": " flags or the defaults based on the current directory and the default workspace members. This variable will not be set when building dependencies, unless a dependency is also a workspace member that was also selected on the command-line. This is only set when compiling the package (not when running binaries or tests)."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_TARGET_TMPDIR"
+              },
+              {
+                "type": "text",
+                "value": " — Only set when building "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/cargo-targets.html#integration-tests",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "integration test"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " or benchmark code. This is a path to a directory inside the target directory where integration tests or benchmarks are free to put any data needed by the tests/benches. Cargo initially creates this directory but doesn’t manage its content in any way, this is the responsibility of the test code."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "id": "dynamic-library-paths",
+        "children": [
+          {
+            "type": "text",
+            "value": "Dynamic library paths"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo also sets the dynamic library path when compiling and running binaries with commands like "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo run"
+          },
+          {
+            "type": "text",
+            "value": " and "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo test"
+          },
+          {
+            "type": "text",
+            "value": ". This helps with locating shared libraries that are part of the build process. The variable name depends on the platform:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Windows: "
+              },
+              {
+                "type": "inline_code",
+                "code": "PATH"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "macOS: "
+              },
+              {
+                "type": "inline_code",
+                "code": "DYLD_FALLBACK_LIBRARY_PATH"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Unix: "
+              },
+              {
+                "type": "inline_code",
+                "code": "LD_LIBRARY_PATH"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "AIX: "
+              },
+              {
+                "type": "inline_code",
+                "code": "LIBPATH"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "The value is extended from the existing value when Cargo starts. macOS has special consideration where if "
+          },
+          {
+            "type": "inline_code",
+            "code": "DYLD_FALLBACK_LIBRARY_PATH"
+          },
+          {
+            "type": "text",
+            "value": " is not already set, it will add the default "
+          },
+          {
+            "type": "inline_code",
+            "code": "$HOME/lib:/usr/local/lib:/usr/lib"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo includes the following paths:"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "Search paths included from any build script with the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/build-scripts.html#rustc-link-search",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "rustc-link-search"
+                  },
+                  {
+                    "type": "text",
+                    "value": " instruction"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ". Paths outside of the "
+              },
+              {
+                "type": "inline_code",
+                "code": "target"
+              },
+              {
+                "type": "text",
+                "value": " directory are removed. It is the responsibility of the user running Cargo to properly set the environment if additional libraries on the system are needed in the search path."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "The base output directory, such as "
+              },
+              {
+                "type": "inline_code",
+                "code": "target/debug"
+              },
+              {
+                "type": "text",
+                "value": ", and the “deps” directory. This is mostly for support of proc-macros."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "text",
+                "value": "The rustc sysroot library path. This generally is not important to most users."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "environment-variables-cargo-sets-for-build-scripts",
+        "children": [
+          {
+            "type": "text",
+            "value": "Environment variables Cargo sets for build scripts"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo sets several environment variables when build scripts are run. Because these variables are not yet set when the build script is compiled, the above example using "
+          },
+          {
+            "type": "inline_code",
+            "code": "env!"
+          },
+          {
+            "type": "text",
+            "value": " won’t work and instead you’ll need to retrieve the values when the build script is run:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "rust",
+        "code": "use std::env;\nlet out_dir = env::var(\"OUT_DIR\").unwrap();"
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "inline_code",
+            "code": "out_dir"
+          },
+          {
+            "type": "text",
+            "value": " will now contain the value of "
+          },
+          {
+            "type": "inline_code",
+            "code": "OUT_DIR"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO"
+              },
+              {
+                "type": "text",
+                "value": " — Path to the "
+              },
+              {
+                "type": "inline_code",
+                "code": "cargo"
+              },
+              {
+                "type": "text",
+                "value": " binary performing the build."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_MANIFEST_DIR"
+              },
+              {
+                "type": "text",
+                "value": " — The directory containing the manifest for the package being built (the package containing the build script). Also note that this is the value of the current working directory of the build script when it starts."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_MANIFEST_PATH"
+              },
+              {
+                "type": "text",
+                "value": " — The path to the manifest of your package."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_MANIFEST_LINKS"
+              },
+              {
+                "type": "text",
+                "value": " — the manifest "
+              },
+              {
+                "type": "inline_code",
+                "code": "links"
+              },
+              {
+                "type": "text",
+                "value": " value."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — Contains parameters needed for Cargo’s "
+              },
+              {
+                "type": "link",
+                "href": "https://www.gnu.org/software/make/manual/html_node/Job-Slots.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "jobserver"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " implementation to parallelize subprocesses. Rustc or cargo invocations from build.rs can already read "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": ", but GNU Make requires the flags to be specified either directly as arguments, or through the "
+              },
+              {
+                "type": "inline_code",
+                "code": "MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " environment variable. Currently Cargo doesn’t set the "
+              },
+              {
+                "type": "inline_code",
+                "code": "MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " variable, but it’s free for build scripts invoking GNU Make to set it to the contents of "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_FEATURE_<name>"
+              },
+              {
+                "type": "text",
+                "value": " — For each activated feature of the package being built, this environment variable will be present where "
+              },
+              {
+                "type": "inline_code",
+                "code": "<name>"
+              },
+              {
+                "type": "text",
+                "value": " is the name of the feature uppercased and having "
+              },
+              {
+                "type": "inline_code",
+                "code": "-"
+              },
+              {
+                "type": "text",
+                "value": " translated to "
+              },
+              {
+                "type": "inline_code",
+                "code": "_"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_CFG_<cfg>"
+              },
+              {
+                "type": "text",
+                "value": " — For each "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/reference/conditional-compilation.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "configuration option"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " of the package being built, this environment variable will contain the value of the configuration, where "
+              },
+              {
+                "type": "inline_code",
+                "code": "<cfg>"
+              },
+              {
+                "type": "text",
+                "value": " is the name of the configuration uppercased and having "
+              },
+              {
+                "type": "inline_code",
+                "code": "-"
+              },
+              {
+                "type": "text",
+                "value": " translated to "
+              },
+              {
+                "type": "inline_code",
+                "code": "_"
+              },
+              {
+                "type": "text",
+                "value": ". Boolean configurations are present if they are set, and not present otherwise. Configurations with multiple values are joined to a single variable with the values delimited by "
+              },
+              {
+                "type": "inline_code",
+                "code": ","
+              },
+              {
+                "type": "text",
+                "value": ". This includes values built-in to the compiler (which can be seen with "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc --print=cfg"
+              },
+              {
+                "type": "text",
+                "value": ") and values set by build scripts and extra flags passed to "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " (such as those defined in "
+              },
+              {
+                "type": "inline_code",
+                "code": "RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": "). Some examples of what these variables are: "
+              },
+              {
+                "type": "list",
+                "ordered": false,
+                "start": null,
+                "items": [
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_FEATURE"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Each activated feature of the package being built."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_UNIX"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Set on "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#unix-and-windows",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "unix-like platforms"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_WINDOWS"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — Set on "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#unix-and-windows",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "windows-like platforms"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_FAMILY=unix,wasm"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_family",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target family"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_OS=macos"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_os",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target operating system"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_ARCH=x86_64"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The CPU "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_arch",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target architecture"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_VENDOR=apple"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_vendor",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target vendor"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_ENV=gnu"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_env",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target environment"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " ABI."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_ABI=eabihf"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_abi",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target ABI"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_POINTER_WIDTH=64"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The CPU "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_pointer_width",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "pointer width"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_ENDIAN=little"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — The CPU "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_endian",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target endianness"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  },
+                  {
+                    "children": [
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_TARGET_FEATURE=mmx,sse"
+                      },
+                      {
+                        "type": "text",
+                        "value": " — List of CPU "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/reference/conditional-compilation.html#target_feature",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target features"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " enabled."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "blockquote",
+                "children": [
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Note that different "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://corpus.test/appendix/glossary.html#target",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target triples"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " have different sets of "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "cfg"
+                      },
+                      {
+                        "type": "text",
+                        "value": " values, hence variables present in one target triple might not be available in the other."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "text",
+                        "value": "Some cfg values like "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "test"
+                      },
+                      {
+                        "type": "text",
+                        "value": " are not available."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "paragraph",
+                    "children": [
+                      {
+                        "type": "strong",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Tip:"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " For a typed API to read these values, consider using the "
+                      },
+                      {
+                        "type": "link",
+                        "href": "https://crates.io/crates/build-rs",
+                        "title": null,
+                        "children": [
+                          {
+                            "type": "inline_code",
+                            "code": "build-rs"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " crate instead of parsing environment variables manually. Also note that "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "CARGO_CFG_*"
+                      },
+                      {
+                        "type": "text",
+                        "value": " variables should be used instead of the "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "cfg!"
+                      },
+                      {
+                        "type": "text",
+                        "value": " macro or "
+                      },
+                      {
+                        "type": "inline_code",
+                        "code": "#[cfg]"
+                      },
+                      {
+                        "type": "text",
+                        "value": " attribute in build scripts, those check the "
+                      },
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "host"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " platform, not the "
+                      },
+                      {
+                        "type": "emphasis",
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "target"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": "."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "OUT_DIR"
+              },
+              {
+                "type": "text",
+                "value": " — the folder in which all output and intermediate artifacts should be placed. This folder is inside the build directory for the package being built, and it is unique for the package in question. Cargo does not clean or reset this directory between builds, and its contents may persist across rebuilds. Build scripts should not assume that "
+              },
+              {
+                "type": "inline_code",
+                "code": "OUT_DIR"
+              },
+              {
+                "type": "text",
+                "value": " is empty, and are responsible for managing or cleaning up any files they create."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "TARGET"
+              },
+              {
+                "type": "text",
+                "value": " — the target triple that is being compiled for. Native code should be compiled for this triple. See the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/appendix/glossary.html#target",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "Target Triple"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " description for more information."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "HOST"
+              },
+              {
+                "type": "text",
+                "value": " — the host triple of the Rust compiler."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "NUM_JOBS"
+              },
+              {
+                "type": "text",
+                "value": " — the parallelism specified as the top-level parallelism. This can be useful to pass a "
+              },
+              {
+                "type": "inline_code",
+                "code": "-j"
+              },
+              {
+                "type": "text",
+                "value": " parameter to a system like "
+              },
+              {
+                "type": "inline_code",
+                "code": "make"
+              },
+              {
+                "type": "text",
+                "value": ". Note that care should be taken when interpreting this environment variable. For historical purposes this is still provided but recent versions of Cargo, for example, do not need to run "
+              },
+              {
+                "type": "inline_code",
+                "code": "make -j"
+              },
+              {
+                "type": "text",
+                "value": ", and instead can set the "
+              },
+              {
+                "type": "inline_code",
+                "code": "MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " env var to the content of "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " to activate the use of Cargo’s GNU Make compatible "
+              },
+              {
+                "type": "link",
+                "href": "https://www.gnu.org/software/make/manual/html_node/Job-Slots.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "jobserver"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for sub-make invocations."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "DEBUG"
+              },
+              {
+                "type": "text",
+                "value": " — "
+              },
+              {
+                "type": "inline_code",
+                "code": "true"
+              },
+              {
+                "type": "text",
+                "value": " if any "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/profiles.html#debug",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "debug"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " information will be generated and "
+              },
+              {
+                "type": "inline_code",
+                "code": "false"
+              },
+              {
+                "type": "text",
+                "value": " otherwise."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "OPT_LEVEL"
+              },
+              {
+                "type": "text",
+                "value": " — values of the corresponding "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/profiles.html#opt-level",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "opt-level"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " variable for the profile currently being built."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "PROFILE"
+              },
+              {
+                "type": "text",
+                "value": " — "
+              },
+              {
+                "type": "inline_code",
+                "code": "release"
+              },
+              {
+                "type": "text",
+                "value": " for release builds, "
+              },
+              {
+                "type": "inline_code",
+                "code": "debug"
+              },
+              {
+                "type": "text",
+                "value": " for other builds. This is determined based on if the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/profiles.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "profile"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " inherits from the "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/profiles.html#dev",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "dev"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " or "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/profiles.html#release",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "release"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " profile. Using this environment variable is not recommended. Using other environment variables like "
+              },
+              {
+                "type": "inline_code",
+                "code": "OPT_LEVEL"
+              },
+              {
+                "type": "text",
+                "value": " provide a more correct view of the actual settings being used."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "DEP_<links>_<key>"
+              },
+              {
+                "type": "text",
+                "value": " — For more information about this set of environment variables, see build script documentation about "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/build-scripts.html#the-links-manifest-key",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "links"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTC"
+              },
+              {
+                "type": "text",
+                "value": ", "
+              },
+              {
+                "type": "inline_code",
+                "code": "RUSTDOC"
+              },
+              {
+                "type": "text",
+                "value": " — the compiler and documentation generator that Cargo has resolved to use, passed to the build script so it might use it as well."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTC_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " — the "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " wrapper, if any, that Cargo is using. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc-wrapper",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc-wrapper"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTC_WORKSPACE_WRAPPER"
+              },
+              {
+                "type": "text",
+                "value": " — the "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " wrapper, if any, that Cargo is using for workspace members. See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustc-workspace-wrapper",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustc-workspace-wrapper"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "RUSTC_LINKER"
+              },
+              {
+                "type": "text",
+                "value": " — The path to the linker binary that Cargo has resolved to use for the current target, if specified. The linker can be changed by editing "
+              },
+              {
+                "type": "inline_code",
+                "code": ".cargo/config.toml"
+              },
+              {
+                "type": "text",
+                "value": "; see the documentation about "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "cargo configuration"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " for more information."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_ENCODED_RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — extra flags that Cargo invokes "
+              },
+              {
+                "type": "inline_code",
+                "code": "rustc"
+              },
+              {
+                "type": "text",
+                "value": " with, separated by a "
+              },
+              {
+                "type": "inline_code",
+                "code": "0x1f"
+              },
+              {
+                "type": "text",
+                "value": " character (ASCII Unit Separator). See "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/config.html#buildrustflags",
+                "title": null,
+                "children": [
+                  {
+                    "type": "inline_code",
+                    "code": "build.rustflags"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": ". Note that since Rust 1.55, "
+              },
+              {
+                "type": "inline_code",
+                "code": "RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " is removed from the environment; scripts should use "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_ENCODED_RUSTFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " instead."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_PKG_<var>"
+              },
+              {
+                "type": "text",
+                "value": " — The package information variables, with the same names and values as are "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/mdbook-cargo-environment-variables.html#environment-variables-cargo-sets-for-crates",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "provided during crate building"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "environment-variables-cargo-sets-for-cargo-test",
+        "children": [
+          {
+            "type": "text",
+            "value": "Environment variables Cargo sets for "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo test"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo sets several environment variables when tests are run. You can retrieve the values when the tests are run:"
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "language": "rust",
+        "code": "use std::env;\nlet out_dir = env::var(\"CARGO_BIN_EXE_foo\").unwrap();"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_BIN_EXE_<name>"
+              },
+              {
+                "type": "text",
+                "value": " — The absolute path to a binary target’s executable. This is only set when running an "
+              },
+              {
+                "type": "link",
+                "href": "https://corpus.test/cargo-targets.html#integration-tests",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "integration test"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " or benchmark. The "
+              },
+              {
+                "type": "inline_code",
+                "code": "<name>"
+              },
+              {
+                "type": "text",
+                "value": " is the name of the binary target, exactly as-is. For example, "
+              },
+              {
+                "type": "inline_code",
+                "code": "CARGO_BIN_EXE_my-program"
+              },
+              {
+                "type": "text",
+                "value": " for a binary named "
+              },
+              {
+                "type": "inline_code",
+                "code": "my-program"
+              },
+              {
+                "type": "text",
+                "value": ". Binaries are automatically built when the test is built, unless the binary has required features that are not enabled."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "id": "environment-variables-cargo-sets-for-3rd-party-subcommands",
+        "children": [
+          {
+            "type": "text",
+            "value": "Environment variables Cargo sets for 3rd party subcommands"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Cargo exposes this environment variable to 3rd party subcommands (ie. programs named "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo-foobar"
+          },
+          {
+            "type": "text",
+            "value": " placed in "
+          },
+          {
+            "type": "inline_code",
+            "code": "$PATH"
+          },
+          {
+            "type": "text",
+            "value": "):"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "start": null,
+        "items": [
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO"
+              },
+              {
+                "type": "text",
+                "value": " — Path to the "
+              },
+              {
+                "type": "inline_code",
+                "code": "cargo"
+              },
+              {
+                "type": "text",
+                "value": " binary performing the build."
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "type": "inline_code",
+                "code": "CARGO_MAKEFLAGS"
+              },
+              {
+                "type": "text",
+                "value": " — Contains parameters needed for Cargo’s "
+              },
+              {
+                "type": "link",
+                "href": "https://www.gnu.org/software/make/manual/html_node/Job-Slots.html",
+                "title": null,
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "jobserver"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " implementation to parallelize subprocesses. This is set only when Cargo detects the existence of a jobserver."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "For extended information about your environment you may run "
+          },
+          {
+            "type": "inline_code",
+            "code": "cargo metadata"
+          },
+          {
+            "type": "text",
+            "value": "."
+          }
+        ]
+      }
+    ]
+  }
+}

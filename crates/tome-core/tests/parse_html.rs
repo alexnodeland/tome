@@ -453,3 +453,37 @@ fn an_mdbook_definition_term_is_not_a_link_either() {
         items[0].term
     );
 }
+
+#[test]
+fn a_permalink_marker_is_chrome_whatever_glyph_it_uses() {
+    // Sphinx uses ¶, Node's API docs use #. Both are "permalink to this
+    // heading" and neither belongs in the title — every Node page in the
+    // corpus came out titled "OS#", "Path#", "Query string#".
+    for marker in ["¶", "§", "#", "🔗"] {
+        let html = format!(
+            r##"<main><h2>OS<span><a class="mark" id="os" href="#os">{marker}</a></span></h2></main>"##
+        );
+        let page = parse(&html);
+        let Node::Heading { children, .. } = &body_children(&page)[0] else {
+            panic!("expected a heading")
+        };
+        assert_eq!(text_of(children), "OS", "marker {marker:?} survived");
+    }
+}
+
+#[test]
+fn a_heading_that_really_contains_a_hash_keeps_it() {
+    // The narrowness matters: only a FRAGMENT link whose whole text is the
+    // marker is chrome.
+    let page = parse(r##"<main><h2>Using # in a URL</h2></main>"##);
+    let Node::Heading { children, .. } = &body_children(&page)[0] else {
+        panic!("expected a heading")
+    };
+    assert_eq!(text_of(children), "Using # in a URL");
+
+    let page = parse(r##"<main><h2><a href="/issues/1">#1</a> fixed</h2></main>"##);
+    let Node::Heading { children, .. } = &body_children(&page)[0] else {
+        panic!("expected a heading")
+    };
+    assert_eq!(text_of(children), "#1 fixed");
+}
