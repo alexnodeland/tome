@@ -1,0 +1,57 @@
+# tome-detection-fixture v1
+url: https://doc.rust-lang.org/core/
+captured: 2026-07-29
+licence: MIT OR Apache-2.0
+platform: rustdoc
+generator-meta: rustdoc
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: AmazonS3
+header: content-type: text/html
+header: x-amz-cf-pop: JFK50-P14
+header: via: 1.1 08cce61813f4b9bce6625bbb81092878.cloudfront.net (CloudFront)
+---
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The Rust Core Library"><title>core - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="core" data-themes="" data-resource-suffix="1.97.1" data-rustdoc-version="1.97.1 (8bab26f4f 2026-07-14)" data-channel="1.97.1" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates1.97.1.js"></script><script defer src="../static.files/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate core</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../core/index.html"><img class="rust-logo" src="../static.files/rust-logo-9a9549ea.svg" alt="logo"></a><h2><a href="../core/index.html">core</a><span class="version">1.97.1</span></h2></div><div class="version">(8bab26f4f	2026-07-14)</div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#the-rust-core-library" title="The Rust Core Library">The Rust Core Library</a></li><li><a href="#how-to-use-the-core-library" title="How to use the core library">How to use the core library</a></li></ul><h3><a href="#primitives">Crate Items</a></h3><ul class="block"><li><a href="#primitives" title="Primitive Types">Primitive Types</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>core</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.6.0">1.6.0</span> · <a class="src" href="../src/core/lib.rs.html#1-401">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="the-rust-core-library"><a class="doc-anchor" href="#the-rust-core-library">§</a>The Rust Core Library</h2>
+<p>The Rust Core Library is the dependency-free<sup id="fnref1"><a href="#fn1">1</a></sup> foundation of <a href="../std/index.html">The
+Rust Standard Library</a>. It is the portable glue
+between the language and its libraries, defining the intrinsic and
+primitive building blocks of all Rust code. It links to no
+upstream libraries, no system libraries, and no libc.</p>
+<p>The core library is <em>minimal</em>: it isn’t even aware of heap allocation,
+nor does it provide concurrency or I/O. These things require
+platform integration, and this library is platform-agnostic.</p>
+<h2 id="how-to-use-the-core-library"><a class="doc-anchor" href="#how-to-use-the-core-library">§</a>How to use the core library</h2>
+<p>Please note that all of these details are currently not considered stable.</p>
+<p>This library is built on the assumption of a few existing symbols:</p>
+<ul>
+<li>
+<p><code>memcpy</code>, <code>memmove</code>, <code>memset</code>, <code>memcmp</code>, <code>bcmp</code>, <code>strlen</code> - These are core memory routines
+which are generated by Rust codegen backends. Additionally, this library can make explicit
+calls to <code>strlen</code>. Their signatures are the same as found in C, but there are extra
+assumptions about their semantics: For <code>memcpy</code>, <code>memmove</code>, <code>memset</code>, <code>memcmp</code>, and <code>bcmp</code>, if
+the <code>n</code> parameter is 0, the function is assumed to not be UB, even if the pointers are NULL or
+dangling. (Note that making extra assumptions about these functions is common among compilers:
+<a href="https://reviews.llvm.org/D86993">clang</a> and <a href="https://gcc.gnu.org/onlinedocs/gcc/Standards.html#C-Language">GCC</a> do the same.)
+These functions are often provided by the system libc, but can also be provided by the
+<a href="https://crates.io/crates/compiler_builtins">compiler-builtins crate</a>.
+Note that the library does not guarantee that it will always make these assumptions, so Rust
+user code directly calling the C functions should follow the C specification! The advice for
+Rust user code is to call the functions provided by this library instead (such as
+<code>ptr::copy</code>).</p>
+</li>
+<li>
+<p>Panic handler - This function takes one argument, a <code>&amp;panic::PanicInfo</code>. It is up to consumers of this core
+library to define this panic function; it is only required to never
+return. You should mark your implementation using <code>#[panic_handler]</code>.</p>
+</li>
+<li>
+<p><code>rust_eh_personality</code> - is used by the failure mechanisms of the
+compiler. This is often mapped to GCC’s personality function, but crates
+which do not trigger a panic can be assured that this function is never
+called. The <code>lang</code> attribute is called <code>eh_personality</code>.</p>
+</li>
+</ul>
+<div class="footnotes"><hr><ol><li id="fn1"><p>Strictly speaking, there are some symbols which are needed but
+they aren’t always necessary.&nbsp;<a href="#fnref1">↩</a></p></li></ol></div></div></details><h2 id="primitives" class="section-header">Primitive Types<a href="#primitives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="primitive" href="primitive.array.html" title="primitive core::array">array</a></dt><dd>A fixed-size array, denoted <code>[T; N]</code>, for the element type, <code>T</code>, and the
+non-negative compile-time constant size, <code>N</code>.</dd><dt><a class="primitive" href="primitive.bool.html" title="primitive core::bool">bool</a></dt><dd>The boolean type.</dd><dt><a class="primitive" href="primitive.char.html" title="primitive core::char">char</a></dt><dd>A character type.</dd><dt><a class="primitive" href="primitive.f32.html" title="primitive core::f32">f32</a></dt><dd>A 32-bit floating-point type (specifically, the “binary32” type defined in IEEE 754-2008).</dd><dt><a
+<!-- tome: 23483 bytes elided -->
+</span></dt><dd>Enables or disables tracing functionality used for debugging other macros.</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.derive.html" title="attr core::derive">derive</a></dt><dd>Attribute macro used to apply derive macros.</dd></dl><script type="text/json" id="notable-traits-data">{"EscapeDefault":"<h3>Notable traits for <code><a class=\"struct\" href=\"ascii/struct.EscapeDefault.html\" title=\"struct core::ascii::EscapeDefault\">EscapeDefault</a></code></h3><pre><code><div class=\"where\">impl <a class=\"trait\" href=\"iter/trait.Iterator.html\" title=\"trait core::iter::Iterator\">Iterator</a> for <a class=\"struct\" href=\"ascii/struct.EscapeDefault.html\" title=\"struct core::ascii::EscapeDefault\">EscapeDefault</a></div><div class=\"where\">    type <a href=\"iter/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"primitive.u8.html\">u8</a>;</div>","IntoIter<T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;T&gt; <a class=\"trait\" href=\"iter/trait.Iterator.html\" title=\"trait core::iter::Iterator\">Iterator</a> for <a class=\"struct\" href=\"result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</div><div class=\"where\">    type <a href=\"iter/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = T;</div>","Iter<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"iter/trait.Iterator.html\" title=\"trait core::iter::Iterator\">Iterator</a> for <a class=\"struct\" href=\"result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"iter/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"primitive.reference.html\">&amp;'a T</a>;</div>","IterMut<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"iter/trait.Iterator.html\" title=\"trait core::iter::Iterator\">Iterator</a> for <a class=\"struct\" href=\"result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"iter/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"primitive.reference.html\">&amp;'a mut T</a>;</div>"}</script></section></div></main></body></html>

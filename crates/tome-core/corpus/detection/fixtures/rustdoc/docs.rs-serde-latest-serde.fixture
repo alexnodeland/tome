@@ -1,0 +1,143 @@
+# tome-detection-fixture v1
+url: https://docs.rs/serde/latest/serde/
+captured: 2026-07-29
+licence: MIT OR Apache-2.0
+platform: rustdoc
+generator-meta: rustdoc
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: nginx/1.14.0 (Ubuntu)
+header: content-type: text/html; charset=utf-8
+header: x-served-by: cache-sjc10077-SJC, cache-ewr-kewr1740027-EWR
+---
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde"><title>serde - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/vendored.css?0-0-0-f1b150f0cd76f7cabcd39e1f4790ba771b28b5c4-2026-07-19" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-ddecd707.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="serde" data-themes="" data-resource-suffix="-20260715-1.99.0-nightly-d0babd8b6" data-rustdoc-version="1.99.0-nightly (d0babd8b6 2026-07-15)" data-channel="nightly" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20260715-1.99.0-nightly-d0babd8b6.js"></script><script defer src="/-/rustdoc.static/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/rustdoc-2025-08-20.css?0-0-0-f1b150f0cd76f7cabcd39e1f4790ba771b28b5c4-2026-07-19" media="all" /><link rel="stylesheet" href="/-/static/font-awesome.css?0-0-0-f1b150f0cd76f7cabcd39e1f4790ba771b28b5c4-2026-07-19" media="all" />
+
+<link rel="search" href="/-/static/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "serde",
+            "version": "1.0.229"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="A generic serialization/deserialization framework">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">serde-1.0.229</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        serde 1.0.229
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/serde/1.0.229/serde/" class="pure-menu-link description" id="permalink" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/serde/latest" class="pure-menu-link description" title="See serde in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a> OR <a href="https://spdx.org/licenses/Apache-2.0" class="pure-menu-sublink">Apache-2.0</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.99.0-nightly (d0babd8b6 2026-07-15)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 18 July 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://serde.rs" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-house " aria-hidden="true"></span> Homepage
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://github.com/serde-rs/serde" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/serde" class="pure-menu-link" title="See serde in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/serde/latest/source/" title="Browse source of serde-1.0.229" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/dtolnay" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> dtolnay
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/teams/github:serde-rs:publish" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> github:serde-rs:publish
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-men
+<!-- tome: 13751 bytes elided -->
+>, the format used by <a href="https://docs.rs/rusoto_dynamodb">rusoto_dynamodb</a> to transfer data to
+and from DynamoDB.</li>
+<li><a href="https://github.com/Canop/deser-hjson">Hjson</a>, a syntax extension to JSON designed around human reading and
+editing. <em>(deserialization only)</em></li>
+<li><a href="https://docs.rs/csv">CSV</a>, Comma-separated values is a tabular text file format.</li>
+</ul>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="de/index.html" title="mod serde::de">de</a></dt><dd>Generic data structure deserialization framework.</dd><dt><a class="mod" href="ser/index.html" title="mod serde::ser">ser</a></dt><dd>Generic data structure serialization framework.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.forward_to_deserialize_any.html" title="macro serde::forward_to_deserialize_any">forward_<wbr>to_<wbr>deserialize_<wbr>any</a><wbr><span class="stab portability" title="Available on `docsrs` only"><code>docsrs</code></span></dt><dd>Helper macro when implementing the <code>Deserializer</code> part of a new data format
+for Serde.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Deserialize.html" title="trait serde::Deserialize">Deserialize</a></dt><dd>A <strong>data structure</strong> that can be deserialized from any data format supported
+by Serde.</dd><dt><a class="trait" href="trait.Deserializer.html" title="trait serde::Deserializer">Deserializer</a></dt><dd>A <strong>data format</strong> that can deserialize any data structure supported by
+Serde.</dd><dt><a class="trait" href="trait.Serialize.html" title="trait serde::Serialize">Serialize</a></dt><dd>A <strong>data structure</strong> that can be serialized into any data format supported
+by Serde.</dd><dt><a class="trait" href="trait.Serializer.html" title="trait serde::Serializer">Serializer</a></dt><dd>A <strong>data format</strong> that can serialize any data structure supported by Serde.</dd></dl><h2 id="derives" class="section-header">Derive Macros<a href="#derives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="derive" href="derive.Deserialize.html" title="derive serde::Deserialize">Deserialize</a><wbr><span class="stab portability" title="Available on crate feature `derive` only"><code>derive</code></span></dt><dd>Derive macro available if serde is built with <code>features = ["derive"]</code>.</dd><dt><a class="derive" href="derive.Serialize.html" title="derive serde::Serialize">Serialize</a><wbr><span class="stab portability" title="Available on crate feature `derive` only"><code>derive</code></span></dt><dd>Derive macro available if serde is built with <code>features = ["derive"]</code>.</dd></dl></section></div></main></div></body></html>

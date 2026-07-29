@@ -1,0 +1,194 @@
+# tome-detection-fixture v1
+url: https://coverage.readthedocs.io/en/latest/
+captured: 2026-07-29
+licence: Apache-2.0
+platform: sphinx
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: cloudflare
+header: content-type: text/html; charset=utf-8
+header: x-rtd-project: coverage
+header: x-rtd-version: latest
+header: x-backend: web-i-066b1eba1e0d2dc40
+---
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" />
+  <meta name="readthedocs-addons-api-version" content="1"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coverage.py &mdash; Coverage.py 7.15.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/coverage.css?v=b529be7c" />
+      <link rel="stylesheet" type="text/css" href="_static/code-tabs.css?v=1bc26e2f" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1638ad08"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/code-tabs.js?v=c983d12e"></script>
+    <script src="_static/js/theme.js"></script>
+    <script src="_static/js/versions.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" /> 
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="coverage" /><meta name="readthedocs-version-slug" content="latest" /><meta name="readthedocs-resolver-filename" content="/" /><meta name="readthedocs-http-status" content="200" /></head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Coverage.py
+              <img src="_static/sleepy-snake-circle-150.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="switch-menus">
+                <div class="version-switch"></div>
+                <div class="language-switch"></div>
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://tidelift.com/subscription/pkg/pypi-coverage?utm_source=pypi-coverage&amp;utm_medium=referral&amp;utm_campaign=enterprise">For enterprise</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands/index.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Messages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source.html">Specifying source files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="excluding.html">Excluding code from coverage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="branch.html">Branch coverage measurement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="subprocess.html">Managing processes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contexts.html">Measurement contexts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Coverage.py API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How coverage.py works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plug-ins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other.html">Other resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to coverage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trouble.html">Things that cause trouble</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ and other help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change history</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migrating.html">Migrating between versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sleepy.html">Sleepy Snake</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Coverage.py</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Coverage.py</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="coverage-py">
+<h1>Coverage.py<a class="headerlink" href="#coverage-py" title="Link to this heading"></a></h1>
+<p>Coverage.py is a tool for measuring code coverage of Python programs. It
+monitors your program, noting which parts of the code have been executed, then
+analyzes the source to identify code that could have been executed but was not.</p>
+<p>Coverage measurement is typically used to gauge the effectiveness of tests. It
+can show which parts of your code are being exercised by tests, and which are
+not.</p>
+<p>The latest version is coverage.py 7.15.2, released July 15, 2026.  It is
+supported on:</p>
+<ul class="simple">
+<li><p>Python 3.10 through 3.15 beta, including free-threading.</p></li>
+<li><p>PyPy3 versions 3.10 and 3.11.</p></li>
+</ul>
+<section id="for-enterprise">
+<h2>For Enterprise<a class="headerlink" href="#for-enterprise" title="Link to this heading"></a></h2>
+<a class="reference external image-reference" href="https://tidelift.com/subscription/pkg/pypi-coverage?utm_source=pypi-coverage&amp;utm_medium=referral&amp;utm_campaign=readme"><img alt="Tidelift" class="tideliftlogo align-left" src="_images/Tidelift_Logos_RGB_Tidelift_Shorthand_On-White.png" style="width: 75px;" />
+</a>
+<p><a class="reference external" href="https://tidelift.com/subscription/pkg/pypi-coverage?utm_source=pypi-coverage&amp;utm_medium=referral&amp;utm_campaign=docs">Available as part of the Tidelift Subscription.</a> <br/>
+Coverage and thousands of other packages are working with
+Tidelift to deliver one enterprise subscription that covers all of the open
+source you use.  If you want the flexibility of open source and the confidence
+of commercial-grade software, this is for you. <a class="reference external" href="https://tidelift.com/subscription/pkg/pypi-coverage?utm_source=pypi-coverage&amp;utm_medium=referral&amp;utm_campaign=docs">Learn more.</a></p>
+</section>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">
+<!-- tome: 10498 bytes elided -->
+-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://tidelift.com/subscription/pkg/pypi-coverage?utm_source=pypi-coverage&amp;utm_medium=referral&amp;utm_campaign=enterprise">For enterprise</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands/index.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Messages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source.html">Specifying source files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="excluding.html">Excluding code from coverage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="branch.html">Branch coverage measurement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="subprocess.html">Managing processes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contexts.html">Measurement contexts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Coverage.py API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How coverage.py works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plug-ins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other.html">Other resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to coverage.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trouble.html">Things that cause trouble</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ and other help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change history</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migrating.html">Migrating between versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sleepy.html">Sleepy Snake</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2009–2026, Ned Batchelder.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

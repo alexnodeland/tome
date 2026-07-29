@@ -1,0 +1,284 @@
+# tome-detection-fixture v1
+url: https://eslint.org/docs/latest/
+captured: 2026-07-29
+licence: MIT
+platform: generic
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: Netlify
+header: content-type: text/html; charset=UTF-8
+---
+<!DOCTYPE html>
+<html lang="en" class="no-js" id="site_top">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+        
+    
+
+    
+    
+    
+    
+    
+    
+    
+
+    <!-- SEO -->
+    <title>Documentation - ESLint - Pluggable JavaScript Linter</title>
+    <meta name="description" content="A pluggable and configurable linter tool for identifying and reporting on patterns in JavaScript. Maintain your code quality with ease.
+">
+    <link rel="canonical" href="https://eslint.org/docs/latest/">
+
+    <!-- https://github.com/eslint/eslint/issues/15844 -->
+    <base href="/docs/latest/">
+
+    <!-- favicon -->
+    <link rel="icon" href="/favicon.ico" sizes="any"><!-- 32×32 -->
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png"><!-- 180×180 -->
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <!-- social sharing previews. Make sure every page template has title, desc, and cover url -->
+    <!-- Open graph -->
+    <meta property="og:title" content="Documentation - ESLint - Pluggable JavaScript Linter">
+    <meta property="og:description" content="A pluggable and configurable linter tool for identifying and reporting on patterns in JavaScript. Maintain your code quality with ease.
+">
+    <meta property="og:image" content="https://eslint.org/og?title=Documentation&amp;summary=A%20pluggable%20and%20configurable%20linter%20tool%20for%20identifying%20and%20reporting%20on%20patterns%20in%20JavaScript.%20Maintain%20your%20code%20quality%20with%20ease.%0A&amp;is_rule=false&amp;recommended=&amp;fixable=&amp;suggestions=" />
+    <meta property="og:image:alt" content="ESLint logo">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eslint.org/docs/latest/">
+    <!-- Twitter -->
+    <meta name="twitter:title" content="Documentation - ESLint - Pluggable JavaScript Linter">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@geteslint">
+    <meta name="twitter:description" content="A pluggable and configurable linter tool for identifying and reporting on patterns in JavaScript. Maintain your code quality with ease.
+">
+    <meta name="twitter:image" content="https://eslint.org/og?title=Documentation&amp;summary=A%20pluggable%20and%20configurable%20linter%20tool%20for%20identifying%20and%20reporting%20on%20patterns%20in%20JavaScript.%20Maintain%20your%20code%20quality%20with%20ease.%0A&amp;is_rule=false&amp;recommended=&amp;fixable=&amp;suggestions=">
+    <meta name="twitter:creator" content="@geteslint">
+
+
+    <script type="module">
+        // This is a capable browser, let's improve the UI further!
+        document.documentElement.classList.add("enhanced");
+        document.documentElement.classList.remove('no-js');
+    </script>
+
+    <link rel="preload" href="/docs/latest/assets/fonts/SpaceGrotesk-Medium-subset.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/docs/latest/assets/fonts/Inter-Regular-subset.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/docs/latest/assets/fonts/SpaceMono-Regular-subset.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/docs/latest/assets/fonts/Consolas.woff" as="font" type="font/woff" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com/">
+
+    <script>
+            (function () {
+                var theme = window.localStorage.getItem("theme");
+                if (theme && theme !== "system") document.documentElement.setAttribute('data-theme', theme)
+                else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                else document.documentElement.setAttribute('data-theme', 'light');
+            })();
+    </script>
+
+
+    <style>
+        /* Overrides for funky punctuators */
+        @font-face {
+            font-family: "Mono Punctuators";
+            src: url("/docs/latest/assets/fonts/Consolas.woff") format("woff");
+            font-weight: 400;
+            unicode-range: U+40, U+7B, U+7D, U+28, U+29;
+            font-display: swap;
+        }
+
+        /* Space Grotesk for headings */
+        @font-face {
+            font-family: "Space Grotesk";
+            src:
+                url("/docs/latest/assets/fonts/SpaceGrotesk-Medium-subset.woff2") format("woff2"),
+                url("/docs/latest/assets/fonts/SpaceGrotesk-Medium-subset.zopfli.woff") format("woff");
+            font-weight: 500;
+            font-display: swap;
+        }
+
+        /* Inter for body text */
+
+        @font-face {
+            font-family: Inter;
+            src:
+                url("/docs/latest/assets/fonts/Inter-Regular-subset.woff2") format("woff2"),
+                url("/docs/latest/assets/fonts/Inter-Regular-subset.zopfli.woff") format("woff");
+            font-weight: 400;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: Inter;
+            src:
+                url("/docs/latest/assets/fonts/Inter-SemiBold-subset.woff2") format("woff2"),
+                url("/docs/latest/assets/fonts/Inter-SemiBold-subset.zopfli.woff") format("woff");
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* Space Mono for code snippets */
+
+        @font-face {
+            font-family: "Space Mono";
+            src:
+                url("/docs/latest/assets/fonts/SpaceMono-Regular-subset.woff2") format("woff2"),
+                url("/docs/latest/assets/fonts/SpaceMono-Regular-subset.zopfli.woff") format("woff");
+            font-weight: 400;
+            font-display: swap;
+        }
+
+        /* Country Flags for Windows */
+        @font-face {
+            font-family: "Twemoji Country Flags";
+            unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+            src: url("https://cdn.jsdelivr.net/npm/country-flag-emoji-polyfill@0.1/dist/TwemojiCountryFlags.woff2") format("woff2");
+        }
+    </style>
+    <script src="/docs/latest/assets/js/themes.js"></script>
+    <script type="module" src="/docs/latest/assets/js/search.js"></script>
+    <link rel="stylesheet" type="text/css" href="/docs/latest/assets/css/styles.css">
+    <link rel="stylesheet" href="/docs/latest/assets/css/print.css" media="print">
+    <script src="https://unpkg.com/anchor-js@4.3.1/anchor.min.js"></script>
+</head>
+
+<body class="page">
+    <a href="#main" class="c-btn c-btn--primary" id="skip-link">Skip to main content</a>
+
+    
+<header class="site-header">
+    <div class="docs-wrapper">
+        <a href="https://eslint.org" aria-label="ESLint Homepage" class="logo-link">
+            <div class="logo">
+    <svg class="brand-logo" width="203" height="58" viewBox="0 0 203 58" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ESLint logo">
+        <path d="M46.5572 21.1093L34.0167 13.8691C33.7029 13.6879 33.3161 13.6879 33.0023 13.8691L20.4616 21.1093C20.148 21.2905 19.9543 21.6253 19.9543 21.9878V36.4681C19.9543 36.8304 20.148 37.1654 20.4616 37.347L33.0023 44.5871C33.3161 44.7684 33.7029 44.7684 34.0167 44.5871L46.5572 37.347C46.871 37.1657 47.0644 36.8306 47.0644 36.4681V21.9878C47.0641 21.6253 46.8707 21.2905 46.5572 21.1093Z" fill="#8080F2" id="logo-center" class="logo-component" />
+        <path d="M0.904381 27.7046L15.8878 1.63772C16.4321 0.695223 17.4375 0 18.5258 0H48.4931C49.5817 0 50.5873 0.695223 51.1316 1.63772L66.115 27.6471C66.6593 28.5899 66.6593 29.7796 66.115 30.7224L51.1316 56.5756C50.5873 57.5181 49.5817 58 48.4931 58H18.526C17.4377 58 16.4321 57.5326 15.8881 56.5899L0.90464 30.6944C0.359854 29.7522 0.359854 28.6471 0.904381 27.7046ZM13.3115 40.2393C13.3115 40.6225 13.5422 40.977 13.8744 41.1689L32.96 52.1803C33.2919 52.3719 33.7078 52.3719 34.0397 52.1803L53.1401 41.1689C53.4721 40.977 53.7043 40.6228 53.7043 40.2393V18.2161C53.7043 17.8327 53.4754 17.4785 53.1432 17.2866L34.0584 6.27513C33.7264 6.08327 33.3111 6.08327 32.9792 6.27513L13.8775 17.2866C13.5453 17.4785 13.3115 17.8327 13.3115 18.2161V40.2393V40.2393Z" fill="#4B32C3" class="logo-component" />
+        <path d="M86.6971 43.7102V14.2899H105.442V18.871H91.7826V26.6044H104.265V31.1855H91.7826V39.129H105.652V43.7102H86.6971Z" fill="#101828" class="logo-component logo-title" />
+        <path d="M118.919 44.2986C116.678 44.2986 114.688 43.9063 112.951 43.1218C111.242 42.3092 109.897 41.1464 108.916 39.6334C107.936 38.1203 107.445 36.271 107.445 34.0855V32.9928H112.447V34.0855C112.447 36.0189 113.035 37.4619 114.212 38.4145C115.389 39.3672 116.958 39.8435 118.919 39.8435C120.909 39.8435 122.408 39.4372 123.416 38.6247C124.425 37.8121 124.929 36.7614 124.929 35.4725C124.929 34.6039 124.691 33.9034 124.215 33.371C123.739 32.8107 123.038 32.3623 122.113 32.0261C121.217 31.6899 120.124 31.3677 118.835 31.0594L117.574 30.8073C115.641 30.359 113.96 29.7986 112.531 29.1261C111.13 28.4256 110.051 27.529 109.295 26.4363C108.538 25.3435 108.16 23.9145 108.16 22.1493C108.16 20.3841 108.58 18.871 109.421 17.6102C110.261 16.3493 111.452 15.3826 112.993 14.7102C114.534 14.0377 116.341 13.7015 118.415 13.7015C120.488 13.7015 122.338 14.0517 123.963 14.7522C125.588 15.4527 126.863 16.5034 127.787 17.9044C128.74 19.3053 129.216 21.0566 129.216 23.158V24.545H124.215V23.158C124.215 21.9532 123.977 20.9865 123.5 20.258C123.024 19.5295 122.352 18.9971 121.483 18.6609C120.614 18.3247 119.592 18.1566 118.415 18.1566C116.678 18.1566 115.361 18.4928 114.464 19.1652C113.568 19.8377 113.119 20.7904 113.119 22.0232C113.119 22.8078 113.315 23.4802 113.708 24.0406C114.128 24.573 114.73 25.0213 115.515 25.3855C116.327 25.7218 117.336 26.016 118.541 26.2681L119.802 26.5623C121.819 27.0107 123.584 27.5851 125.098 28.2855C126.611 28.958 127.787 29.8546 128.628 30.9754C129.497 32.0962 129.931 33.5532 129.931 35.3464C129.931 37.1116 129.469 38.6667 128.544 40.0116C127.647 41.3566 126.372 42.4073 124.719 43.1638C123.094 43.9203 121.161 44.2986 118.919 44.2986Z" fill="#101828" class="logo-component logo-title" />
+        <path d="M133.1 43.7102V14.2899H138.185V39.129H151.971V43.7102H133.1Z" fill="#101828" class="logo-component logo-title" />
+        <path d="M154.827 43.7102V22.9479H159.661V43.7102H154.827ZM157.223 20.3C156.354 20.3 155.598 20.0198 154.954 19.4595C154.337 18.871 154.029 18.1005 154.029 17.1479C154.029 16.1952 154.337 15.4387 154.954 14.8783C155.598 14.2899 156.354 13.9957 157.223 13.9957C158.148 13.9957 158.904 14.2899 159.493 14.8783C160.109 15.4387 160.417 16.1952 160.417 17.1479C160.417 18.1005 160.109 18.871 159.493 19.4595C158.904 20.0198 158.148 20.3 157.223 20.3Z" fill="#101828" class="logo-component logo-title" />
+        <path d="M164.525 43.7102V22.9479H169.275V25.8479H169.989C170.353 25.0633 171.012 24.3208 171.964 23.6203C172.917 22.9198 174.36 22.5696 176.293 22.5696C177.891 22.5696 179.305 22.9338 180.538 23.6623C181.771 24.3909 182.724 25.3995 183.396 26.6884C184.097 27.9773 184.447 29.5044 184.447 31.2696V43.7102H179.614V31.6479C179.614 29.9667 179.193 28.7198 178.353 27.9073C177.54 27.0667 176.377 26.6464 174.864 26.6464C173.155 26.6464 171.81 27.2208 170.83 28.3696C169.849 29.4904 169.359 31.1015 169.359 33.2029V43.7102H164.525Z" fill="#101828" class="logo-component logo-title" />
+        <path d="M196.449 43.7102C195.104 43.7102 194.025 43.3179 193.213 42.5334C192.428 41.7208 192.036 40.6281 192.036 39.2551V26.9406H186.614V22.9479H192.036V16.2652H196.869V22.9479H202.837V26.9406H196.869V38.4566C196.869 39.2971 197.262 39.7174 198.046 39.7174H202.207V43.7102H196.449Z" fill="#101828" class="logo-component logo-title" />
+    </svg>
+</div>
+
+        </a>
+        <nav class="docs-site-nav" aria-label="Main">
+    <div class="flexer">
+        <a href="/donate" class="c-btn c-btn--primary donate-link">Donate</a>
+        <button class="docs-site-nav-toggle" aria-label="Menu" id="nav-toggle" hidden>
+            <svg width="20" height="20" viewBox="20 20 60 60">
+                <path id="ham-top"    d="M30,37 L70,37 Z" stroke="currentColor"></path>
+                <path id="ham-middle" d="M30,50 L70,50 Z" stroke="currentColor"></path>
+                <path id="ham-bottom" d="M30,63 L70,63 Z" stroke="currentColor"></path>
+            </svg>
+        </button>
+    </div>
+    <div class="docs-nav-panel with-js" id="nav-panel">
+        <ul id="nav-list">
+            
+            <li>
+                
+                <a href="/
+<!-- tome: 56892 bytes elided -->
+      (Latest)
+            </option>
+            
+            <option
+                value="zh-hans"
+                data-url="https://zh-hans.eslint.org/docs/latest/"
+                
+            >
+                🇨🇳 简体中文
+                (最新)
+            </option>
+            
+        </select>
+    </div>
+</div>
+
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    <a id="scroll-up-btn" href="#site_top" aria-label="Scroll to top">
+        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24"><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </a>
+</div>
+
+<div id="copy-announcement" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+    (function() {
+        const copyBtns = document.querySelectorAll(".copy-btn");
+        const announcementRegion = document.getElementById("copy-announcement");
+
+        for (const copyBtn of copyBtns) {
+            const copyText = copyBtn.previousElementSibling.firstChild.textContent;
+
+            copyBtn.onclick = () => {
+                navigator.clipboard
+                    .writeText(copyText)
+                    .then(() => {
+                        announcementRegion.innerHTML = "Copied!";
+                        copyBtn.setAttribute("data-copied", "true");
+
+                        setTimeout(() => {
+                            copyBtn.removeAttribute("data-copied");
+                            announcementRegion.innerHTML = "";
+                        }, 2000);
+                    })
+                    .catch((err) => {
+                        announcementRegion.innerHTML = "Failed to copy!";
+                        console.error("Clipboard write failed: ", err);
+                    });
+            };
+        }
+    })();
+</script>
+<script src="/docs/latest/assets/js/tabs.js"></script>
+
+
+    <script src="/docs/latest/assets/js/css-vars-ponyfill@2.js"></script>
+    <script src="/docs/latest/assets/js/focus-visible.js"></script>
+    <script src="/docs/latest/assets/js/main.js"></script>
+    <script src="/docs/latest/assets/js/tabs.js"></script>
+    <script src="/docs/latest/assets/js/scroll-up-btn.js"></script>
+    <!--<br>-->
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7DGPHY308T"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-7DGPHY308T');
+
+    // track clicks to "Donate"
+    document.querySelectorAll("a.donate-link").forEach(
+        el => el.addEventListener("click",
+            () => gtag("event", "donate_click"))
+    );
+
+    // track clicks on sponsor logos
+    document.querySelectorAll("a.sponsor-link").forEach(
+        el => el.addEventListener("click",
+            () => gtag("event", "sponsor_click", el.href || ""))
+    );
+</script>
+
+</body>
+
+</html>

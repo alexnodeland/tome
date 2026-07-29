@@ -43,7 +43,15 @@ export default [
     // are Node's. `scripts/` is not shipped and is not bundled.
     files: ['scripts/**/*.mjs'],
     languageOptions: {
-      globals: { console: 'readonly', process: 'readonly' },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        // Node 18+ ships these as globals; the corpus fetcher uses them
+        // rather than pulling in a dependency for one script.
+        fetch: 'readonly',
+        URL: 'readonly',
+        setTimeout: 'readonly',
+      },
     },
   },
   {

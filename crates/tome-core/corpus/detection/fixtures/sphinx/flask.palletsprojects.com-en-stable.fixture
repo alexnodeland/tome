@@ -1,0 +1,182 @@
+# tome-detection-fixture v1
+url: https://flask.palletsprojects.com/en/stable/
+captured: 2026-07-29
+licence: BSD-3-Clause
+platform: sphinx
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: cloudflare
+header: content-type: text/html; charset=utf-8
+header: x-rtd-project: flask
+header: x-rtd-version: stable
+header: x-backend: web-i-07841d6f25235ba9c
+---
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Flask &#8212; Flask Documentation (3.1.x)</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=6625fa76" />
+    <link rel="stylesheet" type="text/css" href="_static/flask.css?v=b87c8d14" />
+    <script src="_static/documentation_options.js?v=006ca01b"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="canonical" href="https://flask.palletsprojects.com/en/stable/" />
+    <link rel="icon" href="_static/flask-icon.svg"/>
+    <link rel="index" title="Index" href="genindex/" />
+    <link rel="search" title="Search" href="search/" />
+    <link rel="next" title="Installation" href="installation/" /> 
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="flask" /><meta name="readthedocs-version-slug" content="stable" /><meta name="readthedocs-resolver-filename" content="/" /><meta name="readthedocs-http-status" content="200" /></head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation/" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Flask Documentation (3.1.x)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Welcome to Flask</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section class="hide-header" id="welcome-to-flask">
+<h1>Welcome to Flask<a class="headerlink" href="#welcome-to-flask" title="Link to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="_images/flask-name.svg"><img alt="_images/flask-name.svg" class="align-center" src="_images/flask-name.svg" style="height: 200px;" />
+</a>
+<p>Welcome to Flask’s documentation. Flask is a lightweight WSGI web application framework.
+It is designed to make getting started quick and easy, with the ability to scale up to
+complex applications.</p>
+<p>Get started with <a class="reference internal" href="installation/"><span class="doc">Installation</span></a>
+and then get an overview with the <a class="reference internal" href="quickstart/"><span class="doc">Quickstart</span></a>. There is also a
+more detailed <a class="reference internal" href="tutorial/"><span class="doc">Tutorial</span></a> that shows how to create a small but
+complete application with Flask. Common patterns are described in the
+<a class="reference internal" href="patterns/"><span class="doc">Patterns for Flask</span></a> section. The rest of the docs describe each
+component of Flask in detail, with a full reference in the <a class="reference internal" href="api/"><span class="doc">API</span></a>
+section.</p>
+<p>Flask depends on the <a class="reference external" href="https://werkzeug.palletsprojects.com">Werkzeug</a> WSGI toolkit, the <a class="reference external" href="https://jinja.palletsprojects.com">Jinja</a> template engine, and the
+<a class="reference external" href="https://click.palletsprojects.com">Click</a> CLI toolkit. Be sure to check their documentation as well as Flask’s when
+looking for information.</p>
+<section id="user-s-guide">
+<h2>User’s Guide<a class="headerlink" href="#user-s-guide" title="Link to this heading">¶</a></h2>
+<p>Flask provides configuration and conventions, with sensible defaults, to get started.
+This section of the documentation explains the different parts of the Flask framework
+and how they can be used, customized, and extended. Beyond Flask itself, look for
+community-maintained extensions to add even more functionality.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation/">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation/#python-version">Python Version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/#virtual-environments">Virtual environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/#install-flask">Install Flask</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart/">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#a-minimal-application">A Minimal Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#debug-mode">Debug Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#html-escaping">HTML Escaping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#routing">Routing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#static-files">Static Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#rendering-templates">Rendering Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#accessing-request-data">Accessing Request Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#redirects-and-errors">Redirects and Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#about-responses">About Responses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#sessions">Sessions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#message-flashing">Message Flashing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#hooking-in-wsgi-middleware">Hooking in WSGI Middleware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#using-flask-extensions">Using Flask Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart/#deploying-to-a-web-server">Deploying to a Web Server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/layout/">Project Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/factory/">Application Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/database/">Define and Access the Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/views/">Blueprints and Views</a></li>
+<li cla
+<!-- tome: 29366 bytes elided -->
+rnal" href="changes/#version-0-7-1">Version 0.7.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-7">Version 0.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-6-1">Version 0.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-6">Version 0.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-5-2">Version 0.5.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-5-1">Version 0.5.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-5">Version 0.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-4">Version 0.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-3-1">Version 0.3.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-3">Version 0.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-2">Version 0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes/#version-0-1">Version 0.1</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+  <span id="sidebar-top"></span>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  
+
+  <h3>Project Links</h3>
+  <ul>
+    <li><a href="https://palletsprojects.com/donate">Donate</a>
+  
+    <li><a href="https://pypi.org/project/Flask/">PyPI Releases</a>
+  
+    <li><a href="https://github.com/pallets/flask/">Source Code</a>
+  
+    <li><a href="https://github.com/pallets/flask/issues/">Issue Tracker</a>
+  
+    <li><a href="https://discord.gg/pallets">Chat</a>
+  </ul>
+  <h3>Contents</h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Flask</a><ul>
+<li><a class="reference internal" href="#user-s-guide">User’s Guide</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+<li><a class="reference internal" href="#additional-notes">Additional Notes</a></li>
+</ul>
+</li>
+</ul>
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search/" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><div id="ethical-ad-placement"></div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2010 Pallets.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

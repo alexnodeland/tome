@@ -1,0 +1,210 @@
+# tome-detection-fixture v1
+url: https://docs.aiohttp.org/en/stable/
+captured: 2026-07-29
+licence: Apache-2.0
+platform: sphinx
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: cloudflare
+header: content-type: text/html; charset=utf-8
+header: x-rtd-project: aiohttp
+header: x-rtd-version: stable
+header: x-backend: web-i-0a3c1a5ba6fb33bfb
+---
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Welcome to AIOHTTP &#8212; aiohttp 3.14.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=ee51e14b" />
+    <link rel="stylesheet" type="text/css" href="_static/aiohttp.css?v=9042f6b9" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/css/logo-adjustments.css?v=f2060474" />
+    <script src="_static/documentation_options.js?v=d30c3be3"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Client" href="client.html" />
+ 
+<link rel="stylesheet" href="_static/custom.css" type="text/css" />
+
+
+<link rel="canonical" href="http://docs.aiohttp.org/en/stable/index.html"/>
+
+<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet">
+
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="aiohttp" /><meta name="readthedocs-version-slug" content="stable" /><meta name="readthedocs-resolver-filename" content="/" /><meta name="readthedocs-http-status" content="200" /></head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="welcome-to-aiohttp">
+<h1>Welcome to AIOHTTP<a class="headerlink" href="#welcome-to-aiohttp" title="Link to this heading">¶</a></h1>
+<p>Asynchronous HTTP Client/Server for <a class="reference internal" href="glossary.html#term-asyncio"><span class="xref std std-term">asyncio</span></a> and Python.</p>
+<p>Current version is 3.14.3.</p>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Supports both <a class="reference internal" href="client.html#aiohttp-client"><span class="std std-ref">Client</span></a> and <a class="reference internal" href="web.html#aiohttp-web"><span class="std std-ref">HTTP Server</span></a>.</p></li>
+<li><p>Supports both <a class="reference internal" href="web_quickstart.html#aiohttp-web-websockets"><span class="std std-ref">Server WebSockets</span></a> and
+<a class="reference internal" href="client_quickstart.html#aiohttp-client-websockets"><span class="std std-ref">Client WebSockets</span></a> out-of-the-box
+without the Callback Hell.</p></li>
+<li><p>Web-server has <a class="reference internal" href="web_advanced.html#aiohttp-web-middlewares"><span class="std std-ref">Middlewares</span></a>,
+<a class="reference internal" href="web_advanced.html#aiohttp-web-signals"><span class="std std-ref">Signals</span></a> and pluggable routing.</p></li>
+<li><p>Client supports <a class="reference internal" href="client_advanced.html#aiohttp-client-middleware"><span class="std std-ref">middleware</span></a> for
+customizing request/response processing.</p></li>
+</ul>
+</section>
+<section id="library-installation">
+<span id="aiohttp-installation"></span><h2>Library Installation<a class="headerlink" href="#library-installation" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>aiohttp
+</pre></div>
+</div>
+<p>For speeding up DNS resolving by client API you may install
+<a class="reference internal" href="glossary.html#term-aiodns"><span class="xref std std-term">aiodns</span></a> as well.
+This option is highly recommended:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>aiodns
+</pre></div>
+</div>
+<section id="installing-all-speedups-in-one-command">
+<h3>Installing all speedups in one command<a class="headerlink" href="#installing-all-speedups-in-one-command" title="Link to this heading">¶</a></h3>
+<p>The following will get you <code class="docutils literal notranslate"><span class="pre">aiohttp</span></code> along with <a class="reference internal" href="glossary.html#term-aiodns"><span class="xref std std-term">aiodns</span></a> and <code class="docutils literal notranslate"><span class="pre">Brotli</span></code> in one
+bundle.
+No need to type separate commands anymore!</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>aiohttp<span class="o">[</span>speedups<span class="o">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<section id="client-example">
+<h3>Client example<a class="headerlink" href="#client-example" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">aiohttp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+
+    <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;http://python.org&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Status:&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Content-type:&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;content-type&#39;</span><span class="p">])</span>
+
+            <span class="n">html</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Body:&quot;</span><span class="p">,</span> <span class="n">html</span><span class="p">[:</span><span class="mi">15</span><span class="p">],</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>This prints:</p>
+<div class="highlight-text notranslate"><di
+<!-- tome: 18759 bytes elided -->
+<a href="#">aiohttp</a></h1>
+
+
+
+<p class="blurb">Async HTTP client/server for asyncio and Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=aio-libs&repo=aiohttp&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+
+
+<ul class="badges">
+  
+  <li><a href="https://github.com/aio-libs/aiohttp/actions?query=workflow%3ACI">
+    <img src="https://github.com/aio-libs/aiohttp/workflows/CI/badge.svg"
+	 alt="Azure Pipelines CI status"
+	 height="20"
+    />
+  </a>
+  
+  <li><a href="https://codecov.io/github/aio-libs/aiohttp">
+    <img src="https://codecov.io/github/aio-libs/aiohttp/coverage.svg?branch=master"
+	 alt="Code coverage status"
+	 height="20"
+    />
+  </a>
+  
+  <li><a href="https://badge.fury.io/py/aiohttp">
+    <img src="https://badge.fury.io/py/aiohttp.svg"
+	 alt="Latest PyPI package version"
+	 height="20"
+    />
+  </a>
+  
+  <li><a href="https://gitter.im/aio-libs/Lobby">
+    <img src="https://badges.gitter.im/Join%20Chat.svg"
+	 alt="Chat on Gitter"
+	 height="20"
+    />
+  </a>
+  
+</ul>
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client.html">Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web.html">Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">Who uses aiohttp?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threat_model.html">Threat Model</a></li>
+</ul>
+
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;aiohttp contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 9.0.4</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/aio-libs/aiohttp" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

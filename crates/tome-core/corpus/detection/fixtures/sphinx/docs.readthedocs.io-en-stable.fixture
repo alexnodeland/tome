@@ -1,0 +1,206 @@
+# tome-detection-fixture v1
+url: https://docs.readthedocs.com/platform/stable/
+captured: 2026-07-29
+licence: MIT
+platform: sphinx
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: cloudflare
+header: content-type: text/html; charset=utf-8
+header: x-rtd-project: docs
+header: x-rtd-version: stable
+header: x-backend: web-i-002ee42784db75c71
+---
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" />
+  <meta name="readthedocs-addons-api-version" content="1"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="Automate building, versioning, and hosting of your technical documentation continuously on Read the Docs." lang="en" name="description" xml:lang="en" />
+<meta property="og:title" content="Read the Docs: documentation simplified" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://docs.readthedocs.com/platform/stable/index.html" />
+<meta property="og:site_name" content="Read the Docs Documentation" />
+<meta property="og:description" content="Read the Docs simplifies managing software documentation by building and hosting your docs automatically, using the Git workflow you already use for code. Treating documentation like code lets your team use tools they already know, and makes keeping your docs updated easier. Up to date documentat..." />
+<meta property="og:image" content="https://docs.readthedocs.io/en/latest/_static/img/logo-opengraph.png" />
+<meta property="og:image:alt" content="Read the Docs Documentation" />
+<meta name="twitter:card" content="summary_large_image" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Read the Docs: documentation simplified &mdash; Read the Docs user documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=ca6f9a36" />
+      <link rel="stylesheet" type="text/css" href="_static/css/sphinx_prompt_css.css?v=351d85e3" />
+
+  
+    <link rel="canonical" href="https://docs.readthedocs.com/platform/stable/index.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=3abecc67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script src="_static/js/expand_tabs.js?v=1e151f68"></script>
+    <script src="_static/js/theme.js"></script>
+    <script src="_static/js/versions.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Read the Docs tutorial" href="tutorial/index.html" />
+   
+
+  
+  <script defer data-domain="docs.readthedocs.io" src="https://plausible.io/js/script.js"></script>
+  
+
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="docs" /><meta name="readthedocs-version-slug" content="stable" /><meta name="readthedocs-resolver-filename" content="/" /><meta name="readthedocs-http-status" content="200" /></head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#">
+            
+              <img src="_static/logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="switch-menus">
+                <div class="version-switch"></div>
+                <div class="language-switch"></div>
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro/add-project.html">Adding a documentation project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro/doctools.html">Popular documentation tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example projects</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project setup and configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config-file/index.html">Configuration file overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config-file/v2.html">Configuration file reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="addons.html">Read the Docs Addons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro/accounts.html">Account authentication methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automation-rules.html">Automation rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/reproducible-builds.html">How to create reproducible builds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Build process</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="builds.html">Build process overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-customization.html">Build process customization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/git-integration.html">Git integration (GitHub, GitLab, Bitbucket)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull-requests.html">Pull request previews</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-notifications.html">Build failure notifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment-variables.html">Environment variable overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/environment-variables.html">Environment variable reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Hosting documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="subprojects.html">Subprojects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="localization.html">Localization and Internationalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="versioning-schemes.html">URL versioning schemes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom-domains.html">Custom domains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="url-path-prefixes.html">URL path prefixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="doc-notifications.html">Documentation notifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="canonical-urls.html">Canonical URLs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/cdn.html">Content Delivery Network (CDN) and caching</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/sitemaps.html">Sitemap support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/404-not-found.html"><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/robots.html"><code class="docutils literal notranslate"><span class="pre">robots.txt</span></code> support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/llms-txt.html"><code class="docutils literal notranslate"><span class="pre">llms.txt</span></code> support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/markdown-for-agents.html">Markdown for AI agents</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reading documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="downloadable-documentation.html">Offline formats (PDF, ePub, HTML)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visual-diff.html">Visual diff</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link-previews.html">Link previews</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/embedding-content.html">How to embed content from your documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server-side-search/index.html">Server side search</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server-side-sea
+<!-- tome: 11882 bytes elided -->
+ needs:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="commercial/organizations.html"><span class="doc">Organizations</span></a></dt><dd><p>Manage permissions across multiple teams.</p>
+</dd>
+<dt><a class="reference internal" href="commercial/single-sign-on.html"><span class="doc">Single sign-on (SSO)</span></a></dt><dd><p>Stay secure with single sign-on.</p>
+</dd>
+<dt><a class="reference internal" href="commercial/sharing.html"><span class="doc">Sharing private documentation</span></a></dt><dd><p>Share your private docs easily with contractors or customers.</p>
+</dd>
+</dl>
+</section>
+<section id="how-to-guides">
+<h2>How-to guides<a class="headerlink" href="#how-to-guides" title="Link to this heading"></a></h2>
+<p>Step-by-step guides for common tasks:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="guides/pull-requests.html"><span class="doc">How to configure pull request builds</span></a></dt><dd><p>Setup pull request builds and enjoy previews of each commit.</p>
+</dd>
+<dt><a class="reference internal" href="guides/cross-referencing-with-sphinx.html"><span class="doc">How to use cross-references with Sphinx</span></a></dt><dd><p>Learn how to use cross-references in a Sphinx project.</p>
+</dd>
+<dt><a class="reference internal" href="guides/index.html"><span class="doc">All how-to guides</span></a></dt><dd><p>Browse all our how-to guides.</p>
+</dd>
+</dl>
+</section>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Link to this heading"></a></h2>
+<p>More detailed information about Read the Docs:</p>
+<dl class="simple">
+<dt><a class="reference internal" href="api/index.html"><span class="doc">Public REST API</span></a></dt><dd><p>Integrate Read the Docs into your other workflows.</p>
+</dd>
+<dt><a class="reference internal" href="changelog.html"><span class="doc">Changelog</span></a></dt><dd><p>See what’s new in Read the Docs.</p>
+</dd>
+<dt><a class="reference internal" href="about/index.html"><span class="doc">About Read the Docs</span></a></dt><dd><p>Learn more about Read the Docs and our company.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial/index.html" class="btn btn-neutral float-right" title="Read the Docs tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Read the Docs, Inc &amp; contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
