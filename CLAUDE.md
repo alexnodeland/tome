@@ -4,6 +4,11 @@
 > It records the mistakes already made here and the invariants that a plausible change would break
 > silently. Almost none of them fail loudly — that is why they are written down. Add to it when a
 > defect turns out to have been non-obvious; delete an entry when it stops being true.
+>
+> **[`.claude/continuation.md`](.claude/continuation.md) is the current in-flight state** — where
+> Stage 2 stands and what S2-4 should do. It is deliberately volatile and gets **deleted when S2-4
+> lands**. The two files must not merge: durable knowledge goes in `traps.md`, status goes in the
+> continuation note, and the last continuation note was deleted for blurring that line.
 
 ## What this repository is
 

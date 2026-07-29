@@ -79,6 +79,18 @@ pub struct Fields {
 /// against S2-1's relevance eval set. Do not "improve" them by intuition:
 /// the whole point of building the eval set first is that ranking changes made
 /// without one are indistinguishable from noise.
+///
+/// Two things the eval set has already established about them, both by
+/// perturbation rather than opinion:
+///
+/// - **`TITLE` at 3.0 is too high.** Cutting it to 0.05 *improved* MRR
+///   (0.7489 → 0.7625; 17 queries worse, 28 better). The optimum is somewhere
+///   below 3.0 — sweep it, do not just take 0.05.
+/// - **`CODE` barely matters.** Removing the field from the query entirely is
+///   a wash (13 worse, 15 better), because on these platforms method names are
+///   *also* headings, so `headers` already carries them. Worth knowing before
+///   S2-6 builds symbol-aware search on the assumption that it is
+///   load-bearing.
 pub mod boost {
     pub const TITLE: f32 = 3.0;
     pub const HEADERS: f32 = 2.0;

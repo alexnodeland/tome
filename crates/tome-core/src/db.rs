@@ -282,10 +282,17 @@ impl Database {
     /// content is the expensive half — hours of polite crawling — while the
     /// index that reads it is seconds to rebuild.
     ///
-    /// Pruning therefore needs a policy (complete crawl, no errors, no page
-    /// cap) that nobody has agreed yet. Until then this exists for explicit
-    /// removal and for [`crate::pipeline::index_source`], which reconciles
-    /// whatever the database actually holds.
+    /// **The policy is now agreed and is not yet implemented** (owner,
+    /// 2026-07-29): prune pages not seen this run, but *only* when the crawl
+    /// completed with **no errors and without hitting the page cap**. Any
+    /// doubt at all and nothing is deleted; the next clean run will catch up.
+    /// Whoever implements it owes a test that a capped or errored crawl
+    /// deletes nothing — the guard is the entire point, and it is the half
+    /// that fails silently.
+    ///
+    /// Until then this exists for explicit removal and for
+    /// [`crate::pipeline::index_source`], which reconciles whatever the
+    /// database actually holds.
     pub fn delete_page(&self, source: &SourceId, path: &PagePath) -> Result<bool> {
         let deleted = self
             .conn
