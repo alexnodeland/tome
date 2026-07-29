@@ -25,6 +25,7 @@ pub mod paths;
 pub mod pipeline;
 pub mod render;
 pub mod sanitize;
+pub mod search;
 pub mod store;
 
 pub use error::{Error, Result};
