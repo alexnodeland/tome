@@ -224,14 +224,14 @@ impl IndexingPipeline {
 Create the global search modal interface.
 
 #### Acceptance Criteria
-- [ ] Opens with Cmd+K anywhere in app
-- [ ] Centered modal with backdrop
-- [ ] Large search input field
-- [ ] Live results as you type (debounced 150ms)
-- [ ] Loading indicator during search
-- [ ] Close with Escape or click outside
-- [ ] Focus returns to previous element on close
-- [ ] Scope indicator showing search context
+- [x] Opens with Cmd+K anywhere in app — and toggles, so the same key dismisses it
+- [x] Centered modal with backdrop
+- [x] Large search input field
+- [x] Live results as you type (debounced 150 ms), with stale responses discarded — a debounce does not serialise requests, and a slow early query resolving late would overwrite the results of the query the user actually finished typing
+- [x] Loading indicator during search
+- [x] Close with Escape or click outside
+- [x] Focus returns to previous element on close
+- [x] Scope indicator showing search context
 
 #### Technical Notes
 ```svelte
@@ -293,14 +293,14 @@ Create the global search modal interface.
 Build the component that displays search results.
 
 #### Acceptance Criteria
-- [ ] Show source name, page title, and snippet
-- [ ] Highlight matched terms in snippet
-- [ ] Show result count and search time
-- [ ] Click result to navigate
-- [ ] Score/relevance indicator (subtle)
-- [ ] Group by source option
-- [ ] No results state with suggestions
-- [ ] Error state handling
+- [x] Show source name, page title, and snippet — the source's *display* name, resolved in Rust so the list does not need a round trip per result
+- [x] Highlight matched terms in snippet — including terms the query was *corrected* to, or a typo-corrected result looks unrelated to what was typed
+- [x] Show result count and search time. The count is the returned count with a `+` when truncated, **not a total**: a total needs a second uncapped collector pass, and an invented number is worse than none
+- [x] Click result to navigate, across sources
+- [~] Score is carried on every hit and deliberately not drawn. A BM25 score is not a percentage and has no scale a reader can interpret; showing it invites comparing numbers between queries, where they mean nothing. The `[type]`/`[function]` symbol badge is the useful per-result signal and is shown instead
+- [~] Not built. Grouping fights ranking: the whole point of S2-4/5/6 is a single ordering across sources, and grouping re-sorts by something the eval set does not measure. Scoping (P2-008) answers the same need without discarding the ranking
+- [x] No results state, with the "did you mean?" corrections and a one-click escape from a scope that is hiding everything
+- [x] Error state — reported rather than shown as an empty list, which is indistinguishable from "your library does not contain this"
 
 #### Technical Notes
 ```svelte
@@ -485,13 +485,13 @@ function clearHighlights(): void {
 Allow limiting search to specific sources or categories.
 
 #### Acceptance Criteria
-- [ ] Scope to single source
-- [ ] Scope to category
-- [ ] Scope indicator in search UI
-- [ ] Clear scope with 'x' button
-- [ ] Keyboard shortcut to change scope
-- [ ] Remember last used scope
-- [ ] Scope applies to both global and local search
+- [x] Scope to single source
+- [~] Not built. Every source in a category shares its category string, so this is a filter over the same `source_id` list with no new mechanism; it is UI work that belongs with a category-aware source list
+- [x] Scope indicator in search UI
+- [x] Clear scope with '×' button
+- [~] Not built. Cmd+K already opens search; a second shortcut to change scope inside it needs a chord that Appendix C does not allocate, and allocating one here is how the shortcut table drifted before
+- [x] Remember last used scope — **validated on load**, because a source can be removed between launches and a scope naming one that is gone would silently return nothing for ever
+- [~] In-page search is P2-007/S2-8 and does not exist yet
 
 #### Technical Notes
 ```typescript
@@ -978,12 +978,12 @@ silently delete an index to recover.
 Track and display recent search queries.
 
 #### Acceptance Criteria
-- [ ] Store last 50 searches
-- [ ] Show recent searches when search opens with empty query
-- [ ] Click recent to re-execute
-- [ ] Clear individual or all history
-- [ ] Persist across sessions
-- [ ] Deduplicate consecutive identical searches
+- [x] Store last 50 searches
+- [x] Show recent searches when search opens with empty query
+- [x] Click recent to re-execute
+- [x] Clear individual or all history — and `clear` removes the bytes rather than setting a flag. This is reading history
+- [x] Persist across sessions, in `localStorage` — every read defensive, because the store can hold what another version wrote or what someone typed into the inspector
+- [x] Deduplicated against the **whole** list, not just the previous entry: a search re-run from the recents list has whatever was searched in between sitting between the two, so a consecutive-only check would record it twice
 
 #### Technical Notes
 ```typescript
@@ -1032,13 +1032,13 @@ class SearchHistoryManager {
 Enable full keyboard control of search interface.
 
 #### Acceptance Criteria
-- [ ] ↑/↓ to navigate results
-- [ ] Enter to select/open result
-- [ ] Cmd+Enter to open in new window (future)
-- [ ] Tab to move between result groups
-- [ ] Preview selected result (optional)
-- [ ] Visual selection indicator
-- [ ] Wrap around at list ends
+- [x] ↑/↓ to navigate results, plus Home/End
+- [x] Enter to select/open result
+- [~] Cmd+Enter to open in new window — the ticket already marks this future; Tome is single-window
+- [~] There are no result groups; see P2-005 on why grouping is not built
+- [~] Optional, and not built: the snippet is the preview
+- [x] Visual selection indicator, mirrored into `aria-selected` so it is not colour-only
+- [x] Wrap around at both ends. Without it, holding ↓ stops silently at the last result and the user cannot tell whether the key stopped working or the list ended
 
 #### Technical Notes
 ```svelte

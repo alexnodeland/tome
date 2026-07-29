@@ -1,6 +1,6 @@
-# Continuation — picking up at S2-7 (search UI)
+# Continuation — picking up at S2-8 (in-page search)
 
-**Written:** 2026-07-29, after S2-6 landed. **Rewrite or delete this file when S2-7 lands.**
+**Written:** 2026-07-29, after S2-7 landed. **Rewrite or delete this file when S2-8 lands.**
 
 In-flight state only: what is done, what is decided, what to do next. It deliberately carries **no**
 durable knowledge — mistakes and invariants live in [`.claude/traps.md`](traps.md), which does not go
@@ -18,10 +18,11 @@ stale. Do not let this file grow a "traps" section; an earlier one was deleted f
 | S2-4 ✅ | Ranking + boosts | `search/ranking.rs`, tuned by measured sweep |
 | S2-5 ✅ | Fuzzy matching | `search/fuzzy.rs` — query correction, not `FuzzyTermQuery` |
 | S2-6 ✅ | Symbol-aware search | `search/symbols.rs` — from headings, not code blocks; `@symbol` |
-| **S2-7** | **Search UI** | **next** — the app still has no search box |
-| S2-8..12 | in-page search, detection corpus, platform detection, scrapers, benchmarks | |
+| S2-7 ✅ | Search UI | `SearchModal.svelte` + `src-tauri/src/search.rs` + `search/snippet.rs` |
+| **S2-8** | **In-page search (⌘F)** | **next** — and it lives in the *frame*, not the app |
+| S2-9..12 | detection corpus, platform detection, scrapers, benchmarks | |
 
-**Search works from the CLI and nowhere else.**
+**Search now works from the CLI and in the app.** ⌘K opens the modal.
 
 ## The relevance gate, honestly
 
@@ -53,28 +54,32 @@ seconds. Differences of one or two queries are inside the noise.
 
 ---
 
-## What S2-7 should do
+## What S2-8 should do
 
-The search UI (P2-004/005/008/016/017): a search box in the app, a results list, scoping, history
-and keyboard handling. Everything below it already works and is measured — this is the first Stage 2
-ticket that is mostly frontend.
+In-page search (P2-007, ⌘F) — find within the page currently open, with next/previous match.
 
-Things the backend already gives you, and which the UI should not reinvent:
+**The one structural fact that decides the whole ticket:** the reader is a sandboxed `<iframe>`
+with `sandbox="allow-scripts"` and no `allow-same-origin`, so the app **cannot reach the frame's
+document**. `document.querySelector` from the shell finds nothing inside it. In-page search
+therefore lives in `public/reader-frame.js`, driven over the existing `postMessage` bridge
+(`src/lib/reader/bridge.ts`), with the app owning only the search *field*.
 
-- **`SearchEngine::search`** returns `Hit { source, path, title, score, symbol_kind }`. The
-  `symbol_kind` is `Some(Function | Type | Trait | Module | Constant | Macro)` for a reference page
-  and `None` for prose — it is what lets a result list show `Vec [type]` without opening anything.
-- **`SearchEngine::suggest`** is "did you mean?", and costs ~2 µs on a correctly spelled query.
-  Show it; a search that silently answers a different question is worse than one that says what it
-  did.
-- **`@symbol`** already works in the query string. The UI should not need to parse it.
-- **Snippets (P2-005) cannot use Tantivy's `SnippetGenerator`** — it needs a stored field and the
-  schema deliberately stores no body. Re-read the page from `PageStore` and highlight there, which
-  is the better place anyway: the store holds structured nodes, so a snippet can respect block
-  boundaries instead of slicing raw text.
+Consequences worth knowing before starting:
+
+- **The single-letter reading keys belong in the frame too**, and this is the ticket that finally
+  makes `$lib/keys.ts`'s note load-bearing: `J`, `K`, `G`, `[`, `]` must not fire while a text
+  field has focus, and the guard has to be written against the *frame's* `activeElement`, not the
+  app's. Appendix C allocates ⌘G / ⌘⇧G for next/previous match.
 - **Highlighting is a render concern, not an AST mutation**, and emits CSS classes rather than
-  colours, so a theme change needs no re-highlighting.
+  colours — so a theme change needs no re-highlighting. In-page match highlighting should follow
+  the same rule rather than rewriting the DOM's text nodes.
+- `surroundContents` throws when a range partially covers a node, which is the normal case for a
+  match spanning an inline element. The plan's sample carries a comment about it; keep it.
 
+`SearchModal.svelte` is global search and should not grow an in-page mode — different document,
+different keyboard rules, different lifetime.
+
+### The tuning target, still standing
 ### The tuning target, still standing
 ### The tuning target, still standing
 
@@ -147,5 +152,5 @@ the whole point.
 
 Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · arm64.
 `cargo-deny` installed; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the gate says so).
-435 workspace Rust tests + 66 Vitest. `npm audit` hits the live registry and fails the gate when
+459 workspace Rust tests + 101 Vitest. `npm audit` hits the live registry and fails the gate when
 npmjs.org is down — that is an outage, not a finding.

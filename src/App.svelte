@@ -11,15 +11,19 @@
   import Library from '$lib/components/Library.svelte';
   import Outline from '$lib/components/Outline.svelte';
   import Reader from '$lib/components/Reader.svelte';
+  import SearchModal from '$lib/components/SearchModal.svelte';
   import { isCommand } from '$lib/keys';
   import { classifyLink, NavigationHistory, type HistoryEntry } from '$lib/navigation';
+  import { preferences } from '$lib/stores/preferences';
   import {
     listPages,
     listSources,
     openExternal,
     readPage,
+    sourceExists,
     type PageSummary,
     type ReaderPage,
+    type SearchHit,
     type SourceSummary,
   } from '$lib/tauri';
 
@@ -37,6 +41,11 @@
 
   let layout = $state<Layout>();
   let reader = $state<Reader>();
+
+  let searchOpen = $state(false);
+  let searchScope = $state<string | null>(null);
+  /** What had focus when search opened, so Escape gives it back (P2-004). */
+  let focusBeforeSearch: Element | null = null;
 
   // Not `$state`: the history object mutates in place on every scroll event,
   // and making it reactive would re-render the whole shell at pointer rate.
@@ -60,7 +69,53 @@
     } finally {
       loading = false;
     }
+    await restoreSearchScope();
   });
+
+  /**
+   * P2-008 asks the scope to be remembered across launches. A source can be
+   * removed between them, and a scope naming one that is gone would silently
+   * return nothing for ever — so the remembered value is checked before it is
+   * used, and dropped if it no longer names anything.
+   */
+  async function restoreSearchScope(): Promise<void> {
+    const remembered = preferences.searchScope.load();
+    if (remembered === '') return;
+    try {
+      searchScope = (await sourceExists(remembered)) ? remembered : null;
+      if (searchScope === null) preferences.searchScope.save('');
+    } catch {
+      searchScope = null;
+    }
+  }
+
+  function setSearchScope(scope: string | null): void {
+    searchScope = scope;
+    preferences.searchScope.save(scope ?? '');
+  }
+
+  function openSearch(): void {
+    focusBeforeSearch = document.activeElement;
+    searchOpen = true;
+  }
+
+  function closeSearch(): void {
+    searchOpen = false;
+    // Focus goes back where it came from. Without this it lands on <body>,
+    // and the next keystroke goes nowhere.
+    if (focusBeforeSearch instanceof HTMLElement) focusBeforeSearch.focus();
+    focusBeforeSearch = null;
+  }
+
+  /** Open a search result, which may live in another source. */
+  function openResult(hit: SearchHit): void {
+    void navigateTo({
+      sourceId: hit.source_id,
+      path: hit.path,
+      fragment: null,
+      scrollTop: 0,
+    });
+  }
 
   function message(e: unknown): string {
     return e instanceof Error ? e.message : String(e);
@@ -193,7 +248,13 @@
    * bail while a text field has focus.
    */
   function shortcuts(event: KeyboardEvent): void {
-    if (isCommand(event, '1')) {
+    if (isCommand(event, 'k')) {
+      event.preventDefault();
+      // Toggle rather than open: pressing the shortcut again is the most
+      // natural way to dismiss a modal it opened.
+      if (searchOpen) closeSearch();
+      else openSearch();
+    } else if (isCommand(event, '1')) {
       event.preventDefault();
       layout?.toggleLeft();
     } else if (isCommand(event, '2')) {
@@ -213,6 +274,15 @@
 </script>
 
 <svelte:window onkeydown={shortcuts} />
+
+<SearchModal
+  open={searchOpen}
+  {sources}
+  scope={searchScope}
+  onscope={setSearchScope}
+  onclose={closeSearch}
+  onselect={openResult}
+/>
 
 <div class="shell">
   <header>

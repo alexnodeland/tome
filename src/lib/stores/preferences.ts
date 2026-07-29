@@ -58,9 +58,21 @@ export function booleanPreference(key: string, fallback: boolean) {
   };
 }
 
+/** A string preference, length-capped so a hand-edited store cannot bloat. */
+export function stringPreference(key: string, fallback: string, maxLength = 200) {
+  return {
+    load: () => read(key, fallback, (raw) => raw.slice(0, maxLength)),
+    save: (value: string) => write(key, value.slice(0, maxLength)),
+  };
+}
+
 export const preferences = {
   leftWidth: numberPreference('sidebar.left.width', 240, 180, 400),
   rightWidth: numberPreference('sidebar.right.width', 200, 180, 400),
   leftOpen: booleanPreference('sidebar.left.open', true),
   rightOpen: booleanPreference('sidebar.right.open', true),
+  /** The last search scope (P2-008). Empty string means "all sources" — a
+   *  sentinel rather than `null`, because `localStorage` only holds strings
+   *  and an absent key already means "never set". */
+  searchScope: stringPreference('search.scope', ''),
 };
