@@ -356,6 +356,35 @@ a test written from the same misunderstanding as the code agrees with it. The go
   Getting it "right" would need a rule that fired on prose, which is how confidently-wrong
   classifications start.
 
+## Traps — scrapers and man pages
+
+- **Most of the per-platform scraping was already in the generic path.** S1-8's furniture rules
+  were each added to fix a leak in a corpus spanning six platforms, so they are cross-platform by
+  construction. Adding profiles for Sphinx, rustdoc and mdBook changed **four golden files, all
+  rustdoc**. Before writing a platform scraper, measure what the generic path already does — the
+  answer was "nearly all of it".
+- **A profile matches exact class tokens; the generic list matches substrings.** That is the whole
+  reason profiles exist separately: `src` as a substring hits `srcset` and `source-code`, but as an
+  exact token on a page known to be rustdoc it is precisely the source-link furniture.
+- **mdBook's `header` class is on the anchor *inside* each heading**, so dropping it deletes every
+  heading on the page. The golden corpus caught it on the first run. rustdoc's `toggle` is the same
+  trap: `<details class="toggle top-doc">` is where the documentation lives.
+- **The Sphinx and mdBook profiles are unmeasured.** Nothing in the 26-page corpus exercises them.
+  They encode real markup those generators emit, but "kept" is not "verified".
+- **macOS `mandoc` has no `-Q`.** The flag exists in OpenBSD's build; passing it made *every* page
+  render empty, because mandoc printed usage to stderr and exited without reading anything. The
+  exit code is not a useful signal either — mandoc exits non-zero for warnings, which shipped pages
+  routinely have — so empty output is the test.
+- **mandoc hard-wraps its HTML.** `<span class="Nd">make\n    gadgets</span>` is what a two-word
+  description looks like, so anything comparing against it must collapse whitespace first.
+- **Cross-references are linked only to pages that were discovered.** mandoc emits
+  `<a class="Xr">ctype(3)</a>` with no `href` because it cannot know where the target lives. A link
+  to a page the user has not installed looks like it would work and does not, which is worse than
+  the plain text.
+- **Man ingest runs external programs**, and they are invoked by absolute path with an argument
+  vector, never through a shell. `PATH` is the user's shell's to control; a documentation reader
+  resolving an executable through it is a documentation reader running arbitrary code.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

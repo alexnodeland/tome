@@ -132,33 +132,55 @@ pub fn pull(
     paths.ensure_source_dirs(&config.id)?;
 
     let fetcher = Fetcher::new(config.fetch.clone());
-    let Some(crawler) = Crawler::new(&fetcher, config) else {
-        // Local, docset, and man sources are not crawled; they have their own
-        // ingestion paths, which do not exist yet. Saying so beats pretending
-        // a pull succeeded with zero pages.
-        report.page_errors.push(format!(
-            "{} sources cannot be pulled over the network yet",
-            config.spec.source_type().as_str()
-        ));
-        report.elapsed = started.elapsed();
-        return Ok(report);
-    };
 
-    let outcome = crawler.crawl(&mut |p| {
-        on_progress(Progress::Crawled {
-            crawled: p.crawled,
-            queued: p.queued,
-            errored: p.errored,
+    // Man pages are on disk already: no crawl, no network, no robots.txt.
+    // Handled before the crawler is built, because `Crawler::new` correctly
+    // refuses this source type rather than pretending it can fetch it.
+    let outcome = if let crate::config::SourceSpec::Man(man) = &config.spec {
+        let found = crate::man::discover(&man.paths, &man.sections);
+        let (docset, errors) = crate::man::ingest(&found, &config.id, &mut |done, total| {
+            on_progress(Progress::Crawled {
+                crawled: done,
+                queued: total.saturating_sub(done),
+                errored: 0,
+            });
         });
-    });
-    report.hit_page_cap = outcome.hit_page_cap;
-    for error in &outcome.errors {
-        // The URL is the crawler's own, not reading history — it is what the
-        // user has to look at to understand why a page is missing.
-        report
-            .page_errors
-            .push(format!("{}: {}", error.url, error.error));
-    }
+        report.page_errors.extend(errors);
+        crate::crawl::CrawlOutcome {
+            docset,
+            errors: Vec::new(),
+            hit_page_cap: false,
+        }
+    } else {
+        let Some(crawler) = Crawler::new(&fetcher, config) else {
+            // Local and docset sources have their own ingestion paths, which
+            // do not exist yet. Saying so beats pretending a pull succeeded
+            // with zero pages.
+            report.page_errors.push(format!(
+                "{} sources cannot be pulled over the network yet",
+                config.spec.source_type().as_str()
+            ));
+            report.elapsed = started.elapsed();
+            return Ok(report);
+        };
+
+        let outcome = crawler.crawl(&mut |p| {
+            on_progress(Progress::Crawled {
+                crawled: p.crawled,
+                queued: p.queued,
+                errored: p.errored,
+            });
+        });
+        report.hit_page_cap = outcome.hit_page_cap;
+        for error in &outcome.errors {
+            // The URL is the crawler's own, not reading history — it is what
+            // the user has to look at to understand why a page is missing.
+            report
+                .page_errors
+                .push(format!("{}: {}", error.url, error.error));
+        }
+        outcome
+    };
 
     let database = Database::open(paths)?;
     // Upserted before the pages so that a pull interrupted half way still

@@ -20,21 +20,6 @@
         ]
       },
       {
-        "type": "text",
-        "value": "1.0.0 · "
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/src/core/lib.rs.html#311",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "Source"
-          }
-        ]
-      },
-      {
         "type": "paragraph",
         "children": [
           {

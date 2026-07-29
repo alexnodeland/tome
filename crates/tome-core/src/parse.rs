@@ -66,6 +66,20 @@ pub struct ParsedPage {
 /// this same selector engine); `base` is the URL the page was fetched from,
 /// used only for resolving the returned `links`.
 pub fn parse_page(html: &str, base: &Url, content_selector: Option<&str>) -> ParsedPage {
+    parse_page_with(html, base, content_selector, None)
+}
+
+/// [`parse_page`] with a platform profile (S2-11).
+///
+/// The profile adds exact-class furniture rules the generic path cannot safely
+/// apply — see [`crate::scrape`]. Passing `None` is the generic path exactly as
+/// before.
+pub fn parse_page_with(
+    html: &str,
+    base: &Url,
+    content_selector: Option<&str>,
+    profile: Option<&crate::scrape::Profile>,
+) -> ParsedPage {
     let document = Html::parse_document(html);
 
     let title = document
@@ -80,7 +94,7 @@ pub fn parse_page(html: &str, base: &Url, content_selector: Option<&str>) -> Par
     let mut content_links = Vec::new();
     if let Some(root) = root {
         for child in root.children() {
-            walk(child, &mut children, &mut content_links);
+            walk(profile, child, &mut children, &mut content_links);
         }
     }
     // The content root is a block: whitespace at its edges is the source's
@@ -197,7 +211,7 @@ const DROP_CLASS_FRAGMENTS: &[&str] = &[
 /// - **`aria-hidden="true"`** — decorative, and explicitly not for anyone
 ///   consuming the document as text, which is exactly what this AST is for.
 /// - a class or id fragment from [`DROP_CLASS_FRAGMENTS`].
-fn is_chrome(el: ElementRef<'_>) -> bool {
+fn is_chrome(el: ElementRef<'_>, profile: Option<&crate::scrape::Profile>) -> bool {
     if el.value().attr("hidden").is_some() {
         return true;
     }
@@ -220,6 +234,14 @@ fn is_chrome(el: ElementRef<'_>) -> bool {
     if haystack.is_empty() {
         return false;
     }
+    // The platform's own exact-token rules first: they are precise, so a hit
+    // here is certain where a substring hit is a judgement.
+    if let (Some(profile), Some(class)) = (profile, el.value().attr("class")) {
+        if profile.drops(class) {
+            return true;
+        }
+    }
+
     let haystack = haystack.to_ascii_lowercase();
     DROP_CLASS_FRAGMENTS
         .iter()
@@ -232,6 +254,7 @@ const DROP: &[&str] = &[
 ];
 
 fn walk(
+    profile: Option<&crate::scrape::Profile>,
     node: ego_tree::NodeRef<'_, scraper::node::Node>,
     out: &mut Vec<Node>,
     links: &mut Vec<String>,
@@ -264,7 +287,7 @@ fn walk(
             let Some(element_ref) = ElementRef::wrap(node) else {
                 return;
             };
-            element_to_nodes(element.name(), element_ref, out, links);
+            element_to_nodes(element.name(), element_ref, out, links, profile);
         }
         // Comments, doctypes, PIs: nothing.
         _ => {}
@@ -278,7 +301,7 @@ fn walk(
 /// `ElementRef::text()` walks everything, including the `<button>`s and
 /// toolbars that documentation generators put inside otherwise-plain
 /// elements. Used for `<pre>` blocks that have no `<code>` inside them.
-fn content_text(element: ElementRef<'_>) -> String {
+fn content_text(element: ElementRef<'_>, profile: Option<&crate::scrape::Profile>) -> String {
     let mut out = String::new();
     let mut skip_until = None;
     for node in element.descendants() {
@@ -292,8 +315,8 @@ fn content_text(element: ElementRef<'_>) -> String {
         }
         match node.value() {
             scraper::node::Node::Element(el) => {
-                let dropped =
-                    DROP.contains(&el.name()) || ElementRef::wrap(node).is_some_and(is_chrome);
+                let dropped = DROP.contains(&el.name())
+                    || ElementRef::wrap(node).is_some_and(|el| is_chrome(el, profile));
                 if dropped {
                     skip_until = Some(node.id());
                 }
@@ -305,31 +328,45 @@ fn content_text(element: ElementRef<'_>) -> String {
     out
 }
 
-fn children_to_nodes(element: ElementRef<'_>, links: &mut Vec<String>) -> Vec<Node> {
+fn children_to_nodes(
+    element: ElementRef<'_>,
+    links: &mut Vec<String>,
+    profile: Option<&crate::scrape::Profile>,
+) -> Vec<Node> {
     let mut out = Vec::new();
     for child in element.children() {
-        walk(child, &mut out, links);
+        walk(profile, child, &mut out, links);
     }
     out
 }
 
 /// Children of a **block** element: the whitespace at each end is
 /// indentation in the source, not content.
-fn block_children(element: ElementRef<'_>, links: &mut Vec<String>) -> Vec<Node> {
-    tidy_block_children(children_to_nodes(element, links))
+fn block_children(
+    element: ElementRef<'_>,
+    links: &mut Vec<String>,
+    profile: Option<&crate::scrape::Profile>,
+) -> Vec<Node> {
+    tidy_block_children(children_to_nodes(element, links, profile))
 }
 
-fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: &mut Vec<String>) {
+fn element_to_nodes(
+    name: &str,
+    el: ElementRef<'_>,
+    out: &mut Vec<Node>,
+    links: &mut Vec<String>,
+    profile: Option<&crate::scrape::Profile>,
+) {
     match name {
         _ if DROP.contains(&name) => {}
-        _ if is_chrome(el) => {}
+        _ if is_chrome(el, profile) => {}
 
         "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
             // Sphinx puts a pilcrow permalink inside every heading
             // (`a.headerlink`); it is chrome, and stripping it here keeps
             // heading text usable as titles and TOC labels.
             let children = unwrap_self_permalink(tidy_block_children(
-                children_to_nodes(el, links)
+                children_to_nodes(el, links, profile)
                     .into_iter()
                     .filter(|n| !is_headerlink(n))
                     .collect(),
@@ -344,7 +381,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
         }
 
         "p" => out.push(Node::Paragraph {
-            children: block_children(el, links),
+            children: block_children(el, links, profile),
         }),
 
         "pre" => {
@@ -378,7 +415,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
             // in the same way.
             let code = match code_el {
                 Some(code_el) => code_el.text().collect::<String>(),
-                None => content_text(el),
+                None => content_text(el, profile),
             };
             out.push(Node::CodeBlock {
                 language,
@@ -409,21 +446,21 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
                 out.push(Node::Link {
                     href,
                     title: attr(el, "title"),
-                    children: children_to_nodes(el, links),
+                    children: children_to_nodes(el, links, profile),
                 });
             } else if let Some(id) = attr(el, "id") {
                 // <a name>/<a id> anchor without href: a link target.
                 out.push(Node::Anchor { id });
             } else {
-                out.extend(children_to_nodes(el, links));
+                out.extend(children_to_nodes(el, links, profile));
             }
         }
 
         "em" | "i" | "cite" | "var" | "dfn" => out.push(Node::Emphasis {
-            children: children_to_nodes(el, links),
+            children: children_to_nodes(el, links, profile),
         }),
         "strong" | "b" => out.push(Node::Strong {
-            children: children_to_nodes(el, links),
+            children: children_to_nodes(el, links, profile),
         }),
 
         "ul" | "ol" => {
@@ -432,7 +469,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
                 .filter_map(ElementRef::wrap)
                 .filter(|c| c.value().name() == "li")
                 .map(|li| ListItem {
-                    children: block_children(li, links),
+                    children: block_children(li, links, profile),
                 })
                 .collect();
             out.push(Node::List {
@@ -442,12 +479,12 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
             });
         }
 
-        "dl" => out.push(definition_list(el, links)),
+        "dl" => out.push(definition_list(el, links, profile)),
 
-        "table" => out.push(table(el, links)),
+        "table" => out.push(table(el, links, profile)),
 
         "blockquote" => out.push(Node::Blockquote {
-            children: block_children(el, links),
+            children: block_children(el, links, profile),
         }),
 
         "img" => {
@@ -472,7 +509,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
         }
 
         "div" | "section" if is_admonition(el) => {
-            let (kind, title, children) = admonition(el, links);
+            let (kind, title, children) = admonition(el, links, profile);
             out.push(Node::Admonition {
                 kind,
                 title,
@@ -489,7 +526,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
             if let Some(id) = attr(el, "id") {
                 out.push(Node::Anchor { id });
             }
-            out.extend(children_to_nodes(el, links));
+            out.extend(children_to_nodes(el, links, profile));
         }
     }
 }
@@ -498,14 +535,18 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
 // Compound structures.
 // ---------------------------------------------------------------------------
 
-fn definition_list(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
+fn definition_list(
+    el: ElementRef<'_>,
+    links: &mut Vec<String>,
+    profile: Option<&crate::scrape::Profile>,
+) -> Node {
     let mut items: Vec<Definition> = Vec::new();
     for child in el.children().filter_map(ElementRef::wrap) {
         match child.value().name() {
             "dt" => {
                 // Strip the same headerlink chrome headings carry.
                 let term = unwrap_self_permalink(tidy_block_children(
-                    children_to_nodes(child, links)
+                    children_to_nodes(child, links, profile)
                         .into_iter()
                         .filter(|n| !is_headerlink(n))
                         .collect(),
@@ -517,7 +558,7 @@ fn definition_list(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
                 });
             }
             "dd" => {
-                let definition = block_children(child, links);
+                let definition = block_children(child, links, profile);
                 match items.last_mut() {
                     // A <dd> may follow several <dt>s; it belongs to the
                     // last one. A <dd> with NO preceding <dt> (malformed)
@@ -536,7 +577,11 @@ fn definition_list(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
     Node::DefinitionList { items }
 }
 
-fn table(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
+fn table(
+    el: ElementRef<'_>,
+    links: &mut Vec<String>,
+    profile: Option<&crate::scrape::Profile>,
+) -> Node {
     let mut headers: Vec<TableCell> = Vec::new();
     let mut rows: Vec<TableRow> = Vec::new();
 
@@ -546,7 +591,7 @@ fn table(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
             .filter_map(ElementRef::wrap)
             .filter(|c| matches!(c.value().name(), "td" | "th"))
             .map(|cell| TableCell {
-                children: block_children(cell, links),
+                children: block_children(cell, links, profile),
             })
             .collect();
         let is_header_row = headers.is_empty()
@@ -584,7 +629,11 @@ const ADMONITION_KINDS: &[&str] = &[
     "seealso",
 ];
 
-fn admonition(el: ElementRef<'_>, links: &mut Vec<String>) -> (String, Option<String>, Vec<Node>) {
+fn admonition(
+    el: ElementRef<'_>,
+    links: &mut Vec<String>,
+    profile: Option<&crate::scrape::Profile>,
+) -> (String, Option<String>, Vec<Node>) {
     let classes = class_list(el);
     let kind = classes
         .iter()
@@ -604,7 +653,7 @@ fn admonition(el: ElementRef<'_>, links: &mut Vec<String>) -> (String, Option<St
                 continue;
             }
         }
-        walk(child, &mut children, links);
+        walk(profile, child, &mut children, links);
     }
     (kind, title, tidy_block_children(children))
 }
