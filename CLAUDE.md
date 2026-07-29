@@ -1,20 +1,25 @@
 # Tome — notes for AI assistants
 
-> **Work in progress: read [`.claude/continuation.md`](.claude/continuation.md) first.**
-> It has current branch/PR state, what to do next, and the traps already hit. Delete it when
-> Stage 1 lands.
+> **Read [`.claude/traps.md`](.claude/traps.md) before changing anything.**
+> It records the mistakes already made here and the invariants that a plausible change would break
+> silently. Almost none of them fail loudly — that is why they are written down. Add to it when a
+> defect turns out to have been non-obvious; delete an entry when it stops being true.
 
 ## What this repository is
 
 Tome is a macOS documentation reader: ingest any documentation site, read it offline with good
 typography, search across everything, and expose the library to coding agents over MCP.
 
-**Stage 1 is built; Stage 2 onwards is still specification.** Ingestion and the reader both work
-end to end: `tome pull` fetches a documentation site (robots, rate limit, SSRF, scope), normalizes,
-sanitizes, and localizes it into the library, and the app renders it offline in a sandboxed iframe
-with a library sidebar, a page outline, and back/forward. **Search, sync, annotations, MCP, and the
-local HTTP API do not exist yet.** When asked whether something works, check rather than assume —
-much of this repo still describes intent rather than behaviour.
+**Stage 1 is built; Stage 2 has started; Stage 3 onwards is still specification.** Ingestion and
+the reader work end to end: `tome pull` fetches a documentation site (robots, rate limit, SSRF,
+scope), normalizes, sanitizes, and localizes it into the library, and the app renders it offline in
+a sandboxed iframe with a library sidebar, a page outline, and back/forward.
+
+**Search exists as a library only.** `tome-core/src/search/` has the Tantivy index, schema, code
+tokenizer, and AST-to-text extraction (S2-2), but **nothing indexes during a pull and there is no
+search UI** — no user can reach it yet. **Sync, annotations, MCP, and the local HTTP API do not
+exist at all.** When asked whether something works, check rather than assume — much of this repo
+still describes intent rather than behaviour.
 
 ## Where things are
 

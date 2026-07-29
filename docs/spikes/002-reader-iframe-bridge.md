@@ -23,8 +23,8 @@ half), `public/reader-frame.js` (the frame half), and `src/lib/reader/bridge.tes
 asserts the posture below — sandbox attribute, frame CSP, message source check — so that a
 one-word edit cannot quietly undo what this spike cost to learn.
 
-Run against the **debug** build — the numbers below are a ceiling, not a floor — on the
-environment recorded in `.claude/continuation.md` (macOS 26.5, arm64). The frame is
+Run against the **debug** build — the numbers below are a ceiling, not a floor — on macOS 26.5,
+arm64, Rust 1.96.1, Node 26.3.0, tauri-cli 2.5.0. The frame is
 `sandbox="allow-scripts"` with **no** `allow-same-origin` (opaque origin), `srcdoc` carrying its
 own `<meta>` CSP on top of the app CSP from `tauri.conf.json`. The injected page is a
 deterministic 513 200-byte document (6 692 elements) with three hostile probes embedded: a
