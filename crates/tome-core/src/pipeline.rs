@@ -159,7 +159,11 @@ pub fn pull(
             None => continue,
         };
         store.write(&stored_page)?;
-        database.upsert_page(&page)?;
+        // The crawl index IS the navigation order: the crawler discovers
+        // links from the whole document, and a documentation site advertises
+        // its pages through its own contents list. Alphabetical-by-path was
+        // opening the Cargo Book on CHANGELOG.html.
+        database.upsert_page(&page, u32::try_from(index).unwrap_or(u32::MAX))?;
         report.pages_stored += 1;
         on_progress(Progress::Storing {
             stored: index + 1,

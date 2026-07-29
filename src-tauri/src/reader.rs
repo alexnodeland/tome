@@ -106,9 +106,14 @@ pub fn list_sources(state: tauri::State<'_, ReaderState>) -> Result<Vec<SourceSu
         .collect())
 }
 
-/// Every page in one source, ordered by path so the list is stable between
-/// launches. Ordering in the UI instead would sort a list that the backend
-/// had already shuffled, and "stable" is the property that matters.
+/// Every page in one source, **in the order the database returns them**,
+/// which is the source's own navigation order (`db::list_pages`).
+///
+/// This deliberately does not sort. It used to sort by path, which is how
+/// the Cargo Book came to open on CHANGELOG.html — the first file by name
+/// and not the first page of the book. Sorting here would also silently
+/// override the ordering the ingest pipeline went to the trouble of
+/// recording.
 #[tauri::command]
 pub fn list_pages(
     state: tauri::State<'_, ReaderState>,
@@ -116,8 +121,7 @@ pub fn list_pages(
 ) -> Result<Vec<PageSummary>, String> {
     let source = SourceId::new(source_id).map_err(to_message)?;
     let database = Database::open(&state.paths).map_err(to_message)?;
-    let mut pages = database.list_pages(&source).map_err(to_message)?;
-    pages.sort_by(|a, b| a.path.as_str().cmp(b.path.as_str()));
+    let pages = database.list_pages(&source).map_err(to_message)?;
     Ok(pages
         .into_iter()
         .map(|page| PageSummary {

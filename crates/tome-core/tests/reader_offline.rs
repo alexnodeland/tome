@@ -257,6 +257,15 @@ fn page_metadata_and_content_end_up_in_their_separate_homes() {
         "a pulled source must record when, or the sidebar cannot say"
     );
 
+    // The entry point is the first page listed, not whichever file sorts
+    // first by name. This is what makes the app open a source on its index
+    // rather than on its changelog or its appendix.
+    assert_eq!(
+        listed.first().map(|p| p.path.as_str()),
+        Some("index.html"),
+        "the first listed page should be the crawl entry point"
+    );
+
     let store = PageStore::new(&paths, &config.id);
     for page in listed {
         assert!(
