@@ -173,7 +173,9 @@ const SITES = [
   { u: 'https://mkdocstrings.github.io/', p: 'mkdocs', l: 'ISC' },
   { u: 'https://pdm-project.org/latest/', p: 'mkdocs', l: 'MIT' },
   { u: 'https://python-poetry.org/docs/', p: 'generic', l: 'MIT' },
-  { u: 'https://mkdocs-macros-plugin.readthedocs.io/en/latest/', p: 'sphinx', l: 'MIT' },
+  // On readthedocs.io and built with **MkDocs**, not Sphinx. RTD hosts both;
+  // the domain says who serves the pages, not what made them.
+  { u: 'https://mkdocs-macros-plugin.readthedocs.io/en/latest/', p: 'mkdocs', l: 'MIT' },
   { u: 'https://docs.litestar.dev/latest/', p: 'sphinx', l: 'MIT' },
   { u: 'https://docs.astral.sh/ruff/', p: 'mkdocs', l: 'MIT' },
   { u: 'https://docs.astral.sh/uv/', p: 'mkdocs', l: 'MIT OR Apache-2.0' },
@@ -187,14 +189,17 @@ const SITES = [
   { u: 'https://babeljs.io/docs/', p: 'docusaurus', l: 'MIT' },
   { u: 'https://create-react-app.dev/docs/getting-started', p: 'docusaurus', l: 'MIT' },
   { u: 'https://www.electronjs.org/docs/latest', p: 'docusaurus', l: 'MIT' },
-  { u: 'https://graphql.org/learn/', p: 'docusaurus', l: 'MIT' },
+  // Migrated to Next.js.
+  { u: 'https://graphql.org/learn/', p: 'generic', l: 'MIT' },
   { u: 'https://socket.io/docs/v4/', p: 'docusaurus', l: 'MIT' },
   { u: 'https://typescript-eslint.io/', p: 'docusaurus', l: 'MIT' },
   // Migrated to Rspress. One stray 'docusaurus' string survives in the
   // page, which is exactly the sort of thing a naive detector trips on.
   { u: 'https://swc.rs/docs/getting-started', p: 'generic', l: 'Apache-2.0' },
-  { u: 'https://classic.yarnpkg.com/en/docs', p: 'docusaurus', l: 'BSD-2-Clause' },
-  { u: 'https://docs.snapcraft.io/', p: 'generic', l: 'CC-BY-SA-4.0' },
+  // Dropped: the archived Yarn v1 site was Docusaurus v1, whose markers differ
+  // from v2's, and the page now serves nothing that establishes either. A
+  // fixture whose ground truth cannot be asserted is worse than no fixture.
+  { u: 'https://docs.snapcraft.io/', p: 'sphinx', l: 'CC-BY-SA-4.0' },
   { u: 'https://reactrouter.com/', p: 'generic', l: 'MIT' },
   { u: 'https://tsup.egoist.dev/', p: 'generic', l: 'MIT' },
 

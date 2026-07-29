@@ -2,7 +2,7 @@
 url: https://mkdocs-macros-plugin.readthedocs.io/en/latest/
 captured: 2026-07-29
 licence: MIT
-platform: sphinx
+platform: mkdocs
 generator-meta: (none)
 notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
 header: server: cloudflare

@@ -5,7 +5,7 @@ came from and under which licence it is redistributed. This is the SPIKE-010
 licence gate applied to the platform-detection corpus (S2-9, spec P2-020),
 which ships publicly like the rest of the repository.
 
-**129 homepages across six documentation platforms**, fetched 2026-07-29 by
+**128 homepages across six documentation platforms**, fetched 2026-07-29 by
 [`scripts/fetch-detection-corpus.mjs`](../../../../scripts/fetch-detection-corpus.mjs).
 
 ## How these were produced
@@ -52,6 +52,28 @@ The cross-check paid for itself on its first run, and it is the reason the
 `generator-meta` line is recorded in every fixture: a future re-capture will
 report the next migration the same way.
 
+**Three further labels were wrong, and building the detector (S2-10) found
+them.** Counting markers across the corpus turned up fixtures whose evidence
+contradicted their label:
+
+| Site | Was | Now | Why |
+|---|---|---|---|
+| `docs.snapcraft.io` | generic | **sphinx** | Carries `documentation_options.js`. It *is* Sphinx; I had not checked |
+| `mkdocs-macros-plugin.readthedocs.io` | sphinx | **mkdocs** | Labelled from the domain. **ReadTheDocs hosts MkDocs projects too** — the domain says who serves the pages, not what made them. This is now the corpus's counter-example to P2-014's first sketched rule |
+| `graphql.org` | docusaurus | **generic** | Migrated to Next.js |
+
+`classic.yarnpkg.com` was **dropped**: the archived Yarn v1 site was Docusaurus
+v1, whose markers differ from v2's, and the page no longer serves anything that
+establishes either. A fixture whose ground truth cannot be asserted is worse
+than no fixture.
+
+Two fixtures are deliberately *unclassifiable* from a homepage and are kept for
+that reason. `docs.djangoproject.com` is Sphinx-built and post-processed into a
+template carrying no Sphinx marker anywhere — P2-020's "heavily themed Sphinx"
+— and `doc.rust-lang.org/rustdoc/` is the mdBook-built book *about* rustdoc,
+full of the word "rustdoc". The first caps achievable accuracy honestly; the
+second is why the detector matches on hashed asset paths rather than names.
+
 ## What is *not* here
 
 **GitBook has no fixtures, deliberately.** It is a hosted product now, and its
@@ -79,12 +101,12 @@ longer exists. Re-run the script; the cross-check will say what moved.
 | `sphinx` | 40 |
 | `rustdoc` | 20 |
 | `mdbook` | 20 |
-| `mkdocs` | 11 |
-| `docusaurus` | 12 |
+| `mkdocs` | 12 |
+| `docusaurus` | 10 |
 | `generic` | 26 |
 | `gitbook` | 0 — see above |
 
-**Largest class is 40 of 129**, which the harness asserts stays under half: a corpus that was mostly one label would score well for a detector that always guessed it.
+**Largest class is 40 of 128**, which the harness asserts stays under half: a corpus that was mostly one label would score well for a detector that always guessed it.
 
 ## Licences
 
@@ -116,10 +138,8 @@ drop them rather than the rule.
 | Platform | Fixture | URL | Captured | Licence | `generator` meta |
 |---|---|---|---|---|---|
 | `docusaurus` | `babeljs.io-docs` | https://babeljs.io/docs/ | 2026-07-29 | MIT | `(none)` |
-| `docusaurus` | `classic.yarnpkg.com-en-docs` | https://classic.yarnpkg.com/en/docs | 2026-07-29 | BSD-2-Clause | `(none)` |
 | `docusaurus` | `create-react-app.dev-docs-getting-started` | https://create-react-app.dev/docs/getting-started/ | 2026-07-29 | MIT | `Docusaurus v2.0.0-beta.14` |
 | `docusaurus` | `docusaurus.io-docs` | https://docusaurus.io/docs | 2026-07-29 | MIT | `(none)` |
-| `docusaurus` | `graphql.org-learn` | https://graphql.org/learn/ | 2026-07-29 | MIT | `(none)` |
 | `docusaurus` | `jestjs.io-docs-getting-started` | https://jestjs.io/docs/getting-started | 2026-07-29 | MIT | `Docusaurus v3.10.1` |
 | `docusaurus` | `prettier.io-docs` | https://prettier.io/docs/ | 2026-07-29 | MIT | `(none)` |
 | `docusaurus` | `reactnative.dev-docs-getting-started` | https://reactnative.dev/docs/getting-started | 2026-07-29 | MIT | `(none)` |
@@ -130,11 +150,11 @@ drop them rather than the rule.
 | `generic` | `caddyserver.com-docs` | https://caddyserver.com/docs/ | 2026-07-29 | Apache-2.0 | `(none)` |
 | `generic` | `curl.se-docs` | https://curl.se/docs/ | 2026-07-29 | curl licence (MIT-like) | `(none)` |
 | `generic` | `docs.pydantic.dev-latest` | https://pydantic.dev/docs/validation/latest/get-started/ | 2026-07-29 | MIT | `Astro v7.1.3` |
-| `generic` | `docs.snapcraft.io` | https://snapcraft.io/docs/ | 2026-07-29 | CC-BY-SA-4.0 | `(none)` |
 | `generic` | `eslint.org-docs-latest` | https://eslint.org/docs/latest/ | 2026-07-29 | MIT | `(none)` |
 | `generic` | `example.com` | https://example.com/ | 2026-07-29 | IANA reserved example domain | `(none)` |
 | `generic` | `go.dev-doc` | https://go.dev/doc/ | 2026-07-29 | BSD-3-Clause | `(none)` |
 | `generic` | `gohugo.io-documentation` | https://gohugo.io/documentation/ | 2026-07-29 | Apache-2.0 | `(none)` |
+| `generic` | `graphql.org-learn` | https://graphql.org/learn/ | 2026-07-29 | MIT | `(none)` |
 | `generic` | `jekyllrb.com-docs` | https://jekyllrb.com/docs/ | 2026-07-29 | MIT | `Jekyll v4.4.1` |
 | `generic` | `kubernetes.io-docs-home` | https://kubernetes.io/docs/home/ | 2026-07-29 | CC-BY-4.0 | `(none)` |
 | `generic` | `nodejs.org-en` | https://nodejs.org/en | 2026-07-29 | MIT | `(none)` |
@@ -176,6 +196,7 @@ drop them rather than the rule.
 | `mkdocs` | `docs.astral.sh-ruff` | https://docs.astral.sh/ruff/ | 2026-07-29 | MIT | `mkdocs-1.6.1, mkdocs-material-9.7.6` |
 | `mkdocs` | `docs.astral.sh-uv` | https://docs.astral.sh/uv/ | 2026-07-29 | MIT OR Apache-2.0 | `mkdocs-1.6.1, mkdocs-material-9.7.6` |
 | `mkdocs` | `fastapi.tiangolo.com` | https://fastapi.tiangolo.com/ | 2026-07-29 | MIT | `zensical-0.0.47` |
+| `mkdocs` | `mkdocs-macros-plugin.readthedocs.io-en-latest` | https://mkdocs-macros-plugin.readthedocs.io/en/latest/ | 2026-07-29 | MIT | `(none)` |
 | `mkdocs` | `mkdocstrings.github.io` | https://mkdocstrings.github.io/ | 2026-07-29 | ISC | `zensical-0.0.50` |
 | `mkdocs` | `pdm-project.org-latest` | https://pdm-project.org/latest/ | 2026-07-29 | MIT | `zensical-0.0.40` |
 | `mkdocs` | `sqlmodel.tiangolo.com` | https://sqlmodel.tiangolo.com/ | 2026-07-29 | MIT | `zensical-0.0.47` |
@@ -220,6 +241,7 @@ drop them rather than the rule.
 | `sphinx` | `docs.readthedocs.io-en-stable` | https://docs.readthedocs.com/platform/stable/ | 2026-07-29 | MIT | `(none)` |
 | `sphinx` | `docs.scipy.org-doc-scipy` | https://docs.scipy.org/doc/scipy/ | 2026-07-29 | BSD-3-Clause | `(none)` |
 | `sphinx` | `docs.scrapy.org-en-latest` | https://docs.scrapy.org/en/latest/ | 2026-07-29 | BSD-3-Clause | `(none)` |
+| `sphinx` | `docs.snapcraft.io` | https://snapcraft.io/docs/ | 2026-07-29 | CC-BY-SA-4.0 | `(none)` |
 | `sphinx` | `docs.sqlalchemy.org-en-20` | https://docs.sqlalchemy.org/en/20/ | 2026-07-29 | MIT | `(none)` |
 | `sphinx` | `docs.sympy.org-latest` | https://docs.sympy.org/latest/ | 2026-07-29 | BSD-3-Clause | `(none)` |
 | `sphinx` | `docs.xarray.dev-en-stable` | https://docs.xarray.dev/en/stable/ | 2026-07-29 | Apache-2.0 | `(none)` |
@@ -228,7 +250,6 @@ drop them rather than the rule.
 | `sphinx` | `ipython.readthedocs.io-en-stable` | https://ipython.readthedocs.io/en/stable/ | 2026-07-29 | BSD-3-Clause | `(none)` |
 | `sphinx` | `jinja.palletsprojects.com-en-stable` | https://jinja.palletsprojects.com/en/stable/ | 2026-07-29 | BSD-3-Clause | `(none)` |
 | `sphinx` | `matplotlib.org-stable` | https://matplotlib.org/stable/ | 2026-07-29 | PSF-based (matplotlib) | `(none)` |
-| `sphinx` | `mkdocs-macros-plugin.readthedocs.io-en-latest` | https://mkdocs-macros-plugin.readthedocs.io/en/latest/ | 2026-07-29 | MIT | `(none)` |
 | `sphinx` | `mypy.readthedocs.io-en-stable` | https://mypy.readthedocs.io/en/stable/ | 2026-07-29 | MIT | `(none)` |
 | `sphinx` | `networkx.org-documentation-stable` | https://networkx.org/documentation/stable/ | 2026-07-29 | BSD-3-Clause | `(none)` |
 | `sphinx` | `numpy.org-doc-stable` | https://numpy.org/doc/stable/ | 2026-07-29 | BSD-3-Clause | `(none)` |

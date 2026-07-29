@@ -820,16 +820,53 @@ impl ManPageScraper {
 Automatically detect documentation platform from URL.
 
 #### Acceptance Criteria
-- [ ] Detect ReadTheDocs (domain + HTML markers)
-- [ ] Detect rustdoc (structure + search-index)
-- [ ] Detect mdBook (book.toml, SUMMARY.md)
-- [ ] Detect GitBook (for future)
-- [ ] Fall back to generic scraper
-- [ ] Confidence score for detection
-- [ ] User override capability
-- [ ] Fast detection (single request preferred)
+- [x] Detect Sphinx/ReadTheDocs — **by HTML markers, not domain**; see below
+- [x] Detect rustdoc — by hashed asset paths, not by the word "rustdoc"
+- [x] Detect mdBook — by its own furniture, not by `book.toml` (which is not served)
+- [x] Detect GitBook — rules exist; **nothing measures them**, since the corpus has no GitBook
+      fixtures (no redistributable public instances). Recorded rather than claimed
+- [x] Fall back to generic scraper
+- [x] Confidence score for detection, with a fallback deliberately *below* the auto-accept threshold
+- [~] User override capability — the confidence is exposed and `AUTO_ACCEPT` decides whether to ask;
+      the asking itself is the `tome add` workflow (P1-022), which does not exist yet
+- [x] Fast detection — **one request**, the homepage
 
 #### Technical Notes
+
+**Every marker was chosen by counting occurrences across the 128-page corpus, not by reading each
+generator's documentation.** The sketch below is kept because three of its rules are wrong in ways
+the corpus demonstrates, and the corpus contains a counter-example to each:
+
+| Sketched rule | Counter-example in the corpus |
+|---|---|
+| `url.contains("readthedocs") → ReadTheDocs, 0.95` | `mkdocs-macros-plugin.readthedocs.io` is **MkDocs** hosted on RTD. The domain says who serves the pages, not what made them |
+| `html.contains("rustdoc") → Rustdoc` | `doc.rust-lang.org/rustdoc/` is the **rustdoc book**, built with mdBook. The word is prose |
+| `Ok((Generic, 1.0))` | Full confidence in the fallback makes "no idea" indistinguishable from "certain" — P2-020 calls this out by name |
+
+What the counting found:
+
+| Marker | Sphinx | rustdoc | mdBook | Docusaurus | MkDocs | Generic |
+|---|---|---|---|---|---|---|
+| `documentation_options.js` | **38/40** | 0 | 0 | 0 | 0 | 0 |
+| `/rustdoc-`, `normalize-` | 0 | **20/20** | 0 | 0 | 0 | 0 |
+| `sidebar-scrollbox` | 0 | 0 | **19/20** | 0 | 0 | 0 |
+| `__docusaurus` | 0 | 0 | 0 | **10/12** | 0 | 0 |
+| `md-component` | 1 | 0 | 0 | 0 | **10/12** | 0 |
+
+Rule *order* is load-bearing: mdBook's furniture is checked before anything that could match prose,
+so a book about a generator is not classified as that generator.
+
+`book.toml` and `searchindex.js` are listed as evidence above and are **not** probed. Each costs a
+round trip, and measured against the corpus they add nothing: every platform there is separable
+from the homepage alone except two Sphinx sites carrying no marker anywhere — and a probe would not
+find those either, since the files are not at the root.
+
+The one miss is `docs.djangoproject.com`: Sphinx-built, post-processed into a template with no
+Sphinx marker anywhere in the page. It falls back to `Generic` at low confidence, which is the
+right answer from a homepage alone — getting it "right" would need a rule that fired on prose.
+
+The sketch, kept for the record:
+
 ```rust
 pub enum DetectedPlatform {
     ReadTheDocs { version: Option<String> },
@@ -866,9 +903,12 @@ pub async fn detect_platform(url: &str) -> Result<(DetectedPlatform, f32)> {
 ```
 
 #### Success Metrics
-- Correct detection 95%+ for known platforms
-- Detection < 2 seconds
-- Clear fallback behavior
+- ✅ Correct detection 95 %+ — measured **99.22 %** (127 of 128) against S2-9's corpus, with a
+  confusion matrix in `tests/detection.rs`
+- ✅ **Zero confidently-wrong classifications**, which P2-020 names as the metric that matters most
+  and which the harness gates with no margin at all
+- ✅ Detection < 2 seconds — one request plus a handful of substring scans
+- ✅ Clear fallback behaviour — `Generic` at 0.4, below the 0.8 auto-accept threshold
 
 ---
 

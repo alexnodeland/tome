@@ -341,6 +341,21 @@ a test written from the same misunderstanding as the code agrees with it. The go
   asserts the largest label stays under half the fixtures, for the same reason the relevance corpus
   carries a document floor.
 
+- **The domain says who serves the pages, not what made them.** P2-014's first sketched rule is
+  `url.contains("readthedocs") → ReadTheDocs, 0.95`, and the corpus holds
+  `mkdocs-macros-plugin.readthedocs.io`, which is MkDocs. Detection matches HTML markers, never
+  hostnames.
+- **A book about a generator is full of that generator's name.**
+  `doc.rust-lang.org/rustdoc/` is the mdBook-built rustdoc book, and
+  `html.contains("rustdoc")` — the sketched rule — classifies it as rustdoc. The rustdoc rule
+  therefore matches hashed asset paths (`/rustdoc-`, `normalize-`), and mdBook's furniture is
+  checked **first**. Rule order in `detect::RULES` is load-bearing.
+- **Some sites are unclassifiable from a homepage, and the right answer is to say so.**
+  `docs.djangoproject.com` is Sphinx-built with a template carrying no Sphinx marker anywhere.
+  It falls back to `Generic` at 0.4 — below `AUTO_ACCEPT` — and caps achievable accuracy at 127/128.
+  Getting it "right" would need a rule that fired on prose, which is how confidently-wrong
+  classifications start.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does
