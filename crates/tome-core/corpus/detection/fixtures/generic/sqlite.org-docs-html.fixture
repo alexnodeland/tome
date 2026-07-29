@@ -1,0 +1,304 @@
+# tome-detection-fixture v1
+url: https://sqlite.org/docs.html
+captured: 2026-07-29
+licence: Public domain
+platform: generic
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: content-type: text/html; charset=utf-8
+---
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link href="sqlite.css" rel="stylesheet">
+<title>SQLite Documentation</title>
+<!-- path= -->
+</head>
+<body>
+<div class=nosearch>
+<a href="index.html">
+<img class="logo" src="images/sqlite370_banner.svg" alt="SQLite" border="0">
+</a>
+<div><!-- IE hack to prevent disappearing logo --></div>
+<div class="tagline desktoponly">
+Small. Fast. Reliable.<br>Choose any three.
+</div>
+<div class="menu mainmenu">
+<ul>
+<li><a href="index.html">Home</a>
+<li class='mobileonly'><a href="javascript:void(0)" onclick='toggle_div("submenu")'>Menu</a>
+<li class='wideonly'><a href='about.html'>About</a>
+<li class='desktoponly'><a href="docs.html">Documentation</a>
+<li class='desktoponly'><a href="download.html">Download</a>
+<li class='wideonly'><a href='copyright.html'>License</a>
+<li class='desktoponly'><a href="support.html">Support</a>
+<li class='desktoponly'><a href="prosupport.html">Purchase</a>
+<li class='search' id='search_menubutton'>
+<a href="javascript:void(0)" onclick='toggle_search()'>Search</a>
+</ul>
+</div>
+<div class="menu submenu" id="submenu">
+<ul>
+<li><a href='about.html'>About</a>
+<li><a href='docs.html'>Documentation</a>
+<li><a href='download.html'>Download</a>
+<li><a href='support.html'>Support</a>
+<li><a href='prosupport.html'>Purchase</a>
+</ul>
+</div>
+<div class="searchmenu" id="searchmenu">
+<form method="GET" action="search">
+<select name="s" id="searchtype">
+<option value="d">Search Documentation</option>
+<option value="c">Search Changelog</option>
+</select>
+<input type="text" name="q" id="searchbox" value="">
+<input type="submit" value="Go">
+</form>
+</div>
+</div>
+<script>
+function toggle_div(nm) {
+var w = document.getElementById(nm);
+if( w.style.display=="block" ){
+w.style.display = "none";
+}else{
+w.style.display = "block";
+}
+}
+function toggle_search() {
+var w = document.getElementById("searchmenu");
+if( w.style.display=="block" ){
+w.style.display = "none";
+} else {
+w.style.display = "block";
+setTimeout(function(){
+document.getElementById("searchbox").focus()
+}, 30);
+}
+}
+function div_off(nm){document.getElementById(nm).style.display="none";}
+window.onbeforeunload = function(e){div_off("submenu");}
+/* Disable the Search feature if we are not operating from CGI, since */
+/* Search is accomplished using CGI and will not work without it. */
+if( !location.origin || !location.origin.match || !location.origin.match(/http/) ){
+document.getElementById("search_menubutton").style.display = "none";
+}
+/* Used by the Hide/Show button beside syntax diagrams, to toggle the */
+function hideorshow(btn,obj){
+var x = document.getElementById(obj);
+var b = document.getElementById(btn);
+if( x.style.display!='none' ){
+x.style.display = 'none';
+b.innerHTML='show';
+}else{
+x.style.display = '';
+b.innerHTML='hide';
+}
+return false;
+}
+var antiRobot = 0;
+function antiRobotGo(){
+if( antiRobot!=3 ) return;
+antiRobot = 7;
+var j = document.getElementById("mtimelink");
+if(j && j.hasAttribute("data-href")) j.href=j.getAttribute("data-href");
+}
+function antiRobotDefense(){
+document.body.onmousedown=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousedown=null;
+}
+document.body.onmousemove=function(){
+antiRobot |= 2;
+antiRobotGo();
+document.body.onmousemove=null;
+}
+setTimeout(function(){
+antiRobot |= 1;
+antiRobotGo();
+}, 100)
+antiRobotGo();
+}
+antiRobotDefense();
+</script>
+
+
+
+<div class="rightsidebar desktoponly border2px">
+<h3 align="center">Common Links</h3>
+<ul class=nounderline>
+<li> <a href="features.html">Features</a> </li>
+<li> <a href="whentouse.html">When to use SQLite</a> </li>
+<li> <a href="quickstart.html">Getting Started</a> </li>
+<li> <a href="https://sqlite.org/fiddle">Try it live!</li>
+<li> <a href="lang.html">SQL Syntax</a>
+<ul>
+<li> <a href="pragma.html#toc">Pragmas</a>
+<li> <a href="lang_corefunc.html">SQL functions</a>
+<li> <a href="lang_datefunc.html">Date &amp; time functions</a>
+<li> <a href="lang_aggfunc.html#aggfunclist">Aggregate functions</a>
+<li> <a href="windowfunctions.html#biwinfunc">Window functions</a>
+<li> <a href="lang_mathfunc.html">Math functions</a>
+<li> <a href="json1.html">JSON functions</a>
+</ul>
+</li>
+<li> <a href="c3ref/intro.html">C/C++ Interface Spec</a>
+<ul>
+<li> <a href="cintro.html">Introduction</a>
+<li> <a href="c3ref/funclist.html">List of C-language APIs</a>
+</ul>
+</li>
+<li> <a href="tclsqlite.html">The TCL Interface Spec</a>
+<li> <a href="quirks.html">Quirks and Gotchas</a> </li>
+<li> <a href="faq.html">Frequently Asked Questions</a> </li>
+<li> <a href="https://www.sqlite.org/src/timeline">Commit History</a> </li>
+<li> <a href="chronology.html">Prior Releases</a>
+<li> <a href="https://www.sqlite.org/src/wiki?name=Bug+Reports">Bugs</a> </li>
+<li> <a href="news.html">News</a> </li>
+</ul>
+
+</div>
+
+<h2 align="center">Documentation</h1>
+<div class="docsearch" id="docsearch">
+   <form method="GET" action="./search">
+    <select name="s" id="searchtype">
+       <option value="d">Search Documentation</option>
+       <option value="c">Search Changelog</option>
+     </select>
+     <input type="text" name="q" id="searchbox">
+     <input type="submit" value="Go">
+   </form>
+</div>
+<style>
+.showhide {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-type: none;
+}
+.showhide > li {
+  padding-left: 1em;
+  text-indent: -1em;
+}
+.showhide > li li {
+  padding-left: 0;
+  text-indent: 0;
+  padding-top: 1ex;
+  padding-bottom: 1ex;
+}
+.showhide ul {
+  display: none;
+  list-style-type: disc;
+}
+.showhide > li > a {
+  text-decoration: none;
+  color: black;
+  cursor: pointer;
+}
+.sh_mark {
+  width: 1em;
+}
+.sh_link {
+  font-weight: bold;
+}
+.docsearch {
+  margin: auto;
+  width: 450px;
+  padding-bottom: 1.5em;
+}
+</style>
+<script>
+function showhide(n){
+  var ul = document.getElementById("sh_sub_"+n)
+  var mk = document.getElementById("sh_mark_"+n)
+  if( ul.style.display!="block" ){
+    ul.style.display = "block";
+    mk.innerHTML = "&#x25bc;";
+  } else {
+    ul.style.display = "none";
+    mk.innerHTML = "&#x25ba;";
+  }
+}
+if( !location.origin || !location.origin.match || !location.origin.match(/http/) ){
+  document.getElementById("docsearch").style.display = "none";
+}
+</script>
+
+<ul class="showh
+<!-- tome: 25220 bytes elided -->
+ef='35to36.html'>Moving From SQLite 3.5 to 3.6</a>
+<span class='desktoponly'>&rarr; 
+  A document describing the differences between SQLite version 3.5.9
+  and 3.6.0.
+</span>
+<li><a class='sh_link' href='34to35.html'>Moving From SQLite 3.4 to 3.5</a>
+<span class='desktoponly'>&rarr; 
+  A document describing the differences between SQLite version 3.4.2
+  and 3.5.0.
+</span>
+<li><a class='sh_link' href='changes.html'>Release History</a>
+<span class='desktoponly'>&rarr; 
+  A chronology of SQLite releases going back to version 1.0.0
+</span>
+<li><a class='sh_link' href='formatchng.html'>Backwards Compatibility</a>
+<span class='desktoponly'>&rarr; 
+  This document details all of the incompatible changes to the SQLite
+  file format that have occurred since version 1.0.0.
+</span>
+<li><a class='sh_link' href='privatebranch.html'>Private Branches</a>
+<span class='desktoponly'>&rarr; 
+  This document suggests procedures for maintaining a private branch
+  or fork of SQLite and keeping that branch or fork in sync with the
+  public SQLite source tree.
+</span>
+</ul>
+<li><a onclick='showhide(11)'><span class='sh_mark' id='sh_mark_11'>&#x25ba;</span> Obsolete Documents</a>
+<ul id='sh_sub_11'>
+<li><a class='sh_link' href='asyncvfs.html'>Asynchronous IO Mode</a>
+<span class='desktoponly'>&rarr; 
+  This page describes the asynchronous IO extension developed alongside
+  SQLite. Using asynchronous IO can cause SQLite to appear more responsive
+  by delegating database writes to a background thread.  <i>NB:  This
+  extension is deprecated. <a href="wal.html">WAL mode</a> is recommended
+  as a replacement.</i>
+</span>
+<li><a class='sh_link' href='c_interface.html'>Version 2 C/C++ API</a>
+<span class='desktoponly'>&rarr; 
+  A description of the C/C++ interface bindings for SQLite through version
+  2.8
+</span>
+<li><a class='sh_link' href='datatypes.html'>Version 2 DataTypes </a>
+<span class='desktoponly'>&rarr; 
+  A description of how SQLite version 2 handles SQL datatypes.
+  Short summary:  Everything is a string.
+</span>
+<li><a class='sh_link' href='vdbe.html'>VDBE Tutorial</a>
+<span class='desktoponly'>&rarr; 
+  The VDBE is the subsystem within SQLite that does the actual work of
+  executing SQL statements.  This page describes the principles of operation
+  for the VDBE in SQLite version 2.7.  This is essential reading for anyone
+  who want to modify the SQLite sources.
+</span>
+<li><a class='sh_link' href='version3.html'>SQLite Version 3</a>
+<span class='desktoponly'>&rarr; 
+  A summary of the changes between SQLite version 2.8 and SQLite version 3.0.
+</span>
+<li><a class='sh_link' href='capi3.html'>Version 3 C/C++ API</a>
+<span class='desktoponly'>&rarr; 
+  A summary of the API related changes between SQLite version 2.8 and
+  SQLite version 3.0.
+</span>
+<li><a class='sh_link' href='speed.html'>Speed Comparison</a>
+<span class='desktoponly'>&rarr; 
+  The speed of version 2.7.6 of SQLite is compared against PostgreSQL and
+  MySQL.
+</span>
+</ul>
+
+</ul>
+<br clear="both">
+
+

@@ -13,6 +13,7 @@ pub mod assets;
 pub mod config;
 pub mod crawl;
 pub mod db;
+pub mod detect;
 pub mod error;
 pub mod fetch;
 pub mod hash;

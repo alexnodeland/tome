@@ -1,0 +1,215 @@
+# tome-detection-fixture v1
+url: https://docs.h5py.org/en/stable/
+captured: 2026-07-29
+licence: BSD-3-Clause
+platform: sphinx
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: cloudflare
+header: content-type: text/html; charset=utf-8
+header: x-rtd-project: h5py
+header: x-rtd-version: stable
+header: x-backend: web-i-0cbf8bdf8d765490b
+---
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" />
+  <meta name="readthedocs-addons-api-version" content="1"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HDF5 for Python &mdash; h5py 3.16.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=075e253b"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <script src="_static/js/versions.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start Guide" href="quick.html" /> 
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="h5py" /><meta name="readthedocs-version-slug" content="stable" /><meta name="readthedocs-resolver-filename" content="/" /><meta name="readthedocs-http-status" content="200" /></head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            h5py
+          </a>
+              <div class="switch-menus">
+                <div class="version-switch"></div>
+                <div class="language-switch"></div>
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="quick.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="high/file.html">File Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="high/group.html">Groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="high/dataset.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="high/attr.html">Attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="high/dims.html">Dimension Scales</a></li>
+<li class="toctree-l1"><a class="reference internal" href="high/lowlevel.html">Low-Level API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuring h5py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="special.html">Special types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strings.html">Strings in HDF5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="refs.html">Object and Region References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi.html">Parallel HDF5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threads.html">Multi-threading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swmr.html">Single Writer Multiple Reader (SWMR)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vds.html">Virtual Datasets (VDS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="related_projects.html">Tools and Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="whatsnew/index.html">“What’s new” documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Bug Reports &amp; Contributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_guide.html">Release Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licenses.html">Licenses and legal info</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">h5py</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">HDF5 for Python</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="hdf5-for-python">
+<h1>HDF5 for Python<a class="headerlink" href="#hdf5-for-python" title="Link to this heading"></a></h1>
+<p>The h5py package is a Pythonic interface to the HDF5 binary data format.</p>
+<p><a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5</a> lets you store huge amounts of numerical
+data, and easily manipulate that data from NumPy. For example, you can slice
+into multi-terabyte datasets stored on disk, as if they were real NumPy
+arrays. Thousands of datasets can be stored in a single file, categorized and
+tagged however you want.</p>
+<section id="where-to-start">
+<h2>Where to start<a class="headerlink" href="#where-to-start" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="quick.html#quick"><span class="std std-ref">Quick-start guide</span></a></p></li>
+<li><p><a class="reference internal" href="build.html#install"><span class="std std-ref">Installation</span></a></p></li>
+</ul>
+</section>
+<section id="other-resources">
+<h2>Other resources<a class="headerlink" href="#other-resources" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://shop.oreilly.com/product/0636920030249.do">Python and HDF5 O’Reilly book</a></p></li>
+<li><p><a class="reference external" href="https://forum.hdfgroup.org/c/hdf5/h5py">Ask questions on the HDF forum</a></p></li>
+<li><p><a class="reference external" href="https://github.com/h5py/h5py">GitHub project</a></p></li>
+</ul>
+</section>
+<section id="introductory-info">
+<h2>Introductory info<a class="headerlink" href="#introductory-info" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quick.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Installation
+<!-- tome: 613 bytes elided -->
+a></li>
+<li class="toctree-l1"><a class="reference internal" href="high/dims.html">Dimension Scales</a></li>
+<li class="toctree-l1"><a class="reference internal" href="high/lowlevel.html">Low-Level API</a></li>
+</ul>
+</div>
+</section>
+<section id="advanced-topics">
+<h2>Advanced topics<a class="headerlink" href="#advanced-topics" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuring h5py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="special.html">Special types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strings.html">Strings in HDF5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="refs.html">Object and Region References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi.html">Parallel HDF5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threads.html">Multi-threading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swmr.html">Single Writer Multiple Reader (SWMR)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vds.html">Virtual Datasets (VDS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="related_projects.html">Tools and Related Projects</a></li>
+</ul>
+</div>
+</section>
+<section id="meta-info-about-the-h5py-project">
+<h2>Meta-info about the h5py project<a class="headerlink" href="#meta-info-about-the-h5py-project" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="whatsnew/index.html">“What’s new” documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Bug Reports &amp; Contributions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_guide.html">Release Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licenses.html">Licenses and legal info</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quick.html" class="btn btn-neutral float-right" title="Quick Start Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014, Andrew Collette and contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

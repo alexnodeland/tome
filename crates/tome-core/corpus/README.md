@@ -36,6 +36,7 @@ the one after the diff has been looked at.
 | `sanitizer` | The XSS payload corpus (nothing survives) **and** the anchor corpus (nothing breaks) | S1-9 |
 | `snippets` | Search result snippet generation | S2 |
 | `relevance` | **Search ranking quality.** 207 labelled queries over 339 real pages, scored as MRR and recall@1/3/10, with per-query rank deltas against a committed baseline | S2-1 |
+| `detection` | **Platform detection.** 129 real homepages across six generators, scored as accuracy and a confusion matrix, with per-fixture prediction deltas against a committed baseline | S2-9 |
 
 `normalization` is the one the product's viability actually rests on: it is
 where "does documentation come out the other side looking right?" gets an
@@ -48,6 +49,15 @@ each a serialized `store::StoredPage` exactly as `pipeline::pull` wrote it, so
 the eval indexes what the product indexes. Provenance and licences for all 339
 are in `pages/SOURCES.md`. Its workflow is `TOME_UPDATE_BASELINE=1`, mirroring
 `TOME_UPDATE_GOLDEN`.
+
+**`detection` has its own layout too.** `fixtures/<platform>/<host>.fixture` — a
+short `key: value` header (URL, capture date, licence, label, the page's own
+`generator` meta, kept response headers), then `---`, then truncated HTML.
+`baseline.json` holds the committed accuracy and per-fixture predictions; its
+workflow is `TOME_UPDATE_DETECTION_BASELINE=1`. Provenance, licences and **how
+each label was decided** are in `detection/SOURCES.md`, which matters more here
+than elsewhere: a corpus labelled from the same markers the detector reads
+would score the detector against itself.
 
 **The corpus size is load-bearing, not incidental.** It began at 26 documents
 and at that size the gate could not discriminate at all — removing an entire

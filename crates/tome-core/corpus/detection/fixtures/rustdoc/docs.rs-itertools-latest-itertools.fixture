@@ -1,0 +1,138 @@
+# tome-detection-fixture v1
+url: https://docs.rs/itertools/latest/itertools/
+captured: 2026-07-29
+licence: MIT OR Apache-2.0
+platform: rustdoc
+generator-meta: rustdoc
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: nginx/1.14.0 (Ubuntu)
+header: content-type: text/html; charset=utf-8
+header: x-served-by: cache-sjc1000131-SJC, cache-ewr-kewr1740027-EWR
+---
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Extra iterator adaptors, functions and macros."><title>itertools - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="/-/rustdoc.static/${f}">`).join(""))</script><link rel="stylesheet" href="/-/rustdoc.static/normalize-9960930a.css"><link rel="stylesheet" href="/-/static/vendored.css?0-0-0-f1b150f0cd76f7cabcd39e1f4790ba771b28b5c4-2026-07-19" media="all" /><link rel="stylesheet" href="/-/rustdoc.static/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="/-/rustdoc.static/" data-current-crate="itertools" data-themes="" data-resource-suffix="-20260615-1.98.0-nightly-01dfd7924" data-rustdoc-version="1.98.0-nightly (01dfd7924 2026-06-15)" data-channel="nightly" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="/-/rustdoc.static/storage-41dd4d93.js"></script><script defer src="../crates-20260615-1.98.0-nightly-01dfd7924.js"></script><script defer src="/-/rustdoc.static/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="/-/rustdoc.static/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="/-/rustdoc.static/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="/-/rustdoc.static/favicon-044be391.svg"><link rel="stylesheet" href="/-/static/rustdoc-2025-08-20.css?0-0-0-f1b150f0cd76f7cabcd39e1f4790ba771b28b5c4-2026-07-19" media="all" /><link rel="stylesheet" href="/-/static/font-awesome.css?0-0-0-f1b150f0cd76f7cabcd39e1f4790ba771b28b5c4-2026-07-19" media="all" />
+
+<link rel="search" href="/-/static/opensearch.xml" type="application/opensearchdescription+xml" title="Docs.rs" />
+
+<script type="text/javascript">(function() {
+    function applyTheme(theme) {
+        if (theme) {
+            document.documentElement.dataset.docsRsTheme = theme;
+        }
+    }
+
+    window.addEventListener("storage", ev => {
+        if (ev.key === "rustdoc-theme") {
+            applyTheme(ev.newValue);
+        }
+    });
+
+    // see ./storage-change-detection.html for details
+    window.addEventListener("message", ev => {
+        if (ev.data && ev.data.storage && ev.data.storage.key === "rustdoc-theme") {
+            applyTheme(ev.data.storage.value);
+        }
+    });
+
+    applyTheme(window.localStorage.getItem("rustdoc-theme"));
+})();</script></head><body class="rustdoc-page">
+<div class="nav-container">
+    <div class="container">
+        <div class="pure-menu pure-menu-horizontal" role="navigation" aria-label="Main navigation">
+            <form action="/releases/search"
+                  method="GET"
+                  id="nav-search-form"
+                  class="landing-search-form-nav  ">
+
+                
+                <a href="/" class="pure-menu-heading pure-menu-link docsrs-logo" aria-label="Docs.rs">
+                    <span title="Docs.rs"><span class="fa fa-solid fa-cubes " aria-hidden="true"></span></span>
+                    <span class="title">Docs.rs</span>
+                </a><ul class="pure-menu-list">
+    <script id="crate-metadata" type="application/json">
+        
+        {
+            "name": "itertools",
+            "version": "0.15.0"
+        }
+    </script><li class="pure-menu-item pure-menu-has-children crate-dropdown">
+            <a href="#" class="pure-menu-link crate-name" title="Extra iterator adaptors, iterator methods, free functions, and macros.">
+                <span class="fa fa-solid fa-cube " aria-hidden="true"></span>
+                <span class="title">itertools-0.15.0</span>
+            </a><div class="pure-menu-children package-details-menu">
+                
+                <ul class="pure-menu-list menu-item-divided">
+                    <li class="pure-menu-heading" id="crate-title">
+                        itertools 0.15.0
+                        <span id="clipboard" class="svg-clipboard" title="Copy crate name and version information"></span>
+                    </li><li class="pure-menu-item">
+                        <a href="/itertools/0.15.0/itertools/" class="pure-menu-link description" id="permalink" title="Get a link to this specific version"><span class="fa fa-solid fa-link " aria-hidden="true"></span> Permalink
+                        </a>
+                    </li><li class="pure-menu-item">
+                        <a href="/crate/itertools/latest" class="pure-menu-link description" title="See itertools in docs.rs">
+                            <span class="fa fa-solid fa-cube " aria-hidden="true"></span> Docs.rs crate page
+                        </a>
+                    </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description license"><span class="fa fa-solid fa-scale-unbalanced-flip " aria-hidden="true"></span>
+                            <a href="https://spdx.org/licenses/MIT" class="pure-menu-sublink">MIT</a> OR <a href="https://spdx.org/licenses/Apache-2.0" class="pure-menu-sublink">Apache-2.0</a></span>
+                        </li><li class="pure-menu-item">
+                            <span class="pure-menu-link description" title="Built with rustc 1.98.0-nightly (01dfd7924 2026-06-15)">
+                                <span class="fa fa-solid fa-gears " aria-hidden="true"></span> 16 June 2026
+                            </span>
+                        </li></ul>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Links</li>
+
+                            <li class="pure-menu-item">
+                                    <a href="https://github.com/rust-itertools/itertools" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-code-branch " aria-hidden="true"></span> Repository
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                <a href="https://crates.io/crates/itertools" class="pure-menu-link" title="See itertools in crates.io">
+                                    <span class="fa fa-solid fa-cube " aria-hidden="true"></span> crates.io
+                                </a>
+                            </li>
+
+                            
+                            <li class="pure-menu-item">
+                                <a href="/crate/itertools/latest/source/" title="Browse source of itertools-0.15.0" class="pure-menu-link">
+                                    <span class="fa fa-solid fa-folder-open " aria-hidden="true"></span> Source
+                                </a>
+                            </li>
+                        </ul>
+                    </div><div class="pure-u-1-2">
+                        <ul class="pure-menu-list" id="topbar-owners">
+                            <li class="pure-menu-heading">Owners</li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/bluss" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> bluss
+                                    </a>
+                                </li><li class="pure-menu-item">
+                                    <a href="https://crates.io/users/jswrenn" class="pure-menu-link">
+                                        <span class="fa fa-solid fa-user " aria-hidden="true"></span> jswrenn
+                                    </a>
+                                </li></ul>
+                    </div>
+                </div>
+
+                <div class="pure-g menu-item-divided">
+                    <div class="pure-u-1-2 right-border">
+                        <ul class="pure-menu-list">
+                            <li class="pure-menu-heading">Dependencies</li>
+
+                            
+                            <li class="pure-menu-item">
+                                <div class="pure-menu pure-menu-scrollable sub-menu" tabindex="-1">
+                                    <ul class="pure-menu-list">
+                                        <li class="pure-menu-item"><a href="/either/^1.0/" class="pure-menu-link">
+                either ^1.0
+                
+                    <i class="dependencies normal">normal</i>
+                    
+                
+  
+<!-- tome: 23495 bytes elided -->
+t><a class="fn" href="fn.repeat_n.html" title="fn itertools::repeat_n">repeat_<wbr>n</a></dt><dd>Create an iterator that produces <code>n</code> repetitions of <code>element</code>.</dd><dt><a class="fn" href="fn.rev.html" title="fn itertools::rev">rev</a></dt><dd>Iterate <code>iterable</code> in reverse.</dd><dt><a class="fn" href="fn.sorted.html" title="fn itertools::sorted">sorted</a></dt><dd>Sort all iterator elements into a new iterator in ascending order.</dd><dt><a class="fn" href="fn.sorted_unstable.html" title="fn itertools::sorted_unstable">sorted_<wbr>unstable</a></dt><dd>Sort all iterator elements into a new iterator in ascending order.
+This sort is unstable (i.e., may reorder equal elements).</dd><dt class="deprecated"><a class="fn" href="fn.unfold.html" title="fn itertools::unfold">unfold</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd>Creates a new unfold source with the specified closure as the “iterator
+function” and an initial state to eventually pass to the closure</dd><dt class="deprecated"><a class="fn" href="fn.zip.html" title="fn itertools::zip">zip</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd>Converts the arguments to iterators and zips them.</dd><dt><a class="fn" href="fn.zip_eq.html" title="fn itertools::zip_eq">zip_eq</a></dt><dd>Zips two iterators but <strong>panics</strong> if they are not of the same length.</dd></dl><script type="text/json" id="notable-traits-data">{"IntersperseWith<I, ElemF>":"<h3>Notable traits for <code><a class=\"struct\" href=\"structs/struct.IntersperseWith.html\" title=\"struct itertools::structs::IntersperseWith\">IntersperseWith</a>&lt;I, ElemF&gt;</code></h3><pre><code><div class=\"where\">impl&lt;I, ElemF&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"structs/struct.IntersperseWith.html\" title=\"struct itertools::structs::IntersperseWith\">IntersperseWith</a>&lt;I, ElemF&gt;<div class=\"where\">where\n    I: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a>,\n    ElemF: IntersperseElement&lt;I::<a class=\"associatedtype\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" title=\"type core::iter::traits::iterator::Iterator::Item\">Item</a>&gt;,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = I::<a class=\"associatedtype\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" title=\"type core::iter::traits::iterator::Iterator::Item\">Item</a>;</div>"}</script></section></div></main></div></body></html>

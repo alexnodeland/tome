@@ -1,0 +1,165 @@
+# tome-detection-fixture v1
+url: https://svelte.dev/docs/svelte/overview
+captured: 2026-07-29
+licence: MIT
+platform: generic
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: Vercel
+header: content-type: text/html; charset=utf-8
+header: x-vercel-id: iad1::qpfph-1785349758125-d72a09b200ee
+---
+<!doctype html>
+<html lang="en" class="theme-default typo-default">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<meta name="theme-color" content="#ff3e00" />
+
+		<link rel="manifest" href="/manifest.json" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+
+		<meta name="twitter:site" content="@sveltejs" />
+		<meta name="twitter:creator" content="@sveltejs" />
+
+		<link
+			rel="search"
+			type="application/opensearchdescription+xml"
+			href="/opensearch.xml"
+			title="Svelte"
+		/>
+
+		<script>
+			try {
+				document.documentElement.classList.add(
+					`font-${localStorage.getItem('svelte:font') ?? 'elegant'}`
+				);
+			} catch {
+				// localStorage access disabled
+			}
+		</script>
+
+		<link href="../../_app/immutable/assets/eb-garamond-latin-400-normal.DSJrtJSV.woff2" rel="preload" as="font" type="font/woff2" crossorigin>
+		<link href="../../_app/immutable/assets/dm-serif-display-latin-400-normal.C5_t9oOD.woff2" rel="preload" as="font" type="font/woff2" crossorigin>
+		<link href="../../_app/immutable/assets/fira-sans-latin-400-normal.a0AnQzuD.woff2" rel="preload" as="font" type="font/woff2" crossorigin>
+		<link href="../../_app/immutable/entry/start.DbUnY7DH.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/kNaey6uv.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/payload.DSmR2FwN.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BbcfMGX-.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/9rXjP1Jc.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DSDHPpW6.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CvdfwtaA.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DYrviY11.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Pr-BACYO.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.DSVfn7Dj.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/C6WuQBXR.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.DOCAV4aT.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BsKvCS3n.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/QOpogMl4.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Cyuzqnbw.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/0lUcAWUP.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CXXeg8YK.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Cc1tu712.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/0tHQ5Qde.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BJXzCqhi.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CaD3n_AY.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/C64VbXr2.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.B5kSmkXi.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BhHg2onl.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/16.DTDUKFnl.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BikttnRL2.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/B5MBBn9V2.js" rel="modulepreload">
+		<!--12qhfyh--><!--[-1--><!--]--><!----><!--16r4un1--><script>
+		try {
+			const theme = localStorage.getItem('sv:theme');
+
+			document.documentElement.classList.add(
+				!theme || theme === 'system'
+					? window.matchMedia('(prefers-color-scheme: dark)').matches
+						? 'dark'
+						: 'light'
+					: theme
+			);
+		} catch {
+			// localStorage access disabled
+		}
+	</script><!----><!----><!--16r4un1--><script>
+		try {
+			const theme = localStorage.getItem('sv:theme');
+
+			document.documentElement.classList.add(
+				!theme || theme === 'system'
+					? window.matchMedia('(prefers-color-scheme: dark)').matches
+						? 'dark'
+						: 'light'
+					: theme
+			);
+		} catch {
+			// localStorage access disabled
+		}
+	</script><!----><!----><!--13un2bm--><meta name="twitter:title" content="Overview • Svelte Docs"/> <meta name="twitter:description" content="Overview • Svelte documentation"/> <meta name="twitter:card" content="summary_large_image"/> <meta name="description" content="Overview • Svelte documentation"/> <meta name="twitter:image" content="https://svelte.dev/docs/svelte/overview/card.png"/> <meta name="og:image" content="https://svelte.dev/docs/svelte/overview/card.png"/><!----><title>Overview • Svelte Docs</title>
+		<style>svg.svelte-hfc14b{vertical-align:middle;-o-object-fit:contain;object-fit:contain;transform-origin:50%;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;fill:none;position:relative;overflow:hidden}
+</style>
+		<link href="../../_app/immutable/assets/stores.DoLKfBGK.css" rel="stylesheet" disabled media="(max-width: 0)">
+		<link href="../../_app/immutable/assets/search.Bf59X-yG.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/Text.Bgvayb8P.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/components.JI3lHpuz.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/0.qrmhJS98.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/docs.Bbl5Jsvw.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/3.BwddlUQR.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/RelatedLinks.B9ui4heR.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/16.BnhAKrba.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<script>
+			{
+				const div = document.createElement('div');
+
+				Object.assign(div.style, {
+					width: '100px',
+					height: '100px',
+					overflow: 'scroll',
+					position: 'absolute',
+					top: '-9999px'
+				});
+
+				document.body.append(div);
+
+				document.documentElement.classList.add(
+					div.offsetWidth - div.clientWidth > 0 ? 'scrollbars-visible' : 'scrollbars-invisible'
+				);
+
+				div.remove();
+			}
+		</script>
+
+		<div style="height: 100%"><!--[--><!--[--><!--[0--><!--[--><div style="display: none"><svg><symbol id="arrow-left" class="icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></symbol><symbol id="arrow-right" class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></symbol><symbol id="arrow-right-chevron" viewBox="0 0 24 24"><path fill="currentColor" d="M8.7 17.3q-.275-.275-.275-.7t.275-.7l3.9-3.9l-3.9-3.9q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275l4.6 4.6q.15.15.213.325t.062.375q0 .2-.063.375t-.212.325l-4.6 4.6q-.275.275-.7.275t-.7-.275Z"></path></symbol><symbol id="arrow-up" class="icon" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></symbol><symbol id="arrow-down" class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></symbol><symbol id="check" class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></symbol><symbol id="close" class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol><symbol id="download" class="icon" viewBox="0 0 24 24"><path d="M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol><symbol id="edit" class="icon" viewBox="0 0 24 24"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></symbol><symbol id="git-branch" class="icon" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></symbol><symbol id="log-in" class="icon" viewBox="0 0 24 24"><path d="M15 3H19A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H15"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></symbol><symbol id="maximize" class="icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></symbol><symbol id="maximize-2" class="icon" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></symbol><symbol id="menu" viewBox="0 0 48 48"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M7.95 11.95h32m-32 12h32m-32 12h32"></path></symbol><symbol id="message-square" class="icon" viewBox="0 0 24 24"><g transform="translate(0, 1)"><path d="M16.5 19H11V15H18V11H22V19H19.5L18 20.5L16.5 19Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2 3H18V15H8.5L6.5 17L4.5 15H2V3 M5 10L5 12L10 12L10 10  M5 6L5 9L13 9L13 6Z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></g></symbol><symbol id="minus" class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></symbol><symbol id="plus" class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol><symbol id="save" class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></symbol><symbol id="link" class="icon" viewBox="0 0 24 24"><path d="M9,7L6,7A2 2 0 0 0 6,17L9,17"></path><path d="M15,7L18,7A2 2 0 0 1 18,17L15,17"></path><path d="M7,12L17,12"></path></symbol><symbol viewBox="0 0 24 24" id="external-link"><path fill="currentColor" stroke-width="0" d="m16 8.4l-8.875 8.9q-.3.3-.713.3t-.712-.3q-.3-.3-.3-.713t.3-.712L14.6 7H7q-.425 0-.713-.288T6 6q0-.425.288-.713T7 5h10q.425 0 .713.288T18 6v10q0 .425-.288.713T17 17q-.425 0-.713-.288T16 16V8.4Z"></path></symbol><symbol id="chevron-up" class="icon" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></symbol><symbol id="chevron-down" class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></symbol><symbol id="delete" class="icon" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M22 4.2h-5.6L15 1.6c-.1-.2-.4-.4-.7-.4H9.6c-.2 0-.5.2-.6.4L7.6 4.2H2c-.4 0-.8.4-.8.8s.4.8.8.8h1.8V22c0 .4.3.8.8.8h15c.4 0 .8-.3.8-.8V5.8H22c.4 0 .8-.3.8-.8s-.4-.8-.8-.8zM10.8 16.5c0 .4-.3.8-.8.8s-.8-.3-.8-.8V10c0-.4.3-.8.8-.8s.8.3.8.8v6.5zm4 0c0 .4-.3.8-.8.8s-.8-.3-.8-.8V10c0-.4.3-.8.8-.8s.8.3.8.8v6.5z"></path></symbol><symbol id="home" viewBox="0 0 256 256"><path fill="currentColor" d="m221.56 100.85l-79.95-75.47l-.16-.15a19.93 19.93 0 0 0-26.91 0l-.17.15l-79.93 75.47a20.07 20.07 0 0 0-6.44 14.7V208a20 20 0 0 0 20 20h48a20 20 0 0 0 20-20v-44h24v44a20 20 0 0 0 20 20h48a20 20 0 0 0 20-20v-92.45a20.07 20.07 0 0 0-6.44-14.7ZM204 204h-40v-44a20 20 0 0 0-20-20h-32a20 20 0 0 0-20 20v44H52v-86.72l76-71.75l76 71.75Z"></path></symbol><symbol id="search" viewBox="0 0 24 24"><path stroke-width="0.2" fill="currentColor" d="m18.9 20.3l-5.6-5.6q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5q0-2.725 1.888-4.612T9.5 3q2.725 0 4.612 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.625 5.625q.275.275.275.675t-.3.7q-.275.275-.7.275t-.7-.275ZM9.5 14q1.
+<!-- tome: 70120 bytes elided -->
+color:var(--shiki-token-keyword)\">=\u003C/span>\u003Cspan style=\"color:var(--shiki-foreground)\">{greet}>click me&#x3C;/\u003C/span>\u003Cspan style=\"color:var(--shiki-token-string-expression)\">button\u003C/span>\u003Cspan style=\"color:var(--shiki-foreground)\">>\u003C/span>\u003C/span>\n\u003Cspan class=\"line\">\u003C/span>\n\u003Cspan class=\"line\">\u003Cspan style=\"color:var(--shiki-foreground)\">&#x3C;\u003C/span>\u003Cspan style=\"color:var(--shiki-token-string-expression)\">style\u003C/span>\u003Cspan style=\"color:var(--shiki-foreground)\">>\u003C/span>\u003C/span>\n\u003Cspan class=\"line\">\t\u003Cspan style=\"color:var(--shiki-token-string-expression)\">button\u003C/span> \u003Cspan style=\"color:var(--shiki-foreground)\">{\u003C/span>\u003C/span>\n\u003Cspan class=\"line\">\t\t\u003Cspan style=\"color:var(--shiki-token-constant)\">font-size\u003C/span>\u003Cspan style=\"color:var(--shiki-token-keyword)\">:\u003C/span> \u003Cspan style=\"color:var(--shiki-token-constant)\">2\u003C/span>\u003Cspan style=\"color:var(--shiki-token-keyword)\">em\u003C/span>\u003Cspan style=\"color:var(--shiki-foreground)\">;\u003C/span>\u003C/span>\n\u003Cspan class=\"line\">\t\u003Cspan style=\"color:var(--shiki-foreground)\">}\u003C/span>\u003C/span>\n\u003Cspan class=\"line\">\u003Cspan style=\"color:var(--shiki-foreground)\">&#x3C;/\u003C/span>\u003Cspan style=\"color:var(--shiki-token-string-expression)\">style\u003C/span>\u003Cspan style=\"color:var(--shiki-foreground)\">>\u003C/span>\u003C/span>\u003C/code>\u003C/pre>\u003C/div>\u003Cp>...into lean, tightly optimized JavaScript.\u003C/p>\n\u003Cp>You can use it to build anything on the web, from standalone components to ambitious full stack apps (using Svelte&#39;s companion application framework, \u003Ca href=\"../kit\">SvelteKit\u003C/a>) and everything in between.\u003C/p>\n\u003Cp>These pages serve as reference documentation. If you&#39;re new to Svelte, we recommend starting with the \u003Ca href=\"/tutorial\">interactive tutorial\u003C/a> and coming back here when you have questions.\u003C/p>\n\u003Cp>You can also try Svelte online in the \u003Ca href=\"/playground\">playground\u003C/a> or, if you need a more fully-featured environment, on \u003Ca href=\"https://sveltekit.new\">StackBlitz\u003C/a>.\u003C/p>\n",sections:[],children:[],prev:null,next:{slug:"docs/svelte/getting-started",title:"Getting started"}},related:void 0},uses:{params:["topic","path"],url:1}}],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+
+		<script>
+			try {
+				if (localStorage.getItem('sv:show-legacy') === 'open') {
+					for (const node of document.querySelectorAll('details.legacy')) {
+						node.open = true;
+					}
+				}
+
+				if (localStorage.getItem('svelte:prefers-ts') === 'false') {
+					for (const node of document.querySelectorAll('.ts-toggle')) {
+						node.checked = false;
+					}
+				}
+			} catch {
+				// localStorage access disabled
+			}
+		</script>
+	</body>
+</html>

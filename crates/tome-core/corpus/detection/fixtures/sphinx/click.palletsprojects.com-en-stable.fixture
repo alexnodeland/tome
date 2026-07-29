@@ -1,0 +1,198 @@
+# tome-detection-fixture v1
+url: https://click.palletsprojects.com/en/stable/
+captured: 2026-07-29
+licence: BSD-3-Clause
+platform: sphinx
+generator-meta: (none)
+notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
+header: server: cloudflare
+header: content-type: text/html; charset=utf-8
+header: x-rtd-project: pallets-click
+header: x-rtd-version: stable
+header: x-backend: web-i-0749b7e316db30eb0
+---
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Click &#8212; Click Documentation (8.5.x)</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/click.css?v=66889b38" />
+    <script src="_static/documentation_options.js?v=5735b863"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="canonical" href="https://click.palletsprojects.com/en/stable/" />
+    <link rel="icon" href="_static/click-icon.svg"/>
+    <link rel="index" title="Index" href="genindex/" />
+    <link rel="search" title="Search" href="search/" />
+    <link rel="next" title="Frequently Asked Questions" href="faqs/" /> 
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="pallets-click" /><meta name="readthedocs-version-slug" content="stable" /><meta name="readthedocs-resolver-filename" content="/" /><meta name="readthedocs-http-status" content="200" /></head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="faqs/" title="Frequently Asked Questions"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Click Documentation (8.5.x)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Welcome to Click</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section class="hide-header" id="welcome-to-click">
+<h1>Welcome to Click<a class="headerlink" href="#welcome-to-click" title="Link to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="_images/click-name.svg"><img alt="_images/click-name.svg" class="align-center" src="_images/click-name.svg" style="height: 200px;" />
+</a>
+<p>Click is a Python package for creating beautiful command line interfaces
+in a composable way with as little code as necessary. It’s the “Command
+Line Interface Creation Kit”. It’s highly configurable but comes with
+sensible defaults out of the box.</p>
+<p>It aims to make the process of writing command line tools quick and fun
+while also preventing any frustration caused by the inability to implement
+an intended CLI API.</p>
+<p>Click in three points:</p>
+<ul class="simple">
+<li><p>arbitrary nesting of commands</p></li>
+<li><p>automatic help page generation</p></li>
+<li><p>supports lazy loading of subcommands at runtime</p></li>
+</ul>
+<p>What does it look like? Here is an example of a simple Click program:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--count&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of greetings.&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--name&#39;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;Your name&#39;</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The person to greet.&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hello</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple program that greets NAME for a total of COUNT times.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hello </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">hello</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>And what it looks like when run:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python<span class="w"> </span>hello.py<span class="w"> </span>--count<span class="o">=</span><span class="m">3</span>
+<span class="go">Your name: John</span>
+<span class="go">Hello John!</span>
+<span class="go">Hello John!</span>
+<span class="go">Hello John!</span>
+</pre></div>
+</div>
+<p>It automatically generates nicely formatted help pages:</p>
+<div class="highlight-shell-session notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python<span class="w"> </span>hello.py<span class="w"> </span>--help
+<span class="go">Usage: hello.py [OPTIONS]</span>
+
+<span class="go">  Simple program that greets NAME for a total of COUNT times.</span>
+
+<span class="go">Options:</span>
+<span class="go">  --count INTEGER  Number of greetings.</span>
+<span class="go">  --name TEXT      The person to greet.</span>
+<span class="go">  --help           Show this message and exit.</span>
+</pre></div>
+</div>
+<p>You can get the library directly from PyPI:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">click</span>
+</pre></div>
+</div>
+</section>
+<section id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faqs/">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faqs/#general">General</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="tutorials">
+<h2>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart/">Quickstart</a></li>
+<l
+<!-- tome: 5074 bytes elided -->
+></h1>
+<ul class="simple">
+<li><p>This documentation is structured according to <a class="reference external" href="https://diataxis.fr/">Diataxis</a> and written with <a class="reference external" href="https://myst-parser.readthedocs.io/en/latest/">MyST</a></p></li>
+<li><p><a class="reference external" href="https://palletsprojects.com/versions">Version Policy</a></p></li>
+<li><p><a class="reference external" href="https://palletsprojects.com/donate">Donate</a></p></li>
+</ul>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing/">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contrib/">click-contrib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license/">BSD-3-Clause License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes/">Changes</a></li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+  <span id="sidebar-top"></span>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  
+
+  <h3>Project Links</h3>
+  <ul>
+    <li><a href="https://palletsprojects.com/donate">Donate</a>
+  
+    <li><a href="https://pypi.org/project/click/">PyPI Releases</a>
+  
+    <li><a href="https://github.com/pallets/click/">Source Code</a>
+  
+    <li><a href="https://github.com/pallets/click/issues/">Issue Tracker</a>
+  
+    <li><a href="https://discord.gg/pallets">Chat</a>
+  </ul>
+  <h3>Contents</h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Click</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a><ul>
+<li><a class="reference internal" href="#tutorials">Tutorials</a></li>
+<li><a class="reference internal" href="#how-to-guides">How to Guides</a></li>
+<li><a class="reference internal" href="#conceptual-guides">Conceptual Guides</a></li>
+<li><a class="reference internal" href="#general-reference">General Reference</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#about-project">About Project</a></li>
+</ul>
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search/" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><div id="ethical-ad-placement"></div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2014 Pallets.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

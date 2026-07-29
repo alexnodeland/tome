@@ -319,6 +319,28 @@ a test written from the same misunderstanding as the code agrees with it. The go
   synchronously after dispatching a message reads the state from before it was handled and passes
   vacuously. `frameFind.test.ts` awaits a macrotask after every post.
 
+## Traps — platform detection
+
+- **A corpus labelled by the markers the detector reads scores the detector against itself.** The
+  detection labels are asserted by a person from knowledge of each project, and the fetch script
+  cross-checks them against the page's own `<meta name="generator">` and *reports disagreements for
+  a human* rather than trusting either side. That check caught eight on its first run.
+- **The label answers "which scraper handles this", not "which program emitted the HTML".** They
+  come apart: six sites now report `zensical` and still emit Material-for-MkDocs markup, so they
+  stay `mkdocs`. Two had genuinely migrated (Astro, Rspress) and were relabelled `generic`.
+- **Detection must be allowed to say "I don't know".** `(Generic, 1.0)` — full confidence in the
+  fallback — makes "no idea" indistinguishable from "certain". The fallback sits well below
+  `AUTO_ACCEPT`, and the metric that matters most is *confidently wrong*, gated with no margin: an
+  unsure answer costs one dialog, a confident wrong one crawls a site with the wrong scraper.
+- **Not every platform can be sampled.** GitBook is a hosted product now and its public instances
+  are companies' own documentation under no redistributable licence, so it has zero fixtures and
+  the matrix prints an empty row. That is the honest reading — a score for a class with one sample
+  would be worse than none. `Platform::parse` returns `None` for an unknown label rather than
+  falling back to `Generic`, or a typo would quietly inflate the non-documentation count.
+- **A corpus that is mostly one class scores well for a detector that knows nothing.** The harness
+  asserts the largest label stays under half the fixtures, for the same reason the relevance corpus
+  carries a document floor.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does
