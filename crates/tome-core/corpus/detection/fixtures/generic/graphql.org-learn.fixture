@@ -2,7 +2,7 @@
 url: https://graphql.org/learn/
 captured: 2026-07-29
 licence: MIT
-platform: docusaurus
+platform: generic
 generator-meta: (none)
 notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
 header: server: cloudflare

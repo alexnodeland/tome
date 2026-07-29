@@ -2,7 +2,7 @@
 url: https://snapcraft.io/docs/
 captured: 2026-07-29
 licence: CC-BY-SA-4.0
-platform: generic
+platform: sphinx
 generator-meta: (none)
 notes: head kept in full; body truncated (see fetch-detection-corpus.mjs)
 header: server: nginx/1.14.0 (Ubuntu)
