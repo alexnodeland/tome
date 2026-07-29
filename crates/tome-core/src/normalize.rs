@@ -181,11 +181,18 @@ fn map_cells(cells: Vec<TableCell>, base: &Url) -> Vec<TableCell> {
 /// Drop empty text nodes and empty paragraphs. Runs after the children are
 /// mapped, so a paragraph that held only whitespace text becomes empty and is
 /// removed.
+///
+/// **A whitespace-only text node is kept.** It used to be pruned on the
+/// reasoning that whitespace is not content — but in `<a>x</a> <em>y</em>`
+/// that single space *is* the only thing separating two words, and dropping
+/// it produced "xy". The parser (S1-7, `tidy_block_children`) has already
+/// removed the whitespace that was only source layout, so a space that
+/// reaches here is real; only a genuinely *empty* node goes.
 fn prune(children: Vec<Node>) -> Vec<Node> {
     children
         .into_iter()
         .filter(|n| match n {
-            Node::Text { value } => !value.trim().is_empty(),
+            Node::Text { value } => !value.is_empty(),
             Node::Paragraph { children }
             | Node::Emphasis { children }
             | Node::Strong { children } => !children.is_empty(),

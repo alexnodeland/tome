@@ -315,3 +315,141 @@ fn the_sphinx_fixture_parses_into_the_expected_shape() {
         Node::Heading { id: Some(id), .. } if id == "api-reference"
     ) || matches!(n, Node::Anchor { id } if id == "api-reference")));
 }
+
+// ---------------------------------------------------------------------------
+// Whitespace around inline elements, and heading permalinks.
+//
+// Both of these were found by pulling two real sites and looking at the
+// result, not by a test — which is the argument for the golden corpus being
+// real pages. Every assertion below is a sentence that rendered wrong.
+// ---------------------------------------------------------------------------
+
+/// The rendered text of a node tree, as a reader would see it.
+fn text_of(nodes: &[Node]) -> String {
+    nodes.iter().map(Node::text_content).collect()
+}
+
+#[test]
+fn a_space_before_an_inline_element_survives() {
+    // "the interactive <a>REPL</a>." rendered as "the interactiveREPL." on
+    // every page of docs.python.org, because the whitespace collapse also
+    // trimmed the ends.
+    let page = parse(r#"<main><p>the interactive <a href="/g.html">REPL</a>.</p></main>"#);
+    assert_eq!(text_of(body_children(&page)), "the interactive REPL.");
+}
+
+#[test]
+fn spaces_survive_around_every_inline_kind() {
+    let page = parse(
+        r#"<main><p>a <em>b</em> c <strong>d</strong> e <code>f</code> g
+           <a href="/x">h</a> i</p></main>"#,
+    );
+    assert_eq!(text_of(body_children(&page)), "a b c d e f g h i");
+}
+
+#[test]
+fn a_space_between_two_inline_elements_survives() {
+    // The separator is its own text node here — there is no adjacent prose
+    // to carry it — so pruning whitespace-only nodes deleted it entirely.
+    let page = parse(r#"<main><p><a href="/x">x</a> <em>y</em></p></main>"#);
+    assert_eq!(text_of(body_children(&page)), "x y");
+}
+
+#[test]
+fn a_block_does_not_keep_its_indentation() {
+    // The other half: whitespace at a block's edges, and between two blocks,
+    // is source layout. Keeping it put a stray " " node between every pair
+    // of block elements.
+    let page = parse("<main>\n  <h1>Title</h1>\n  <p>  Body  </p>\n</main>");
+    let children = body_children(&page);
+    assert!(
+        !children
+            .iter()
+            .any(|n| matches!(n, Node::Text { value } if value.trim().is_empty())),
+        "layout whitespace survived as a node: {children:?}"
+    );
+    assert_eq!(text_of(children), "TitleBody");
+}
+
+#[test]
+fn runs_of_whitespace_still_collapse() {
+    let page = parse("<main><p>a   \n\t  b</p></main>");
+    assert_eq!(text_of(body_children(&page)), "a b");
+}
+
+#[test]
+fn an_entity_does_not_gain_a_space() {
+    // html5ever splits text around entities, and the old merge inserted a
+    // space between the fragments — the mirror image of the deletion bug.
+    let page = parse("<main><p>a&amp;b</p></main>");
+    assert_eq!(text_of(body_children(&page)), "a&b");
+}
+
+#[test]
+fn a_sphinx_signature_keeps_no_trailing_space() {
+    // Removing the pilcrow permalink from the middle of a <dt> left two text
+    // nodes touching, so the trailing trim landed on the wrong one and the
+    // signature came out as "resize(size) ".
+    let page = parse(
+        r##"<main><dl><dt id="w.resize">resize<span>(</span><em>size</em><span>)</span>
+           <a class="headerlink" href="#w.resize">&para;</a></dt><dd><p>x</p></dd></dl></main>"##,
+    );
+    let Node::DefinitionList { items } = &body_children(&page)[0] else {
+        panic!("expected a definition list")
+    };
+    assert_eq!(text_of(&items[0].term), "resize(size)");
+}
+
+#[test]
+fn an_mdbook_heading_is_not_a_link() {
+    // mdBook wraps the whole heading in a permalink to itself, so every
+    // heading on doc.rust-lang.org/cargo rendered as a giant underlined
+    // link. Same family as the Sphinx pilcrow, opposite arrangement.
+    let page = parse(
+        r##"<main><h1 id="changelog"><a class="header" href="#changelog">Changelog</a></h1></main>"##,
+    );
+    let Node::Heading { children, id, .. } = &body_children(&page)[0] else {
+        panic!("expected a heading")
+    };
+    assert_eq!(id.as_deref(), Some("changelog"));
+    assert_eq!(
+        children.len(),
+        1,
+        "the permalink should be unwrapped: {children:?}"
+    );
+    assert!(matches!(&children[0], Node::Text { value } if value == "Changelog"));
+}
+
+#[test]
+fn a_heading_that_genuinely_links_somewhere_keeps_its_link() {
+    // The unwrap is narrow on purpose: one child, and a fragment href.
+    let page = parse(r#"<main><h2><a href="/other.html">The guide</a></h2></main>"#);
+    let Node::Heading { children, .. } = &body_children(&page)[0] else {
+        panic!("expected a heading")
+    };
+    assert!(matches!(&children[0], Node::Link { .. }), "{children:?}");
+
+    let page = parse(r##"<main><h2>See <a href="#x">this</a></h2></main>"##);
+    let Node::Heading { children, .. } = &body_children(&page)[0] else {
+        panic!("expected a heading")
+    };
+    assert_eq!(
+        children.len(),
+        2,
+        "a partial permalink is a real link: {children:?}"
+    );
+}
+
+#[test]
+fn an_mdbook_definition_term_is_not_a_link_either() {
+    let page =
+        parse(r##"<main><dl><dt id="t"><a href="#t">Term</a></dt><dd><p>x</p></dd></dl></main>"##);
+    let Node::DefinitionList { items } = &body_children(&page)[0] else {
+        panic!("expected a definition list")
+    };
+    assert!(
+        matches!(&items[0].term[0], Node::Text { value } if value == "Term"),
+        "{:?}",
+        items[0].term
+    );
+}

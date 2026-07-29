@@ -30,21 +30,13 @@
                 "children": [
                   {
                     "type": "text",
-                    "value": "class"
+                    "value": "class "
                   }
                 ]
               },
               {
                 "type": "text",
-                "value": "widget."
-              },
-              {
-                "type": "text",
-                "value": "Widget"
-              },
-              {
-                "type": "text",
-                "value": "("
+                "value": "widget.Widget("
               },
               {
                 "type": "emphasis",
@@ -82,11 +74,7 @@
                     "term": [
                       {
                         "type": "text",
-                        "value": "resize"
-                      },
-                      {
-                        "type": "text",
-                        "value": "("
+                        "value": "resize("
                       },
                       {
                         "type": "emphasis",
@@ -108,7 +96,7 @@
                         "children": [
                           {
                             "type": "text",
-                            "value": "Resize in place. Raises"
+                            "value": "Resize in place. Raises "
                           },
                           {
                             "type": "inline_code",
@@ -116,7 +104,7 @@
                           },
                           {
                             "type": "text",
-                            "value": "when"
+                            "value": " when "
                           },
                           {
                             "type": "emphasis",
@@ -129,7 +117,7 @@
                           },
                           {
                             "type": "text",
-                            "value": "is negative."
+                            "value": " is negative."
                           }
                         ]
                       }
@@ -166,7 +154,7 @@
         "children": [
           {
             "type": "text",
-            "value": "Back to the"
+            "value": "Back to the "
           },
           {
             "type": "link",
