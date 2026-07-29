@@ -5,58 +5,6 @@
     "type": "document",
     "children": [
       {
-        "type": "list",
-        "ordered": true,
-        "start": null,
-        "items": [
-          {
-            "children": [
-              {
-                "type": "link",
-                "href": "https://corpus.test/doc/",
-                "title": null,
-                "children": [
-                  {
-                    "type": "text",
-                    "value": " Documentation "
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "children": [
-              {
-                "type": "link",
-                "href": "https://corpus.test/doc/tutorial/",
-                "title": null,
-                "children": [
-                  {
-                    "type": "text",
-                    "value": " Tutorials "
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "children": [
-              {
-                "type": "link",
-                "href": "https://corpus.test/doc/tutorial/getting-started",
-                "title": null,
-                "children": [
-                  {
-                    "type": "text",
-                    "value": " Tutorial: Get started with Go "
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 1,
         "id": null,

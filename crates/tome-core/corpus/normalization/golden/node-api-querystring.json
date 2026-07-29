@@ -16,6 +16,10 @@
           {
             "type": "anchor",
             "id": "querystring_query_string"
+          },
+          {
+            "type": "anchor",
+            "id": "query-string"
           }
         ]
       },
@@ -79,7 +83,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "const querystring = require('node:querystring');\njscopy"
+        "code": "const querystring = require('node:querystring');"
       },
       {
         "type": "paragraph",
@@ -136,6 +140,10 @@
           {
             "type": "anchor",
             "id": "querystring_querystring_decode"
+          },
+          {
+            "type": "anchor",
+            "id": "querystringdecode"
           }
         ]
       },
@@ -180,6 +188,10 @@
           {
             "type": "anchor",
             "id": "querystring_querystring_encode"
+          },
+          {
+            "type": "anchor",
+            "id": "querystringencode"
           }
         ]
       },
@@ -224,6 +236,10 @@
           {
             "type": "anchor",
             "id": "querystring_querystring_escape_str"
+          },
+          {
+            "type": "anchor",
+            "id": "querystringescapestr"
           }
         ]
       },
@@ -331,6 +347,10 @@
           {
             "type": "anchor",
             "id": "querystring_querystring_parse_str_sep_eq_options"
+          },
+          {
+            "type": "anchor",
+            "id": "querystringparsestr-sep-eq-options"
           }
         ]
       },
@@ -777,7 +797,7 @@
       {
         "type": "code_block",
         "language": "json",
-        "code": "{\n  \"foo\": \"bar\",\n  \"abc\": [\"xyz\", \"123\"]\n}\njsoncopy"
+        "code": "{\n  \"foo\": \"bar\",\n  \"abc\": [\"xyz\", \"123\"]\n}"
       },
       {
         "type": "paragraph",
@@ -874,7 +894,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "// Assuming gbkDecodeURIComponent function already exists...\n\nquerystring.parse('w=%D6%D0%CE%C4&foo=bar', null, null,\n                  { decodeURIComponent: gbkDecodeURIComponent });\njscopy"
+        "code": "// Assuming gbkDecodeURIComponent function already exists...\n\nquerystring.parse('w=%D6%D0%CE%C4&foo=bar', null, null,\n                  { decodeURIComponent: gbkDecodeURIComponent });"
       },
       {
         "type": "heading",
@@ -888,6 +908,10 @@
           {
             "type": "anchor",
             "id": "querystring_querystring_stringify_obj_sep_eq_options"
+          },
+          {
+            "type": "anchor",
+            "id": "querystringstringifyobj-sep-eq-options"
           }
         ]
       },
@@ -1253,7 +1277,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });\n// Returns 'foo=bar&baz=qux&baz=quux&corge='\n\nquerystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');\n// Returns 'foo:bar;baz:qux'\njscopy"
+        "code": "querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });\n// Returns 'foo=bar&baz=qux&baz=quux&corge='\n\nquerystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');\n// Returns 'foo:bar;baz:qux'"
       },
       {
         "type": "paragraph",
@@ -1275,7 +1299,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "// Assuming gbkEncodeURIComponent function already exists,\n\nquerystring.stringify({ w: '中文', foo: 'bar' }, null, null,\n                      { encodeURIComponent: gbkEncodeURIComponent });\njscopy"
+        "code": "// Assuming gbkEncodeURIComponent function already exists,\n\nquerystring.stringify({ w: '中文', foo: 'bar' }, null, null,\n                      { encodeURIComponent: gbkEncodeURIComponent });"
       },
       {
         "type": "heading",
@@ -1289,6 +1313,10 @@
           {
             "type": "anchor",
             "id": "querystring_querystring_unescape_str"
+          },
+          {
+            "type": "anchor",
+            "id": "querystringunescapestr"
           }
         ]
       },

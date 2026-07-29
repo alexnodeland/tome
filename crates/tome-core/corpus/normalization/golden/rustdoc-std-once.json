@@ -9,32 +9,6 @@
         "id": "main-content"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/index.html",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "std"
-          }
-        ]
-      },
-      {
-        "type": "text",
-        "value": "::"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/index.html",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "sync"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 1,
         "id": null,
@@ -64,10 +38,6 @@
         "type": "code_block",
         "language": null,
         "code": "pub struct Once { /* private fields */ }"
-      },
-      {
-        "type": "text",
-        "value": "Expand description"
       },
       {
         "type": "paragraph",
@@ -238,17 +208,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -1466,17 +1425,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Debug-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -1525,17 +1473,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.fmt",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -1626,17 +1563,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-RefUnwindSafe-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -1689,17 +1615,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-UnwindSafe-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -1760,17 +1675,6 @@
         "id": "impl-Freeze-for-Once"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Freeze-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -1810,17 +1714,6 @@
       {
         "type": "anchor",
         "id": "impl-Send-for-Once"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Send-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -1864,17 +1757,6 @@
         "id": "impl-Sync-for-Once"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Sync-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -1916,17 +1798,6 @@
         "id": "impl-Unpin-for-Once"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Unpin-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -1966,17 +1837,6 @@
       {
         "type": "anchor",
         "id": "impl-UnsafeUnpin-for-Once"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-UnsafeUnpin-for-Once",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
       },
       {
         "type": "heading",
@@ -2046,17 +1906,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Any-for-T",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2109,17 +1958,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.type_id",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -2207,17 +2045,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Borrow%3CT%3E-for-T",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2270,17 +2097,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.borrow",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -2352,17 +2168,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-BorrowMut%3CT%3E-for-T",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2415,17 +2220,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.borrow_mut",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -2497,17 +2291,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-From%3CT%3E-for-T",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2545,17 +2328,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.from",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -2606,17 +2378,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-Into%3CU%3E-for-T",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -2673,17 +2434,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.into",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -2763,17 +2513,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-TryFrom%3CU%3E-for-T",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -2830,17 +2569,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#associatedtype.Error-1",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 4,
         "id": null,
@@ -2893,17 +2621,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.try_from",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -2998,17 +2715,6 @@
         ]
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#impl-TryInto%3CU%3E-for-T",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 3,
         "id": null,
@@ -3061,17 +2767,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#associatedtype.Error",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },
@@ -3143,17 +2838,6 @@
           {
             "type": "text",
             "value": "Source"
-          }
-        ]
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/rustdoc-std-once.html#method.try_into",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "§"
           }
         ]
       },

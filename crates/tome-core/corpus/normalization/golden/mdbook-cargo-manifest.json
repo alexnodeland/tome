@@ -4876,18 +4876,7 @@
                   },
                   {
                     "type": "text",
-                    "value": ", but that usage is deprecated. "
-                  },
-                  {
-                    "type": "link",
-                    "href": "https://corpus.test/mdbook-cargo-manifest.html#fr-slash-1",
-                    "title": null,
-                    "children": [
-                      {
-                        "type": "text",
-                        "value": "↩"
-                      }
-                    ]
+                    "value": ", but that usage is deprecated."
                   }
                 ]
               }

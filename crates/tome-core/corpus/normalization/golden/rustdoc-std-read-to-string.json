@@ -9,32 +9,6 @@
         "id": "main-content"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/index.html",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "std"
-          }
-        ]
-      },
-      {
-        "type": "text",
-        "value": "::"
-      },
-      {
-        "type": "link",
-        "href": "https://corpus.test/index.html",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "fs"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 1,
         "id": null,
@@ -64,10 +38,6 @@
         "type": "code_block",
         "language": null,
         "code": "pub fn read_to_string<P: AsRef<Path>>(path: P) -> Result<String>"
-      },
-      {
-        "type": "text",
-        "value": "Expand description"
       },
       {
         "type": "paragraph",

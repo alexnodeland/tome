@@ -487,3 +487,125 @@ fn a_heading_that_really_contains_a_hash_keeps_it() {
     };
     assert_eq!(text_of(children), "#1 fixed");
 }
+
+// ---------------------------------------------------------------------------
+// Chrome: the furniture documentation generators put inside the content root.
+//
+// Every case below was found by auditing the golden corpus, not by imagining
+// what a page might contain.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn a_copy_button_inside_pre_does_not_end_up_in_the_code() {
+    // Node's API docs put the copy-button strip INSIDE the <pre>, so
+    // collecting the whole subtree appended "jscopy" to 37 code blocks in
+    // the corpus — text a reader would copy along with the code.
+    let page = parse(
+        r#"<main><pre><code class="language-js">const os = require('node:os');</code>
+           <div class="code-toolbar"><span class="code-language">js</span>
+           <button class="copy-button">copy</button></div></pre></main>"#,
+    );
+    let Node::CodeBlock { language, code } = &body_children(&page)[0] else {
+        panic!("expected a code block")
+    };
+    assert_eq!(code, "const os = require('node:os');");
+    assert_eq!(language.as_deref(), Some("js"));
+}
+
+#[test]
+fn a_pre_without_a_code_element_still_keeps_its_highlighting_spans() {
+    // Sphinx emits `<div class="highlight"><pre><span>…` with no <code> at
+    // all, and there the spans ARE the code. The fallback path must not
+    // strip them while it strips buttons.
+    let page = parse(
+        r#"<main><pre><span class="k">def</span> <span class="nf">f</span>():
+           <button>copy</button></pre></main>"#,
+    );
+    let Node::CodeBlock { code, .. } = &body_children(&page)[0] else {
+        panic!("expected a code block")
+    };
+    assert!(code.contains("def"), "{code:?}");
+    assert!(code.contains("f()"), "{code:?}");
+    assert!(!code.contains("copy"), "{code:?}");
+}
+
+#[test]
+fn breadcrumbs_are_not_content() {
+    // go.dev writes `SiteBreadcrumb`, rustdoc `rustdoc-breadcrumbs`,
+    // kubernetes.io something else again — hence a substring rule.
+    for markup in [
+        r#"<ol class="SiteBreadcrumb"><li><a href="/doc/">Documentation</a></li></ol>"#,
+        r#"<div class="rustdoc-breadcrumbs"><a href="../index.html">std</a>::<a href="i.html">fs</a></div>"#,
+        r#"<nav class="breadcrumbs"><a href="/">Home</a></nav>"#,
+    ] {
+        let page = parse(&format!("<main>{markup}<h1>Title</h1></main>"));
+        let text = text_of(body_children(&page));
+        assert_eq!(text, "Title", "breadcrumb survived: {text:?}");
+    }
+}
+
+#[test]
+fn hidden_and_aria_hidden_elements_are_not_content() {
+    // The HTML's own signals, not a guess about class names. go.dev hides
+    // "Press Enter to activate/deactivate dropdown" this way.
+    let page = parse(
+        r#"<main><p>Real</p><div hidden>Press Enter to activate</div>
+           <span aria-hidden="true">decorative</span></main>"#,
+    );
+    let text = text_of(body_children(&page));
+    assert_eq!(text, "Real");
+}
+
+#[test]
+fn end_of_page_furniture_is_not_content() {
+    // kubernetes.io: "Was this page helpful?", "Last modified …".
+    let page = parse(
+        r#"<main><p>Real</p><div id="pre-footer"><h2>Feedback</h2>
+           <p>Was this page helpful?</p></div>
+           <div class="td-page-meta__lastmod">Last modified July 18, 2026</div></main>"#,
+    );
+    let text = text_of(body_children(&page));
+    assert_eq!(text, "Real");
+}
+
+#[test]
+fn a_permalink_is_chrome_outside_a_heading_too() {
+    // rustdoc hangs a § off every method signature and mdBook a ↩ off every
+    // footnote. 27 of those ↩ glyphs were sitting in the corpus.
+    let page = parse(
+        r##"<main><p>A footnote body. <a href="#fr-1">↩</a></p>
+            <p>A method. <a href="#method.x">§</a></p></main>"##,
+    );
+    // No trailing space: the block-edge trim removes the whitespace the
+    // dropped permalink was sitting behind.
+    assert_eq!(text_of(body_children(&page)), "A footnote body.A method.");
+}
+
+#[test]
+fn a_permalink_leaves_its_anchor_behind() {
+    // Node's `<a class="mark" id="osarch" href="#osarch">#</a>` is the deep
+    // link target for that API entry. Dropping the link must not drop the
+    // id — before this, every Node anchor was lost.
+    let page =
+        parse(r##"<main><h2>os.arch<a class="mark" id="osarch" href="#osarch">#</a></h2></main>"##);
+    let children = body_children(&page);
+    assert!(
+        children
+            .iter()
+            .any(|n| matches!(n, Node::Anchor { id } if id == "osarch"))
+            || matches!(&children[0], Node::Heading { children, .. }
+                if children.iter().any(|n| matches!(n, Node::Anchor { id } if id == "osarch"))),
+        "the anchor id was lost: {children:?}"
+    );
+}
+
+#[test]
+fn a_link_that_says_something_is_never_chrome() {
+    // The narrowness is the whole safety argument: a fragment link with real
+    // text, or a marker-looking link that leaves the page, both survive.
+    let page = parse(r##"<main><p><a href="#section">See this section</a></p></main>"##);
+    assert_eq!(text_of(body_children(&page)), "See this section");
+
+    let page = parse(r#"<main><p><a href="/issues/1">#</a></p></main>"#);
+    assert_eq!(text_of(body_children(&page)), "#");
+}
