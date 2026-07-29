@@ -166,6 +166,22 @@ a test written from the same misunderstanding as the code agrees with it. The go
   for "modules"). Relabel by reading actual results — `TOME_RELEVANCE_DUMP=1` prints them — but
   only add a target that genuinely answers the query. Labelling a bad-but-high-ranking result to
   make the number go up destroys the instrument.
+- **"What is indexed?" must be asked of the index, never of the database.** They live under
+  different roots — the database in state, the index in cache — so clearing the cache, or macOS
+  evicting it under disk pressure, leaves a full database and an empty index. A sync that trusted
+  the database would answer "everything is indexed, nothing to do" and leave search permanently
+  empty **with no error anywhere**. `SearchEngine::indexed_pages` reads the index, which makes the
+  sync self-correcting.
+- **Tantivy has no update.** Re-adding a changed page without deleting the old document leaves
+  *both*, and the page appears twice in every result list. `IndexSession::delete_page` must be
+  called before re-adding.
+- **A page's identity is `(source, path)`, not `path`.** `index.html` exists in nearly every
+  source; deleting by path alone would empty the others.
+- **`tome pull` does not prune pages that vanished upstream**, deliberately. A crawl stops early
+  for reasons that have nothing to do with the site — page cap, dropped network, closed laptop —
+  and treating "not seen this run" as "deleted upstream" would delete a user's library a few
+  hundred pages at a time. Content is hours of polite crawling; the index that reads it is seconds
+  to rebuild. Pruning needs a policy (complete crawl, no errors, no cap) that nobody has agreed.
 - **`TopDocs` is a builder in tantivy 0.26.** Only `.order_by_score()` implements `Collector`, and
   `with_limit` **panics on 0**, so a caller-supplied limit must be clamped.
 - **`MmapDirectory::open` returns its own error type**, not `TantivyError`.

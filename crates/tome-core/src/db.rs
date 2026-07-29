@@ -271,6 +271,32 @@ impl Database {
 
     // ---- pages -----------------------------------------------------------
 
+    /// Forget one page.
+    ///
+    /// **`pull` deliberately does not call this**, and that is worth stating
+    /// where the method lives. It is tempting to prune every page a crawl did
+    /// not revisit, but a crawl stops early for reasons that have nothing to
+    /// do with the site: it hit `max_pages`, the network dropped, the laptop
+    /// closed. Treating "not seen this run" as "deleted upstream" would then
+    /// delete a user's library a few hundred pages at a time, and the
+    /// content is the expensive half — hours of polite crawling — while the
+    /// index that reads it is seconds to rebuild.
+    ///
+    /// Pruning therefore needs a policy (complete crawl, no errors, no page
+    /// cap) that nobody has agreed yet. Until then this exists for explicit
+    /// removal and for [`crate::pipeline::index_source`], which reconciles
+    /// whatever the database actually holds.
+    pub fn delete_page(&self, source: &SourceId, path: &PagePath) -> Result<bool> {
+        let deleted = self
+            .conn
+            .execute(
+                "DELETE FROM pages WHERE source_id = ?1 AND path = ?2",
+                params![source.as_str(), path.as_str()],
+            )
+            .map_err(db_err)?;
+        Ok(deleted > 0)
+    }
+
     /// Store a page's metadata.
     ///
     /// `ordinal` is its position in the source's navigation order, which the

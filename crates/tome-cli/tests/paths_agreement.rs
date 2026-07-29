@@ -85,14 +85,14 @@ fn cli_reports_the_shared_bundle_identifier() {
 #[test]
 fn unimplemented_commands_fail_loudly() {
     // A scaffold that exits 0 on an unimplemented command is worse than one that
-    // errors: scripts and CI would treat it as success. (`list` used to be the
-    // subject here; S1-13 implemented it, so this moved to one that is still
-    // a stub rather than being deleted.)
+    // errors: scripts and CI would treat it as success. (`list` was the subject
+    // first, then `search`; S1-13 and S2-3 implemented them in turn, so this
+    // moves to one that is still a stub rather than being deleted.)
     let out = Command::new(tome_bin())
-        .arg("search")
+        .arg("remove")
         .arg("anything")
         .output()
-        .expect("`tome search` runs");
+        .expect("`tome remove` runs");
 
     assert!(
         !out.status.success(),
@@ -101,6 +101,31 @@ fn unimplemented_commands_fail_loudly() {
     assert!(
         String::from_utf8_lossy(&out.stderr).contains("not implemented"),
         "error should say what is missing"
+    );
+}
+
+#[test]
+fn search_on_an_empty_library_succeeds_with_no_results() {
+    // `search` is read-only, so on a machine that has pulled nothing it must
+    // print "no results" and exit 0 — not error, and not create the library.
+    // A non-zero exit here would make `tome search … || echo none` misreport an
+    // empty library as a failure.
+    let home = tempfile::tempdir().expect("tempdir");
+    let out = Command::new(tome_bin())
+        .arg("search")
+        .arg("anything")
+        .env("TOME_HOME", home.path())
+        .output()
+        .expect("`tome search` runs");
+
+    assert!(
+        out.status.success(),
+        "search on an empty library must exit zero:\n{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        !home.path().join("state").exists(),
+        "a read-only command must not create the library"
     );
 }
 

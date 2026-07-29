@@ -32,7 +32,7 @@
 //! pull that says "done" while having silently skipped 200 pages is worse
 //! than one that says what it missed.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::time::Instant;
 
 use url::Url;
@@ -43,9 +43,10 @@ use crate::crawl::Crawler;
 use crate::db::Database;
 use crate::error::Result;
 use crate::fetch::Fetcher;
-use crate::model::{DocPage, Node, Page, PagePath};
+use crate::model::{DocPage, Node, Page, PagePath, SourceId};
 use crate::normalize::normalize;
 use crate::sanitize::sanitize;
+use crate::search::SearchEngine;
 use crate::store::{PageStore, StoredPage};
 use crate::Paths;
 
@@ -61,7 +62,38 @@ pub struct IngestReport {
     /// True when the crawl stopped at `max_pages` rather than running out of
     /// links — so the caller can say "capped" rather than implying "complete".
     pub hit_page_cap: bool,
+    /// What indexing did. `None` if it was not reached — a crawl that
+    /// produced nothing does not touch the index.
+    pub index: Option<IndexReport>,
     pub elapsed: std::time::Duration,
+}
+
+/// What incremental indexing did (S2-3).
+///
+/// The four counts are disjoint and sum to the source's page count plus
+/// `removed`, so a caller can print them without them overlapping
+/// confusingly.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct IndexReport {
+    /// Pages indexed for the first time.
+    pub added: usize,
+    /// Pages whose content hash changed, so they were replaced.
+    pub updated: usize,
+    /// Pages the index held that the source no longer has.
+    pub removed: usize,
+    /// Pages already indexed at the same content hash — the whole point.
+    pub unchanged: usize,
+    /// True when the index would not open and was rebuilt from scratch, which
+    /// forces every page to count as `added`.
+    pub rebuilt: bool,
+}
+
+impl IndexReport {
+    /// Whether anything was written. A sync that changed nothing still
+    /// commits nothing, so there is no new segment and no merge pressure.
+    pub fn is_noop(&self) -> bool {
+        self.added == 0 && self.updated == 0 && self.removed == 0
+    }
 }
 
 /// Progress during a pull, for a CLI spinner or a UI progress bar.
@@ -74,6 +106,10 @@ pub enum Progress {
     },
     Storing {
         stored: usize,
+        total: usize,
+    },
+    Indexing {
+        indexed: usize,
         total: usize,
     },
 }
@@ -179,7 +215,144 @@ pub fn pull(
     source.last_synced = Some(chrono::Utc::now());
     database.upsert_source(&source)?;
 
+    // Index last, and from the database rather than from the crawl's output.
+    // Both matter: the pages are on disk and recorded by this point, so an
+    // indexing failure costs a search index (rebuildable, in the cache) and
+    // never the fetched content (expensive, in the state root). And reading
+    // back from the database means a pull that added nothing new still
+    // reconciles anything a previous interrupted run left unindexed.
+    //
+    // The database connection is dropped first: `index_source` opens its own,
+    // and SQLite is happier without two write handles on one file.
+    drop(database);
+    report.index = Some(index_source(
+        paths,
+        &config.id,
+        &config.category,
+        on_progress,
+    )?);
+
     report.elapsed = started.elapsed();
+    Ok(report)
+}
+
+/// Bring the search index up to date with what a source holds on disk (S2-3,
+/// spec P2-003).
+///
+/// # Why this compares hashes rather than just reindexing
+///
+/// Not to save indexing time. SPIKE-003 finding 1 measured indexing at 5–21
+/// seconds for 100 000 pages against roughly seven hours to crawl them, so
+/// indexing is effectively free and "avoid re-indexing" would be optimising
+/// the wrong end by three orders of magnitude.
+///
+/// What the comparison buys is that **an unchanged page is not rewritten**,
+/// and therefore no segment is created for it. Segment count is what degrades
+/// search latency (SPIKE-003 finding 4), and a library that syncs on a
+/// schedule forever would otherwise accumulate one segment per sync whether or
+/// not anything changed. A no-op sync commits nothing at all.
+///
+/// # Why the index is the source of truth for "what is indexed"
+///
+/// See [`SearchEngine::indexed_pages`]. The database and the index live under
+/// different roots — state and cache — and can legitimately diverge.
+///
+/// # Commit strategy
+///
+/// One commit, at the end. P2-003 asks for a batch size or a timer; the right
+/// batch here is the whole sync, because a commit is what creates a segment.
+/// Committing every N pages would turn one sync into N segments and pay for it
+/// on every subsequent search.
+pub fn index_source(
+    paths: &Paths,
+    source: &SourceId,
+    category: &str,
+    on_progress: &mut dyn FnMut(Progress),
+) -> Result<IndexReport> {
+    let (engine, rebuilt) = SearchEngine::open_or_rebuild(paths)?;
+    let mut report = IndexReport {
+        rebuilt,
+        ..IndexReport::default()
+    };
+
+    let database = Database::open(paths)?;
+    let pages = database.list_pages(source)?;
+    let store = PageStore::new(paths, source);
+
+    // After a rebuild the index holds nothing, so every page is new. Asking
+    // it anyway would be correct but pointless.
+    let indexed = if rebuilt {
+        BTreeMap::new()
+    } else {
+        engine.indexed_pages(source)?
+    };
+
+    // Every path the source currently holds, for the deletion pass below.
+    let live: HashSet<&str> = pages.iter().map(|page| page.path.as_str()).collect();
+
+    // `true` means "already indexed under a different hash", so the old
+    // document must be deleted before the new one is added.
+    let work: Vec<(&Page, bool)> = pages
+        .iter()
+        .filter_map(|page| match indexed.get(page.path.as_str()) {
+            Some(hash) if hash == page.content_hash.as_str() => {
+                report.unchanged += 1;
+                None
+            }
+            Some(_) => Some((page, true)),
+            None => Some((page, false)),
+        })
+        .collect();
+
+    // Pages the index holds that the source no longer lists. Derived from the
+    // database's page set rather than from this crawl's output, so a page
+    // dropped by an earlier interrupted pull is still cleaned up.
+    let removed: Vec<PagePath> = indexed
+        .keys()
+        .filter(|path| !live.contains(path.as_str()))
+        .filter_map(|path| PagePath::new(path.as_str()).ok())
+        .collect();
+
+    if work.is_empty() && removed.is_empty() {
+        return Ok(report);
+    }
+
+    let total = work.len();
+    let mut session = engine.session()?;
+
+    for path in &removed {
+        session.delete_page(source, path)?;
+        report.removed += 1;
+    }
+
+    for (done, (page, changed)) in work.iter().enumerate() {
+        let (page, changed) = (*page, *changed);
+        // A changed page must be deleted before it is added: Tantivy has no
+        // update, so writing the new document without removing the old leaves
+        // BOTH in the index and the same page appears twice in every result
+        // list. P2-003 calls this out as "no duplicate documents in index".
+        if changed {
+            session.delete_page(source, &page.path)?;
+            report.updated += 1;
+        } else {
+            report.added += 1;
+        }
+
+        // A page the store cannot produce is skipped rather than fatal: the
+        // index is derived, and one unreadable page should not stop the rest
+        // from becoming searchable.
+        let Some(stored) = store.read(&page.path)? else {
+            continue;
+        };
+        session.add_page(page, category, &stored.body)?;
+
+        on_progress(Progress::Indexing {
+            indexed: done + 1,
+            total,
+        });
+    }
+
+    session.commit()?;
     Ok(report)
 }
 
