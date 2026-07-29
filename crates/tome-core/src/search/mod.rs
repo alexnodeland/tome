@@ -37,6 +37,7 @@
 //! root precisely because throwing it away and rebuilding costs seconds.
 
 pub mod extract;
+pub mod ranking;
 pub mod schema;
 pub mod tokenizer;
 
@@ -48,14 +49,17 @@ use tantivy::directory::MmapDirectory;
 use tantivy::query::{BooleanQuery, Occur, QueryParser, TermQuery};
 use tantivy::schema::{Facet, Value};
 use tantivy::tokenizer::{LowerCaser, TextAnalyzer};
-use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument, Term};
+use tantivy::{
+    doc, Index, IndexReader, IndexWriter, ReloadPolicy, Score, SegmentReader, TantivyDocument, Term,
+};
 
 use crate::error::{Error, Result};
 use crate::model::{Node, Page, PagePath, SourceId};
 use crate::Paths;
 
 pub use extract::Extracted;
-pub use schema::{boost, Fields, CODE_TOKENIZER};
+pub use ranking::{Ranking, StopwordPolicy};
+pub use schema::{Fields, CODE_TOKENIZER};
 
 /// Writer memory budget, in bytes.
 ///
@@ -195,9 +199,23 @@ impl SearchEngine {
     /// `query` is treated as **text a person typed**, not as query syntax —
     /// see [`plain_text_query`]. Field scoping (P2-016) will get a typed
     /// parameter rather than asking users to type `source_id:python`.
+    ///
+    /// Ranking uses [`Ranking::TUNED`]. Use [`search_with`](Self::search_with)
+    /// to vary it; the relevance sweep is the only caller that should.
     pub fn search(&self, query: &str, limit: usize) -> Result<Vec<Hit>> {
+        self.search_with(query, limit, &Ranking::TUNED)
+    }
+
+    /// [`search`](Self::search) with explicit ranking parameters.
+    ///
+    /// This exists so that S2-4's tuning is *measured* rather than asserted:
+    /// the sweep in `tests/relevance.rs` builds one index and evaluates the
+    /// whole parameter space against it. Nothing in the product should pass
+    /// anything but [`Ranking::TUNED`] — if a second configuration is ever
+    /// wanted at runtime, it needs its own baseline.
+    pub fn search_with(&self, query: &str, limit: usize, ranking: &Ranking) -> Result<Vec<Hit>> {
         let searcher = self.reader.searcher();
-        let query = plain_text_query(query);
+        let query = ranking.stopwords.apply(&plain_text_query(query));
         let query = query.as_str();
 
         let mut parser = QueryParser::for_index(
@@ -209,22 +227,39 @@ impl SearchEngine {
                 self.fields.code,
             ],
         );
-        parser.set_field_boost(self.fields.title, boost::TITLE);
-        parser.set_field_boost(self.fields.headers, boost::HEADERS);
-        parser.set_field_boost(self.fields.body, boost::BODY);
-        parser.set_field_boost(self.fields.code, boost::CODE);
+        parser.set_field_boost(self.fields.title, ranking.title);
+        parser.set_field_boost(self.fields.headers, ranking.headers);
+        parser.set_field_boost(self.fields.body, ranking.body);
+        parser.set_field_boost(self.fields.code, ranking.code);
 
         let parsed = parser.parse_query(query).map_err(|source| Error::Search {
             message: source.to_string(),
         })?;
 
-        // `.order_by_score()` is not optional decoration: in tantivy 0.26
-        // `TopDocs` is a builder and only the ordered form implements
-        // `Collector`. `limit.max(1)` is also load-bearing — `with_limit`
-        // panics on 0, and the limit comes from a caller.
-        let top = searcher
-            .search(&parsed, &TopDocs::with_limit(limit.max(1)).order_by_score())
-            .map_err(index_error)?;
+        // `limit.max(1)` is load-bearing — `with_limit` panics on 0, and the
+        // limit comes from a caller.
+        //
+        // `tweak_score` replaces the `.order_by_score()` this used to call:
+        // both produce a score-ordered collector, but only this one can reach
+        // the per-document field length that the length penalty needs. It runs
+        // per *matched* document rather than per returned one, so what it does
+        // is kept to one branch and one division.
+        let body = self.fields.body;
+        let (pivot, strength) = (ranking.length_pivot, ranking.length_penalty);
+        let collector =
+            TopDocs::with_limit(limit.max(1)).tweak_score(move |segment: &SegmentReader| {
+                // A field with no fieldnorms is not an error worth failing a
+                // search over: it means nothing in this segment has a body, so
+                // there is no length to penalise.
+                let fieldnorms = segment.get_fieldnorms_reader(body).ok();
+                move |doc, original: Score| {
+                    let length = fieldnorms
+                        .as_ref()
+                        .map_or(0, |reader| reader.fieldnorm(doc));
+                    ranking::length_scaled(original, length, pivot, strength)
+                }
+            });
+        let top = searcher.search(&parsed, &collector).map_err(index_error)?;
 
         let mut hits = Vec::with_capacity(top.len());
         for (score, address) in top {
@@ -538,6 +573,20 @@ mod tests {
         }
     }
 
+    fn heading(level: u8, value: &str) -> Node {
+        Node::Heading {
+            level,
+            id: None,
+            children: vec![Node::Text {
+                value: value.to_owned(),
+            }],
+        }
+    }
+
+    fn h1(value: &str) -> Node {
+        heading(1, value)
+    }
+
     #[test]
     fn indexes_and_finds_a_page() {
         let dir = tempfile::tempdir().expect("tempdir");
@@ -723,10 +772,18 @@ mod tests {
     }
 
     #[test]
-    fn title_outranks_body() {
-        // Not a tuning assertion — the boost values are S2-4's to set. This
-        // only pins the direction, so a future change that inverts the field
-        // weights fails here rather than silently.
+    fn a_page_about_a_subject_outranks_one_that_merely_mentions_it() {
+        // The direction that must never invert, pinned so a field-weight
+        // change fails here rather than silently.
+        //
+        // Both pages carry an h1 matching their title, because that is the
+        // only page shape that can be stored: normalization guarantees exactly
+        // one h1 per page and that it *is* the title (see `Node::Heading`).
+        // The version of this test before S2-4 omitted the headings, which
+        // made it a test of the `title` field alone rather than of the
+        // subject-versus-mention behaviour it was named for — and it duly
+        // failed when tuning moved weight from `title` to `headers`, on a page
+        // shape that does not occur.
         let dir = tempfile::tempdir().expect("tempdir");
         let engine = engine(dir.path());
 
@@ -735,21 +792,98 @@ mod tests {
             .add_page(
                 &page("s", "body-match.html", "Unrelated"),
                 "C",
-                &doc(vec![para("decorators are mentioned here in the body")]),
+                &doc(vec![
+                    h1("Unrelated"),
+                    para("decorators are mentioned here in the body"),
+                ]),
             )
             .expect("add");
         session
             .add_page(
-                &page("s", "title-match.html", "Decorators"),
+                &page("s", "subject.html", "Decorators"),
                 "C",
-                &doc(vec![para("unrelated prose")]),
+                &doc(vec![h1("Decorators"), para("unrelated prose")]),
             )
             .expect("add");
         session.commit().expect("commit");
 
         let hits = engine.search("decorators", 10).expect("search");
         assert_eq!(hits.len(), 2);
-        assert_eq!(hits[0].path, "title-match.html", "title should rank first");
+        assert_eq!(
+            hits[0].path, "subject.html",
+            "the page about it ranks first"
+        );
+    }
+
+    #[test]
+    fn a_whole_book_on_one_page_does_not_bury_the_page_about_the_topic() {
+        // The defect S2-4 exists to fix, in miniature. `cargo:cargo/print.html`
+        // is the entire Cargo book concatenated onto one page and it outranked
+        // every specific page for every Cargo query, because a long document
+        // matches everything. BM25's `b` would be the textbook lever and is a
+        // private constant in tantivy 0.26, so `Ranking::length_penalty` does
+        // the job from outside the scorer.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = engine(dir.path());
+
+        let mut session = engine.session().expect("session");
+
+        // A page whose subject is workspaces, mentioning the term a few times.
+        session
+            .add_page(
+                &page("cargo", "workspaces.html", "Workspaces"),
+                "Rust",
+                &doc(vec![
+                    h1("Workspaces"),
+                    para("A workspace is a set of packages that share one lock file."),
+                ]),
+            )
+            .expect("add");
+
+        // The whole book on one page. It carries every chapter's *heading* as
+        // well as its prose — including a "Workspaces" one — which is what
+        // makes a real concatenated book beat the specific page rather than
+        // lose to it on the headers boost. A first version of this test
+        // omitted the headings and the control assertion below caught it.
+        let mut book = vec![h1("The Cargo Book"), heading(2, "Workspaces")];
+        for section in 0..400 {
+            book.push(heading(2, &format!("Chapter {section}")));
+            book.push(para(&format!(
+                "Section {section} covers packages, targets, profiles, features, \
+                 registries and workspaces in exhaustive detail with examples."
+            )));
+        }
+        session
+            .add_page(
+                &page("cargo", "print.html", "The Cargo Book"),
+                "Rust",
+                &doc(book),
+            )
+            .expect("add");
+        session.commit().expect("commit");
+
+        let hits = engine.search("workspaces", 10).expect("search");
+        assert_eq!(hits.len(), 2);
+        assert_eq!(
+            hits[0].path, "workspaces.html",
+            "the page about workspaces should beat the book that contains a chapter on them"
+        );
+
+        // And the penalty is what does it: turn it off and the book wins,
+        // which is both the regression guard and the evidence that this test
+        // is testing the thing it claims to.
+        let unpenalised = Ranking {
+            length_penalty: 0.0,
+            ..Ranking::TUNED
+        };
+        let hits = engine
+            .search_with("workspaces", 10, &unpenalised)
+            .expect("search");
+        assert_eq!(
+            hits[0].path, "print.html",
+            "without the length penalty the book dump should win — if it does not, \
+             this test has stopped exercising the penalty"
+        );
     }
 
     #[test]

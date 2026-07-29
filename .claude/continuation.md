@@ -1,12 +1,10 @@
-# Continuation — picking up at S2-4 (ranking and boosts)
+# Continuation — picking up at S2-5 (fuzzy matching)
 
-**Written:** 2026-07-29, after S2-3 merged. **Delete this file when S2-4 lands.**
+**Written:** 2026-07-29, after S2-4 landed. **Rewrite or delete this file when S2-5 lands.**
 
-This is in-flight state only: what is done, what is decided, what to do next. It deliberately
-carries **no** durable knowledge — mistakes and invariants live in
-[`.claude/traps.md`](traps.md), which does not go stale and is not superseded by this. The previous
-continuation note was deleted precisely because it mixed the two and drifted within days; do not
-let this one grow a "traps" section.
+In-flight state only: what is done, what is decided, what to do next. It deliberately carries **no**
+durable knowledge — mistakes and invariants live in [`.claude/traps.md`](traps.md), which does not go
+stale. Do not let this file grow a "traps" section; an earlier one was deleted for exactly that.
 
 ---
 
@@ -14,119 +12,102 @@ let this one grow a "traps" section.
 
 | | Ticket | State |
 |---|---|---|
-| S2-1 ✅ | Relevance eval set + harness | 207 queries, 339 documents, 6 sources. #42, #43 |
-| S2-2 ✅ | Tantivy integration + schema | #40 |
-| S2-3 ✅ | Incremental indexing | #44 — `tome pull` indexes; `tome search` queries |
-| **S2-4** | **Ranking + boosts** | **next** |
-| S2-5 | Fuzzy matching | blocked on nothing; misspellings sit at 0.17 recall@1 by design |
+| S2-1 ✅ | Relevance eval set + harness | 207 queries, 339 documents, 6 sources |
+| S2-2 ✅ | Tantivy integration + schema | |
+| S2-3 ✅ | Incremental indexing | `tome pull` indexes; `tome search` queries |
+| S2-4 ✅ | Ranking + boosts | `search/ranking.rs`, tuned by measured sweep |
+| **S2-5** | **Fuzzy matching** | **next** — the largest remaining block of failures |
 | S2-6 | Symbol-aware search | read the `code` field finding below first |
 | S2-7 | Search UI | the app still has no search box |
 | S2-8..12 | in-page search, detection corpus, platform detection, scrapers, benchmarks | |
 
-**Search works from the CLI and nowhere else.** `tome pull` indexes as it fetches and only rewrites
-pages whose content hash changed; `tome search "go.mod"` returns results. There is no search UI in
-the app (S2-7).
+**Search works from the CLI and nowhere else.**
 
 ## The exit gate, honestly
 
-Stage 2's gate is **≥ 0.90 recall@3 over ≥ 150 documents** (the document floor was added
-2026-07-29 — see below). Current, from `cargo test -p tome-core --test relevance -- --nocapture`:
+Stage 2's gate is **≥ 0.90 recall@3 over ≥ 150 documents**. Current:
 
 ```
-  MRR         0.7489
-  recall@1    0.6377
-  recall@3    0.8357      ← gate wants 0.90
-  recall@10   0.9227
+  MRR         0.8245
+  recall@1    0.7585
+  recall@3    0.8744      ← gate wants 0.90
+  recall@10   0.9469
 
   by kind          n   recall@1  recall@3       MRR
-  acronym          9     0.6667    0.8889    0.7870
-  cross-source    18     0.5000    0.7222    0.6440
-  misspelling     12     0.1667    0.4167    0.3125    ← S2-5's, expected to be bad
-  natural         16     0.0625    0.2500    0.2419    ← the worst thing here
-  phrase          78     0.7564    0.9487    0.8549
-  symbol          74     0.7432    0.9324    0.8384
+  acronym          9     0.7778    0.8889    0.8611
+  cross-source    18     0.5000    0.8333    0.6796
+  misspelling     12     0.2500    0.4167    0.3500    ← S2-5's, and the gap
+  natural         16     0.3750    0.4375    0.4596
+  phrase          78     0.9231    0.9744    0.9498
+  symbol          74     0.8108    0.9459    0.8792
 ```
 
-**Not met, and not close on recall@3.** Do not report Stage 2 as passing this gate.
+**Not met.** Do not report Stage 2 as passing this gate. The gap is ~5 queries; `misspelling` alone
+holds 7 queries outside the top three, so S2-5 is the ticket that can close it.
 
 ---
 
-## What S2-4 should do
+## What S2-5 should do
 
-The eval set already found the work. These are measured, not guessed — each came from perturbing
-the ranker and reading the per-query movement report.
+Add fuzzy matching (P2-009) and score it with the same harness. `misspelling` is 12 labelled
+queries — `enviroment variables`, `manifset format`, `list comprehention`, `excepton handling`,
+`modual search path` — and they are in the corpus precisely so this ticket has a target.
 
-### 1. Long single-page documents dominate natural-language queries
+Things worth knowing before starting:
 
-`go:doc/faq` ranks **first** for nearly every "how do I …" query — it is enormous and full of
-question-shaped prose, so it matches `how`, `do`, `I` heavily. `cargo:cargo/print.html`, which is
-the entire Cargo book concatenated onto one page, does the same to Cargo queries.
+- **Tantivy has `FuzzyTermQuery`** (Levenshtein distance over the term dictionary). It does not go
+  through `QueryParser`, so a fuzzy path means building the query by hand rather than boosting
+  fields on a parsed one. That is a bigger change to `search_with` than S2-4 was.
+- **Fuzzy matching must not fire on exact matches.** `Vec` is one edit from `Vev`, `Vex`, `Vec4`…
+  A typical shape is: run the exact query, and only fall back to fuzzy when it returns too few
+  results. Whatever shape is chosen, `symbol` at 0.8108 recall@1 is the number that must not fall.
+- **The eval will tell you if it worked, and it is now sensitive enough to.** Run the sweep and the
+  gate; do not reason about fuzzy quality from examples.
 
-This is why `natural` sits at 0.0625 recall@1. It is the single biggest defect in the corpus.
+### The tuning target, still standing
 
-**Owner decision (2026-07-29): fix this in ranking only.** Do *not* add ingest-time detection of
-whole-book dumps, and do not exclude pages from the library — a user who wants the FAQ should still
-find it, and the crawler stays free of content policy. The levers are BM25 length normalisation
-(`k1`/`b`), stopword handling for question words, and the field boosts.
+**Owner decision (2026-07-29): optimise symbol lookup first.** It is what an agent asks for over
+MCP, and exposing the library to coding agents is the PRD's differentiator. Do not trade symbol
+recall for misspelling recall.
 
-`cargo/print.html` is deliberately **not** labelled as a correct answer in `queries.yaml`, even
-though it contains every answer. Labelling it would make the numbers rise and hide this defect.
-Leave it unlabelled.
+### Read this before S2-6
 
-### 2. A title boost of 3.0 is too high
-
-Cutting it to 0.05 *improved* MRR (0.7489 → 0.7625): 17 queries got worse, 28 better. That is not
-a recommendation to set 0.05 — it is evidence the current value is wrong and the real optimum is
-somewhere below 3.0. Sweep it against the eval set.
-
-### 3. The `code` field contributes almost nothing
-
-Removing it from the query entirely is a **wash**: 13 worse, 15 better, MRR +0.005. On these
-platforms method names are *also* headings, so `headers` already carries them.
-
-**Read this before starting S2-6 (symbol-aware search)**, which would otherwise be built on the
-assumption that the code field is load-bearing. It may be that the right move is to make the code
-field earn its place rather than to add more machinery on top of it.
-
-### Tuning target when categories conflict
-
-**Owner decision (2026-07-29): optimise symbol lookup first.** `Vec::new`, `os.cpus()`,
-`read_to_string` — currently 0.7432 recall@1. The reasoning is that this is what an agent asks for
-over MCP, and exposing the library to coding agents is the differentiator in the PRD. Natural
-language may stay weak for now; do not sacrifice symbol recall to fix it.
+**The `code` field contributes almost nothing.** Removing it from the query entirely was a wash
+(13 worse, 15 better), because on these platforms method names are *also* headings, so `headers`
+already carries them. S2-4 duly measured its boost down to 1.0, below `headers`. S2-6 would
+otherwise be built on the assumption that the code field is load-bearing; it may be that the right
+move is to make it earn its place rather than add machinery on top of it.
 
 ---
 
 ## How to work on this
 
 ```bash
-cargo test -p tome-core --test relevance -- --nocapture      # the report
+cargo test -p tome-core --test relevance -- --nocapture                      # the gate + report
 TOME_RELEVANCE_DUMP=1 cargo test -p tome-core --test relevance -- --nocapture   # top-5 for poor queries
-TOME_UPDATE_BASELINE=1 cargo test -p tome-core --test relevance   # accept a change
+cargo test -p tome-core --test relevance --release -- --ignored --nocapture sweep   # tune
+TOME_UPDATE_BASELINE=1 cargo test -p tome-core --test relevance              # accept a change
 git diff -- crates/tome-core/corpus/relevance/baseline.json
 ```
 
 Update mode **fails the run it changes anything in**, on purpose. The passing run is the one after
 the diff has been read.
 
-**The per-query movement report is the signal; the aggregate is not.** Every perturbation measured
-so far moved the aggregate by less than the margin while visibly reshuffling 15–45 queries. Read
-which queries moved, not the mean.
+**The per-query movement report is the signal; the aggregate is not.** Read which queries moved.
 
-**Boosts live in `search::schema::boost`** and are applied at query time, so changing them needs no
-reindex. They are labelled as unmeasured placeholders — that label should come off when S2-4 sets
-them from measurement.
+The sweep is `#[ignore]`d and is **not a gate** — it optimises against the eval set, so of course it
+improves on it. The number that means something is what `relevance_does_not_regress` reports
+afterwards against the committed baseline.
 
 ---
 
 ## Decisions made 2026-07-29, not yet implemented
 
-**Pruning: prune only after a clean crawl.** `tome pull` currently never removes pages that vanished
-upstream, and the reasoning is recorded in `Database::delete_page`. The agreed policy is to delete
-pages not seen this run **only when the crawl completed without errors and without hitting the page
-cap** — any doubt and nothing is deleted. Needs a test that a capped or errored crawl deletes
-nothing. This is not S2-4's work; it can land alongside or before, but it is a destructive path and
-the guard is the whole point.
+**Pruning: prune only after a clean crawl.** `tome pull` never removes pages that vanished upstream.
+The agreed policy — delete pages not seen this run **only when the crawl completed without errors
+and without hitting the page cap** — is recorded on `Database::delete_page`. Needs a test that a
+capped or errored crawl deletes nothing. Not S2-5's work; it is a destructive path and that guard is
+the whole point.
 
 ## Still open — do not decide alone
 
@@ -138,12 +119,12 @@ the guard is the whole point.
   typescript-eslint support TS 7.
 - **Going public + Actions billing.** Until then CI carries no information: every run fails in ~2 s
   without executing a step. **Judge by `./scripts/check.sh`**, never by a PR's checks.
-- **Playwright E2E.** PR #2 (closed) had a harness; `main` has none, and the frontend is
-  Vitest-only. A real gap, but Stage 4 hardening's, against the app as it exists.
+- **Playwright E2E.** `main` has none; the frontend is Vitest-only. A real gap, but Stage 4
+  hardening's, against the app as it exists.
 
 ## Environment
 
 Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · arm64.
 `cargo-deny` installed; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the gate says so).
-384 workspace Rust tests + 66 Vitest. `npm audit` hits the live registry and fails the gate when
+394 workspace Rust tests + 66 Vitest. `npm audit` hits the live registry and fails the gate when
 npmjs.org is down — that is an outage, not a finding.

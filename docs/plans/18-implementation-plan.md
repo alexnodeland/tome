@@ -309,7 +309,7 @@ This is the stage that answers whether the product is possible.
 | S2-1 ✅ | **Relevance eval set + harness** | P2-019 | Opus — done 2026-07-29 — `corpus/relevance/` (207 labelled queries, 339 documents, 6 sources) + `tests/relevance.rs`. Found a real defect on its first run: `()` and `[]` are query-parser syntax, so twelve symbol queries returned nothing. Symbol recall@1 0.7465 → **0.9474** after the fix. **Also measured its own weakness** — see below |
 | S2-2 ✅ | Tantivy integration + schema | P2-001/002 | Opus — done 2026-07-29 — `tome-core/src/search/`: `schema.rs` (P2-002's seven fields), `tokenizer.rs` (camelCase/snake_case aware, emits the identifier *and* its parts), `extract.rs` (AST → fields), `mod.rs` (`SearchEngine` + `IndexSession`). SPIKE-003's harness removed as planned; its write-up stays |
 | S2-3 ✅ | Incremental indexing | P2-003 | Fable — done 2026-07-29 — `pipeline::index_source`, wired into `pull`. Change detection reads **the index**, not the database, so a cleared cache repopulates instead of reporting "all indexed" forever. One commit per sync, because a commit creates a segment and segment count is what degrades search (SPIKE-003 finding 4). A corrupt index is discarded and rebuilt — it is derived and lives in the cache. `tome search` implemented alongside (P4-005, brought forward) so the result is checkable by hand |
-| S2-4 | Ranking + boosts | P2-006 | Fable, scored by S2-1 |
+| S2-4 ✅ | Ranking + boosts | P2-006 | Opus — done 2026-07-29 — `search/ranking.rs`. Coordinate descent over field boosts, a document-length penalty, and a query-time stopword policy, scored by S2-1 and constrained never to rank `symbol` queries below the untuned ranker. MRR 0.7489 → **0.8245**, recall@1 0.6377 → **0.7585**, `natural` MRR 0.2419 → **0.4596**; 48 queries better, 10 worse. **recall@3 reached 0.8744 against the 0.90 gate and tuning cannot close the rest** — see below |
 | S2-5 | Fuzzy matching | P2-009 | Fable, scored by S2-1 |
 | S2-6 | Symbol-aware search | P2-015 | Fable |
 | S2-7 | Search UI, results, scoping, history, keyboard | P2-004/005/008/016/017 | Fable ∥ |
@@ -338,23 +338,36 @@ corpus. At that size it discriminates:
 | Remove `code` from the query | 0.7489 → 0.7536 | 13 worse, 15 better | silent — a genuine wash |
 | Search `body` only | 0.7489 → **0.4293** | 118 worse, 27 better | **fires**, both thresholds |
 
-Three findings fall out, all of them S2-4's or S2-6's to act on, none to be acted on early:
+Three findings fell out, and **S2-4 acted on all three**:
 
-- **A title boost of 3.0 is too high** — cutting it *improves* MRR.
+- **A title boost of 3.0 was too high** — cutting it *improved* MRR. Now 0.75. A title is a handful
+  of tokens, so BM25's own length normalisation already multiplies it heavily and an explicit boost
+  on top was double-counting.
 - **The `code` field contributes almost nothing.** Removing it is a wash, because on these
-  platforms method names are also headings, so `headers` already carries them. Worth knowing before
-  S2-6 builds symbol-aware search assuming that field is load-bearing.
-- **Long single-page documents dominate natural-language queries.** `natural` sits at 0.0625
-  recall@1 — the worst category by far — because one enormous FAQ page ranks first for nearly every
-  "how do I …" query, and the Cargo book's single-page `print.html` does the same to Cargo queries.
-  This is the clearest ranking defect the corpus exposes.
+  platforms method names are also headings, so `headers` already carries them. Its boost is now
+  1.0, below `headers`. Worth knowing before S2-6 builds symbol-aware search assuming that field is
+  load-bearing.
+- **Long single-page documents dominated natural-language queries.** `natural` sat at 0.0625
+  recall@1 — the worst category by far — because one enormous FAQ page ranked first for nearly every
+  "how do I …" query, and the Cargo book's single-page `print.html` did the same to Cargo queries.
+  Fixed by a document-length penalty plus query-time stopword removal; `natural` MRR 0.2419 →
+  0.4596.
+
+**BM25's own `b` was the textbook lever and is not reachable.** In tantivy 0.26 `k1` and `b` are
+private constants in `src/query/bm25.rs`, not weight parameters, so `Ranking::length_penalty`
+applies a post-hoc divisor from the collector instead. Anyone re-reading this plan looking for
+`set_bm25_params` will not find it.
+
+**The Stage 2 exit gate is not met and tuning will not meet it.** recall@3 is 0.8744 against 0.90 —
+about five queries. The sweep converged, and a second run descending on recall@3 directly reached
+only 0.8792 while giving up MRR and symbol accuracy for it. The remaining block is `misspelling`
+(12 queries, 0.2500 recall@1), which is **S2-5's** by design. Do not report Stage 2 as passing.
 
 **S2-2 nonetheless landed first, and the table's order is the misleading part.** P2-019 lists
 P2-001 as a dependency for the obvious reason: a relevance harness needs an index to score. The
 constraint the plan is actually asserting is S2-1 before *ranking* — S2-4, S2-5, S2-15 — not S2-1
-before integration. S2-2 therefore ships with the field boosts as **unmeasured placeholders**,
-labelled as such in `schema::boost`, and one test that pins only their *direction* rather than
-their values.
+before integration. S2-2 therefore shipped with the field boosts as **unmeasured placeholders** and
+one test pinning only their *direction*; S2-4 replaced them with `Ranking::TUNED`.
 
 **S2-11 is the canonical fan-out**: four scrapers, one interface, four parallel Fable agents, four
 Opus verifiers, all scored against the same detection corpus. This is the shape agent workflows
