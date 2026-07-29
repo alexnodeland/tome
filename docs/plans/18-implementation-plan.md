@@ -301,7 +301,7 @@ This is the stage that answers whether the product is possible.
 | # | Work | Spec | Model |
 |---|------|------|-------|
 | S2-1 | **Relevance eval set + harness** | P2-019 | Opus — **first, before any ranking work** |
-| S2-2 | Tantivy integration + schema | P2-001/002 | Opus |
+| S2-2 ✅ | Tantivy integration + schema | P2-001/002 | Opus — done 2026-07-29 — `tome-core/src/search/`: `schema.rs` (P2-002's seven fields), `tokenizer.rs` (camelCase/snake_case aware, emits the identifier *and* its parts), `extract.rs` (AST → fields), `mod.rs` (`SearchEngine` + `IndexSession`). SPIKE-003's harness removed as planned; its write-up stays |
 | S2-3 | Incremental indexing | P2-003 | Fable |
 | S2-4 | Ranking + boosts | P2-006 | Fable, scored by S2-1 |
 | S2-5 | Fuzzy matching | P2-009 | Fable, scored by S2-1 |
@@ -316,6 +316,13 @@ This is the stage that answers whether the product is possible.
 **S2-1 before S2-4 is not negotiable.** Tuning ranking without an eval set is guesswork, and with
 agents it is *fast* guesswork — you will get twenty confident boost-factor changes and no way to
 tell which helped. The eval set is what converts search from an opinion into a gradient.
+
+**S2-2 nonetheless landed first, and the table's order is the misleading part.** P2-019 lists
+P2-001 as a dependency for the obvious reason: a relevance harness needs an index to score. The
+constraint the plan is actually asserting is S2-1 before *ranking* — S2-4, S2-5, S2-15 — not S2-1
+before integration. S2-2 therefore ships with the field boosts as **unmeasured placeholders**,
+labelled as such in `schema::boost`, and one test that pins only their *direction* rather than
+their values.
 
 **S2-11 is the canonical fan-out**: four scrapers, one interface, four parallel Fable agents, four
 Opus verifiers, all scored against the same detection corpus. This is the shape agent workflows

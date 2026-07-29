@@ -75,6 +75,16 @@ pub enum Error {
     )]
     PageStore { message: String },
 
+    // Unlike the validation errors above, this one DOES carry the underlying
+    // message. Tantivy's errors name index internals — a segment file, a
+    // schema mismatch, a held lock — and a query parse error names the syntax
+    // that failed, not the library it was run against. A search error with the
+    // reason stripped out is unactionable, and the index is a cache: the
+    // remedy is usually "delete it and re-index", which the user can only be
+    // told to do if we say what broke.
+    #[error("Search failed: {message}")]
+    Search { message: String },
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }

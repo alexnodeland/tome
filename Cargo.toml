@@ -4,7 +4,7 @@ members = ["crates/tome-core", "crates/tome-cli", "crates/tome-testkit", "src-ta
 # `fuzz/` is its own workspace: `libfuzzer-sys` needs a nightly toolchain and
 # sanitizer flags, and pulling it into this workspace would impose both on every
 # ordinary `cargo test`. See fuzz/README.md.
-exclude = ["fuzz", "spikes/003-tantivy-scale"]
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.0.0"
@@ -64,6 +64,27 @@ syntect = { version = "5", default-features = false, features = [
     "html",
     "regex-fancy",
 ] }
+# Full-text search (S2-2). Adopted on SPIKE-003's measurements, not on
+# reputation: 439 MB peak indexing 100k pages, 18.7 ms worst-case p95, 224 MB
+# index, 3 MB idle -- every criterion passed with margin, so none of the
+# fallbacks the spike spec listed (sharding, index-per-source, lazy loading)
+# are needed. See docs/spikes/003-tantivy-scale.md.
+#
+# DEFAULT features, deliberately, unlike syntect above. The spike measured
+# tantivy at its defaults, and the adoption case is those numbers; trimming
+# features here would mean shipping a configuration nobody measured. Two of
+# the defaults are load-bearing:
+#   * `mmap` is why idle memory is 3 MB -- tantivy maps its files rather than
+#     reading them into the heap (spike finding 6). Dropping it would move the
+#     whole index into our RSS.
+#   * `stemmer` changes which documents match, so it is a RELEVANCE decision.
+#     It belongs to S2-4, scored against S2-1's eval set, not to a feature-flag
+#     judgement call here. Left on because that is what was measured.
+# `columnar-zstd-compression` pulls `zstd-sys`, which is C. That is not a new
+# constraint: `rusqlite`'s `bundled` feature already compiles SQLite from C, so
+# this workspace has always needed a C toolchain (the syntect note above
+# overstates the purity).
+tantivy = "0.26"
 
 # Test-only. `similar` produces the unified diffs the golden-corpus harness
 # prints; `proptest` and `tempfile` are used by tests across several crates.
