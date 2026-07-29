@@ -1,61 +1,77 @@
 # The relevance eval corpus (S2-1, spec P2-019).
 #
-# Each entry names one page from the NORMALIZATION golden corpus and gives it
-# the identity it has in the eval index. Reusing those goldens rather than
-# committing a second copy of the same HTML means:
+# The documents themselves are under `pages/<source>/<path>.json`, one file per
+# page, and the harness discovers them by walking that tree — there is no
+# per-document entry to maintain. This file only records what cannot be derived
+# from the directory: each source's category, where it came from, and under
+# which licence it is redistributed.
 #
-#   * the eval runs against real documentation, not text written to be easy to
-#     search — the same reason the normalization corpus is real pages;
-#   * it is deterministic and offline: the goldens are committed ASTs, so no
-#     HTML is parsed and no network is touched;
-#   * a normalization change that damages page text shows up here as a
-#     relevance regression, which is a genuinely useful coupling.
+# Each page file is a serialized `store::StoredPage` — exactly what
+# `pipeline::pull` writes to the page store, so the eval indexes what the
+# product indexes rather than an approximation of it. They were produced by
+# running the real `tome pull` against the URLs below: robots.txt honoured,
+# rate-limited, self-identifying user agent, one request at a time.
 #
-# `source` and `path` reconstruct what `tome pull` would have stored, derived
-# from the URLs recorded in ../normalization/input/SOURCES.md. They are the
-# document's identity in query labels, written `source:path`.
+# `<path>` is `crawl::page_path_for`'s output, which is the URL path with the
+# leading slash removed — so a Cargo page is `cargo/reference/manifest.html`,
+# not `reference/manifest.html`, and an extensionless URL like
+# `https://go.dev/doc/comment` stays extensionless. Query labels in
+# `queries.yaml` are `source:path` and must match this exactly.
 #
-# Seven sources, which is what P2-019's "at least 5 fixture sources" asks for.
+# ## Licences
+#
+# Redistribution rules are the same as the normalization corpus and were
+# settled by SPIKE-010: only sources whose licence permits alteration and
+# redistribution may be committed. These are the same six hosts already
+# verified in `../normalization/input/SOURCES.md`, and no new host was added
+# precisely so that no new licence review was needed.
+#
+# The committed files are *derived* ASTs rather than the pages as served —
+# parsed, normalized, and sanitized. That is redistribution of a modified
+# work, which every licence below permits.
 
-documents:
-  # docs.python.org — PSF-2.0
-  - { file: sphinx-python-controlflow,        source: python,     path: 3/tutorial/controlflow.html,               category: Python }
-  - { file: sphinx-python-datastructures,     source: python,     path: 3/tutorial/datastructures.html,            category: Python }
-  - { file: sphinx-python-errors,             source: python,     path: 3/tutorial/errors.html,                    category: Python }
-  - { file: sphinx-python-inputoutput,        source: python,     path: 3/tutorial/inputoutput.html,               category: Python }
-  - { file: sphinx-python-json-api,           source: python,     path: 3/library/json.html,                       category: Python }
-  - { file: sphinx-python-modules,            source: python,     path: 3/tutorial/modules.html,                   category: Python }
+sources:
+  - id: python
+    name: Python Documentation
+    category: Python
+    url: https://docs.python.org/
+    licence: PSF-2.0
+    sections: ['/3/tutorial/', '/3/library/']
 
-  # doc.rust-lang.org/cargo — MIT OR Apache-2.0
-  - { file: mdbook-cargo-build-command,       source: cargo,      path: commands/cargo-build.html,                 category: Rust }
-  - { file: mdbook-cargo-dependencies,        source: cargo,      path: guide/dependencies.html,                   category: Rust }
-  - { file: mdbook-cargo-environment-variables, source: cargo,    path: reference/environment-variables.html,      category: Rust }
-  - { file: mdbook-cargo-features,            source: cargo,      path: reference/features.html,                   category: Rust }
-  - { file: mdbook-cargo-glossary,            source: cargo,      path: appendix/glossary.html,                    category: Rust }
-  - { file: mdbook-cargo-manifest,            source: cargo,      path: reference/manifest.html,                   category: Rust }
+  - id: cargo
+    name: The Cargo Book
+    category: Rust
+    url: https://doc.rust-lang.org/cargo/
+    licence: MIT OR Apache-2.0
+    sections: ['/cargo/']
 
-  # doc.rust-lang.org/std — MIT OR Apache-2.0
-  - { file: rustdoc-std-iter-module,          source: rust-std,   path: std/iter/index.html,                       category: Rust }
-  - { file: rustdoc-std-once,                 source: rust-std,   path: std/sync/struct.Once.html,                 category: Rust }
-  - { file: rustdoc-std-read-to-string,       source: rust-std,   path: std/fs/fn.read_to_string.html,             category: Rust }
-  - { file: rustdoc-std-vec-module,           source: rust-std,   path: std/vec/index.html,                        category: Rust }
+  - id: rust-std
+    name: Rust Standard Library
+    category: Rust
+    url: https://doc.rust-lang.org/std/
+    licence: MIT OR Apache-2.0
+    sections: ['/std/']
 
-  # nodejs.org/api — MIT
-  - { file: node-api-os,                      source: node,       path: api/os.html,                               category: JavaScript }
-  - { file: node-api-path,                    source: node,       path: api/path.html,                             category: JavaScript }
-  - { file: node-api-querystring,             source: node,       path: api/querystring.html,                      category: JavaScript }
+  - id: node
+    name: Node.js API
+    category: JavaScript
+    url: https://nodejs.org/api/
+    licence: MIT
+    # nodejs.org's robots.txt disallows /docs/ and allows /api/, which is why
+    # only /api/ appears here. The crawler enforces this; the note is so a
+    # future expansion does not "fix" the omission.
+    sections: ['/api/']
 
-  # kubernetes.io — CC-BY-4.0
-  - { file: k8s-concepts-pods,                source: kubernetes, path: docs/concepts/workloads/pods/index.html,   category: Infrastructure }
+  - id: kubernetes
+    name: Kubernetes Concepts
+    category: Infrastructure
+    url: https://kubernetes.io/docs/concepts/
+    licence: CC-BY-4.0
+    sections: ['/docs/concepts/']
 
-  # go.dev — CC-BY-4.0
-  - { file: go-doc-comment,                   source: go,         path: doc/comment.html,                          category: Go }
-  - { file: go-modules-gomod-ref,             source: go,         path: doc/modules/gomod-ref.html,                category: Go }
-  - { file: go-tutorial-getting-started,      source: go,         path: doc/tutorial/getting-started.html,         category: Go }
-
-  # The repository's own Sphinx fixture. Included so the eval covers a source
-  # whose content we control, which is what makes a deliberately unambiguous
-  # query possible.
-  - { file: sphinx-index,                     source: widget,     path: index.html,                                category: Fixtures }
-  - { file: sphinx-guide,                     source: widget,     path: guide/index.html,                          category: Fixtures }
-  - { file: sphinx-api-reference,             source: widget,     path: api/reference.html,                        category: Fixtures }
+  - id: go
+    name: Go Documentation
+    category: Go
+    url: https://go.dev/
+    licence: CC-BY-4.0
+    sections: ['/doc/']

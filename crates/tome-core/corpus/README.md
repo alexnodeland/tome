@@ -35,22 +35,27 @@ the one after the diff has been looked at.
 | `normalization` | Normalized AST across documentation pages. **26 cases spanning six platforms** — Sphinx, mdBook, rustdoc, Node, Hugo, go.dev — every one a real page, licences and provenance in `normalization/input/SOURCES.md` | S1-8 |
 | `sanitizer` | The XSS payload corpus (nothing survives) **and** the anchor corpus (nothing breaks) | S1-9 |
 | `snippets` | Search result snippet generation | S2 |
-| `relevance` | **Search ranking quality.** 212 labelled queries scored as MRR and recall@1/3/10, with per-query rank deltas against a committed baseline | S2-1 |
+| `relevance` | **Search ranking quality.** 207 labelled queries over 339 real pages, scored as MRR and recall@1/3/10, with per-query rank deltas against a committed baseline | S2-1 |
 
 `normalization` is the one the product's viability actually rests on: it is
 where "does documentation come out the other side looking right?" gets an
 answer that can be reviewed rather than asserted.
 
-**`relevance` does not use the `input/`–`golden/` layout above.** It has no
-inputs of its own: it indexes the `normalization` goldens and scores queries
-against them, so its directory holds `corpus.yaml` (which golden is which
-document), `queries.yaml` (the labelled queries), and `baseline.json` (the
-committed scores). Reusing those goldens is deliberate — it means the eval runs
-on real documentation without committing a second copy of it, and a
-normalization change that damages page text surfaces as a relevance
-regression. Its workflow is `TOME_UPDATE_BASELINE=1`, mirroring
-`TOME_UPDATE_GOLDEN`; see `tests/relevance.rs`, which also records **how much
-that gate is actually worth** — measured, and less than you would hope.
+**`relevance` does not use the `input/`–`golden/` layout above.** Its directory
+holds `corpus.yaml` (per-source metadata), `queries.yaml` (207 labelled
+queries), `baseline.json` (the committed scores), and `pages/` — 339 documents,
+each a serialized `store::StoredPage` exactly as `pipeline::pull` wrote it, so
+the eval indexes what the product indexes. Provenance and licences for all 339
+are in `pages/SOURCES.md`. Its workflow is `TOME_UPDATE_BASELINE=1`, mirroring
+`TOME_UPDATE_GOLDEN`.
+
+**The corpus size is load-bearing, not incidental.** It began at 26 documents
+and at that size the gate could not discriminate at all — removing an entire
+indexed field from the query moved MRR by 0.0036 and tripped nothing. At 339 it
+is decisive on real damage (the same class of change moves MRR by 0.32) while
+staying quiet on neutral ones. `tests/relevance.rs` records the measurements.
+The Stage 2 exit gate now carries a ≥ 150 document floor for this reason, and
+the harness asserts it.
 
 ## Adding cases
 

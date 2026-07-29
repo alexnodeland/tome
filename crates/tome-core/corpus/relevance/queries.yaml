@@ -44,7 +44,7 @@ queries:
   - { id: py-dictionaries,          kind: symbol,       q: dictionaries,                                   want: [python:3/tutorial/datastructures.html] }
   - { id: py-looping-techniques,    kind: phrase,       q: looping techniques,                             want: [python:3/tutorial/datastructures.html] }
   - { id: py-comparing-sequences,   kind: phrase,       q: comparing sequences and other types,            want: [python:3/tutorial/datastructures.html] }
-  - { id: py-dict-nl,               kind: natural,      q: how do I use a dictionary in python,            want: [python:3/tutorial/datastructures.html] }
+  - { id: py-dict-nl,               kind: natural,      q: how do I use a dictionary in python,            want: [python:3/tutorial/datastructures.html, python:3/library/stdtypes.html] }
   - { id: py-syntax-errors,         kind: phrase,       q: syntax errors,                                  want: [python:3/tutorial/errors.html] }
   - { id: py-handling-exceptions,   kind: phrase,       q: handling exceptions,                            want: [python:3/tutorial/errors.html] }
   - { id: py-raising-exceptions,    kind: phrase,       q: raising exceptions,                             want: [python:3/tutorial/errors.html] }
@@ -69,45 +69,45 @@ queries:
   - { id: py-modules-as-scripts,    kind: phrase,       q: executing modules as scripts,                   want: [python:3/tutorial/modules.html] }
 
   # ------------------------------------------------------------------ Cargo
-  - { id: cg-build-command,         kind: symbol,       q: cargo-build,                                    want: [cargo:commands/cargo-build.html] }
-  - { id: cg-build-nl,              kind: natural,      q: how do I compile the current package,           want: [cargo:commands/cargo-build.html] }
-  - { id: cg-package-selection,     kind: phrase,       q: package selection,                              want: [cargo:commands/cargo-build.html] }
-  - { id: cg-target-selection,      kind: phrase,       q: target selection,                               want: [cargo:commands/cargo-build.html] }
-  - { id: cg-compilation-options,   kind: phrase,       q: compilation options,                            want: [cargo:commands/cargo-build.html] }
-  - { id: cg-manifest-options,      kind: phrase,       q: manifest options,                               want: [cargo:commands/cargo-build.html, cargo:reference/manifest.html] }
-  - { id: cg-cratesio,              kind: symbol,       q: crates.io,                                      want: [cargo:guide/dependencies.html] }
-  - { id: cg-adding-dependency,     kind: phrase,       q: adding a dependency,                            want: [cargo:guide/dependencies.html] }
-  - { id: cg-dependency-nl,         kind: natural,      q: how do I add a dependency to my project,        want: [cargo:guide/dependencies.html] }
-  - { id: cg-env-reads,             kind: phrase,       q: environment variables cargo reads,              want: [cargo:reference/environment-variables.html] }
-  - { id: cg-env-build-scripts,     kind: phrase,       q: environment variables cargo sets for build scripts, want: [cargo:reference/environment-variables.html] }
-  - { id: cg-dynamic-library-paths, kind: phrase,       q: dynamic library paths,                          want: [cargo:reference/environment-variables.html] }
-  - { id: cg-config-env,            kind: phrase,       q: configuration environment variables,            want: [cargo:reference/environment-variables.html] }
-  - { id: cg-features-section,      kind: symbol,       q: "[features] section",                           want: [cargo:reference/features.html] }
-  - { id: cg-default-feature,       kind: phrase,       q: the default feature,                            want: [cargo:reference/features.html] }
-  - { id: cg-optional-dependencies, kind: phrase,       q: optional dependencies,                          want: [cargo:reference/features.html] }
-  - { id: cg-feature-unification,   kind: phrase,       q: feature unification,                            want: [cargo:reference/features.html] }
-  - { id: cg-mutually-exclusive,    kind: phrase,       q: mutually exclusive features,                    want: [cargo:reference/features.html] }
-  - { id: cg-resolver-v2,           kind: phrase,       q: feature resolver version 2,                     want: [cargo:reference/features.html] }
-  - { id: cg-required-features,     kind: phrase,       q: required features,                              want: [cargo:reference/features.html] }
-  - { id: cg-semver-compat,         kind: phrase,       q: semver compatibility,                           want: [cargo:reference/features.html] }
-  - { id: cg-glossary-artifact,     kind: symbol,       q: artifact,                                       want: [cargo:appendix/glossary.html] }
-  - { id: cg-glossary-edition,      kind: symbol,       q: edition,                                        want: [cargo:appendix/glossary.html, cargo:reference/manifest.html] }
-  - { id: cg-glossary-lockfile,     kind: phrase,       q: lock file,                                      want: [cargo:appendix/glossary.html] }
-  - { id: cg-cargo-lock,            kind: symbol,       q: Cargo.lock,                                     want: [cargo:appendix/glossary.html] }
-  - { id: cg-glossary-member,       kind: symbol,       q: member,                                         want: [cargo:appendix/glossary.html] }
-  - { id: cg-manifest-format,       kind: phrase,       q: the manifest format,                            want: [cargo:reference/manifest.html] }
-  - { id: cg-cargo-toml,            kind: symbol,       q: Cargo.toml,                                     want: [cargo:reference/manifest.html, cargo:appendix/glossary.html] }
-  - { id: cg-package-section,       kind: symbol,       q: "[package] section",                            want: [cargo:reference/manifest.html] }
-  - { id: cg-rust-version-field,    kind: phrase,       q: the rust-version field,                         want: [cargo:reference/manifest.html] }
-  - { id: cg-license-field,         kind: phrase,       q: the license and license-file fields,            want: [cargo:reference/manifest.html] }
-  - { id: cg-keywords-field,        kind: phrase,       q: the keywords field,                             want: [cargo:reference/manifest.html] }
-  - { id: cg-documentation-field,   kind: phrase,       q: the documentation field,                        want: [cargo:reference/manifest.html] }
-  - { id: cg-version-field-nl,      kind: natural,      q: where do I set the version of my package,       want: [cargo:reference/manifest.html] }
+  - { id: cg-build-command,         kind: symbol,       q: cargo-build,                                    want: [cargo:cargo/commands/cargo-build.html] }
+  - { id: cg-build-nl,              kind: natural,      q: how do I compile the current package,           want: [cargo:cargo/commands/cargo-build.html] }
+  - { id: cg-package-selection,     kind: phrase,       q: package selection,                              want: [cargo:cargo/commands/cargo-build.html] }
+  - { id: cg-target-selection,      kind: phrase,       q: target selection,                               want: [cargo:cargo/commands/cargo-build.html] }
+  - { id: cg-compilation-options,   kind: phrase,       q: compilation options,                            want: [cargo:cargo/commands/cargo-build.html] }
+  - { id: cg-manifest-options,      kind: phrase,       q: manifest options,                               want: [cargo:cargo/commands/cargo-build.html, cargo:cargo/reference/manifest.html] }
+  - { id: cg-cratesio,              kind: symbol,       q: crates.io,                                      want: [cargo:cargo/guide/dependencies.html] }
+  - { id: cg-adding-dependency,     kind: phrase,       q: adding a dependency,                            want: [cargo:cargo/guide/dependencies.html] }
+  - { id: cg-dependency-nl,         kind: natural,      q: how do I add a dependency to my project,        want: [cargo:cargo/guide/dependencies.html] }
+  - { id: cg-env-reads,             kind: phrase,       q: environment variables cargo reads,              want: [cargo:cargo/reference/environment-variables.html] }
+  - { id: cg-env-build-scripts,     kind: phrase,       q: environment variables cargo sets for build scripts, want: [cargo:cargo/reference/environment-variables.html] }
+  - { id: cg-dynamic-library-paths, kind: phrase,       q: dynamic library paths,                          want: [cargo:cargo/reference/environment-variables.html] }
+  - { id: cg-config-env,            kind: phrase,       q: configuration environment variables,            want: [cargo:cargo/reference/environment-variables.html] }
+  - { id: cg-features-section,      kind: symbol,       q: "[features] section",                           want: [cargo:cargo/reference/features.html] }
+  - { id: cg-default-feature,       kind: phrase,       q: the default feature,                            want: [cargo:cargo/reference/features.html] }
+  - { id: cg-optional-dependencies, kind: phrase,       q: optional dependencies,                          want: [cargo:cargo/reference/features.html] }
+  - { id: cg-feature-unification,   kind: phrase,       q: feature unification,                            want: [cargo:cargo/reference/features.html] }
+  - { id: cg-mutually-exclusive,    kind: phrase,       q: mutually exclusive features,                    want: [cargo:cargo/reference/features.html] }
+  - { id: cg-resolver-v2,           kind: phrase,       q: feature resolver version 2,                     want: [cargo:cargo/reference/features.html] }
+  - { id: cg-required-features,     kind: phrase,       q: required features,                              want: [cargo:cargo/reference/features.html] }
+  - { id: cg-semver-compat,         kind: phrase,       q: semver compatibility,                           want: [cargo:cargo/reference/features.html] }
+  - { id: cg-glossary-artifact,     kind: symbol,       q: artifact,                                       want: [cargo:cargo/appendix/glossary.html] }
+  - { id: cg-glossary-edition,      kind: symbol,       q: edition,                                        want: [cargo:cargo/appendix/glossary.html, cargo:cargo/reference/manifest.html] }
+  - { id: cg-glossary-lockfile,     kind: phrase,       q: lock file,                                      want: [cargo:cargo/appendix/glossary.html] }
+  - { id: cg-cargo-lock,            kind: symbol,       q: Cargo.lock,                                     want: [cargo:cargo/appendix/glossary.html] }
+  - { id: cg-glossary-member,       kind: symbol,       q: member,                                         want: [cargo:cargo/appendix/glossary.html] }
+  - { id: cg-manifest-format,       kind: phrase,       q: the manifest format,                            want: [cargo:cargo/reference/manifest.html] }
+  - { id: cg-cargo-toml,            kind: symbol,       q: Cargo.toml,                                     want: [cargo:cargo/reference/manifest.html, cargo:cargo/appendix/glossary.html] }
+  - { id: cg-package-section,       kind: symbol,       q: "[package] section",                            want: [cargo:cargo/reference/manifest.html] }
+  - { id: cg-rust-version-field,    kind: phrase,       q: the rust-version field,                         want: [cargo:cargo/reference/manifest.html] }
+  - { id: cg-license-field,         kind: phrase,       q: the license and license-file fields,            want: [cargo:cargo/reference/manifest.html] }
+  - { id: cg-keywords-field,        kind: phrase,       q: the keywords field,                             want: [cargo:cargo/reference/manifest.html] }
+  - { id: cg-documentation-field,   kind: phrase,       q: the documentation field,                        want: [cargo:cargo/reference/manifest.html] }
+  - { id: cg-version-field-nl,      kind: natural,      q: where do I set the version of my package,       want: [cargo:cargo/reference/manifest.html] }
 
   # --------------------------------------------------------------- Rust std
   - { id: rs-read-to-string,        kind: symbol,       q: read_to_string,                                 want: [rust-std:std/fs/fn.read_to_string.html] }
   - { id: rs-read-to-string-nl,     kind: natural,      q: read the entire contents of a file into a string, want: [rust-std:std/fs/fn.read_to_string.html] }
-  - { id: rs-read-file-nl,          kind: natural,      q: how do I read a file,                           want: [rust-std:std/fs/fn.read_to_string.html] }
+  - { id: rs-read-file-nl,          kind: natural,      q: how do I read a file,                           want: [rust-std:std/fs/fn.read_to_string.html, rust-std:std/fs/struct.File.html, node:api/fs.html, python:3/tutorial/inputoutput.html] }
   - { id: rs-once,                  kind: symbol,       q: Once,                                           want: [rust-std:std/sync/struct.Once.html] }
   - { id: rs-once-struct,           kind: symbol,       q: struct Once,                                    want: [rust-std:std/sync/struct.Once.html] }
   - { id: rs-one-time-init,         kind: natural,      q: one-time global initialization,                 want: [rust-std:std/sync/struct.Once.html] }
@@ -185,42 +185,36 @@ queries:
   - { id: k8-scheduling-group,      kind: phrase,       q: specifying a scheduling group,                  want: [kubernetes:docs/concepts/workloads/pods/index.html] }
 
   # --------------------------------------------------------------------- Go
-  - { id: go-doc-comments,          kind: phrase,       q: Go doc comments,                                want: [go:doc/comment.html] }
-  - { id: go-doc-links,             kind: phrase,       q: doc links,                                      want: [go:doc/comment.html] }
-  - { id: go-doc-code-blocks,       kind: phrase,       q: code blocks in doc comments,                    want: [go:doc/comment.html] }
-  - { id: go-doc-headings,          kind: phrase,       q: headings in doc comments,                       want: [go:doc/comment.html] }
-  - { id: go-doc-consts,            kind: symbol,       q: consts,                                         want: [go:doc/comment.html] }
-  - { id: go-doc-vars,              kind: symbol,       q: vars,                                           want: [go:doc/comment.html] }
-  - { id: go-doc-funcs,             kind: symbol,       q: funcs,                                          want: [go:doc/comment.html] }
-  - { id: go-gomod-reference,       kind: phrase,       q: go.mod file reference,                          want: [go:doc/modules/gomod-ref.html] }
-  - { id: go-gomod-module,          kind: symbol,       q: module directive,                               want: [go:doc/modules/gomod-ref.html] }
-  - { id: go-gomod-toolchain,       kind: symbol,       q: toolchain,                                      want: [go:doc/modules/gomod-ref.html] }
-  - { id: go-gomod-nl,              kind: natural,      q: what goes in a go.mod file,                     want: [go:doc/modules/gomod-ref.html] }
-  - { id: go-gomod-deps-nl,         kind: natural,      q: how do I declare module dependencies in go,     want: [go:doc/modules/gomod-ref.html] }
-  - { id: go-getting-started,       kind: phrase,       q: get started with Go,                            want: [go:doc/tutorial/getting-started.html] }
-  - { id: go-install,               kind: phrase,       q: install Go,                                     want: [go:doc/tutorial/getting-started.html] }
-  - { id: go-external-package,      kind: phrase,       q: call code in an external package,               want: [go:doc/tutorial/getting-started.html] }
-  - { id: go-prerequisites,         kind: symbol,       q: prerequisites,                                  want: [go:doc/tutorial/getting-started.html] }
-  - { id: go-tutorial-nl,           kind: natural,      q: how do I write my first go program,             want: [go:doc/tutorial/getting-started.html] }
+  - { id: go-doc-comments,          kind: phrase,       q: Go doc comments,                                want: [go:doc/comment] }
+  - { id: go-doc-links,             kind: phrase,       q: doc links,                                      want: [go:doc/comment] }
+  - { id: go-doc-code-blocks,       kind: phrase,       q: code blocks in doc comments,                    want: [go:doc/comment] }
+  - { id: go-doc-headings,          kind: phrase,       q: headings in doc comments,                       want: [go:doc/comment] }
+  - { id: go-doc-consts,            kind: symbol,       q: consts,                                         want: [go:doc/comment] }
+  - { id: go-doc-vars,              kind: symbol,       q: vars,                                           want: [go:doc/comment] }
+  - { id: go-doc-funcs,             kind: symbol,       q: funcs,                                          want: [go:doc/comment] }
+  - { id: go-gomod-reference,       kind: phrase,       q: go.mod file reference,                          want: [go:doc/modules/gomod-ref] }
+  - { id: go-gomod-module,          kind: symbol,       q: module directive,                               want: [go:doc/modules/gomod-ref] }
+  - { id: go-gomod-toolchain,       kind: symbol,       q: toolchain,                                      want: [go:doc/modules/gomod-ref] }
+  - { id: go-gomod-nl,              kind: natural,      q: what goes in a go.mod file,                     want: [go:doc/modules/gomod-ref] }
+  - { id: go-gomod-deps-nl,         kind: natural,      q: how do I declare module dependencies in go,     want: [go:doc/modules/gomod-ref] }
+  - { id: go-getting-started,       kind: phrase,       q: get started with Go,                            want: [go:doc/tutorial/getting-started] }
+  - { id: go-install,               kind: phrase,       q: install Go,                                     want: [go:doc/tutorial/getting-started] }
+  - { id: go-external-package,      kind: phrase,       q: call code in an external package,               want: [go:doc/tutorial/getting-started] }
+  - { id: go-prerequisites,         kind: symbol,       q: prerequisites,                                  want: [go:doc/tutorial/getting-started] }
+  - { id: go-tutorial-nl,           kind: natural,      q: how do I write my first go program,             want: [go:doc/tutorial/getting-started] }
 
-  # --------------------------------------------------- The Widget fixture
-  - { id: wd-widget,                kind: symbol,       q: Widget,                                         want: [widget:index.html] }
-  - { id: wd-installation,          kind: symbol,       q: installation,                                   want: [widget:index.html] }
-  - { id: wd-user-guide,            kind: phrase,       q: user guide,                                     want: [widget:guide/index.html] }
-  - { id: wd-api-reference,         kind: phrase,       q: API reference,                                  want: [widget:api/reference.html] }
-  - { id: wd-given-size,            kind: phrase,       q: a widget of a given size,                       want: [widget:api/reference.html] }
 
   # ------------------------------------------------------------ Acronyms
   # Short, capitalised, and ambiguous — the shape most likely to be mangled
   # by a tokenizer change.
   - { id: ac-eol,                   kind: acronym,      q: EOL,                                            want: [node:api/os.html] }
   - { id: ac-json,                  kind: acronym,      q: JSON,                                           want: [python:3/library/json.html] }
-  - { id: ac-toml,                  kind: acronym,      q: TOML,                                           want: [cargo:reference/manifest.html] }
+  - { id: ac-toml,                  kind: acronym,      q: TOML,                                           want: [cargo:cargo/reference/manifest.html, cargo:cargo/guide/cargo-toml-vs-cargo-lock.html] }
   - { id: ac-posix,                 kind: acronym,      q: POSIX,                                          want: [node:api/path.html] }
-  - { id: ac-semver,                kind: acronym,      q: SemVer,                                         want: [cargo:reference/features.html, cargo:reference/manifest.html] }
+  - { id: ac-semver,                kind: acronym,      q: SemVer,                                         want: [cargo:cargo/reference/features.html, cargo:cargo/reference/manifest.html] }
   - { id: ac-nan,                   kind: acronym,      q: NaN,                                            want: [python:3/library/json.html] }
   - { id: ac-cpu,                   kind: acronym,      q: CPU,                                            want: [node:api/os.html] }
-  - { id: ac-url,                   kind: acronym,      q: URL,                                            want: [node:api/querystring.html] }
+  - { id: ac-url,                   kind: acronym,      q: URL,                                            want: [node:api/url.html, node:api/querystring.html] }
 
   # -------------------------------------------------------- Misspellings
   # P2-019 requires these. They are expected to FAIL until S2-5 adds fuzzy
@@ -231,11 +225,11 @@ queries:
   - { id: ms-dictionarys,           kind: misspelling,  q: dictionarys,                                    want: [python:3/tutorial/datastructures.html] }
   - { id: ms-excepton,              kind: misspelling,  q: excepton handling,                              want: [python:3/tutorial/errors.html] }
   - { id: ms-kubernets,             kind: misspelling,  q: kubernets pods,                                 want: [kubernetes:docs/concepts/workloads/pods/index.html] }
-  - { id: ms-dependancies,          kind: misspelling,  q: dependancies,                                   want: [cargo:guide/dependencies.html] }
-  - { id: ms-enviroment,            kind: misspelling,  q: enviroment variables,                           want: [cargo:reference/environment-variables.html] }
+  - { id: ms-dependancies,          kind: misspelling,  q: dependancies,                                   want: [cargo:cargo/guide/dependencies.html] }
+  - { id: ms-enviroment,            kind: misspelling,  q: enviroment variables,                           want: [cargo:cargo/reference/environment-variables.html] }
   - { id: ms-comprehention,         kind: misspelling,  q: list comprehention,                             want: [python:3/tutorial/datastructures.html] }
   - { id: ms-quearystring,          kind: misspelling,  q: quearystring,                                   want: [node:api/querystring.html] }
-  - { id: ms-manifset,              kind: misspelling,  q: manifset format,                                want: [cargo:reference/manifest.html] }
+  - { id: ms-manifset,              kind: misspelling,  q: manifset format,                                want: [cargo:cargo/reference/manifest.html] }
   - { id: ms-pth-join,              kind: misspelling,  q: pth.join,                                       want: [node:api/path.html] }
   - { id: ms-modual,                kind: misspelling,  q: modual search path,                             want: [python:3/tutorial/modules.html] }
 
@@ -245,19 +239,19 @@ queries:
   # source has the most pages.
   - { id: xs-read-file-any,         kind: cross-source, q: reading and writing files,                      want: [python:3/tutorial/inputoutput.html, rust-std:std/fs/fn.read_to_string.html] }
   - { id: xs-json-encode,           kind: cross-source, q: encode an object as json,                       want: [python:3/library/json.html, node:api/querystring.html] }
-  - { id: xs-env-vars,              kind: cross-source, q: environment variables,                          want: [cargo:reference/environment-variables.html] }
-  - { id: xs-features,              kind: cross-source, q: features,                                       want: [cargo:reference/features.html, cargo:appendix/glossary.html] }
-  - { id: xs-modules,               kind: cross-source, q: modules,                                        want: [python:3/tutorial/modules.html, go:doc/modules/gomod-ref.html, cargo:appendix/glossary.html] }
-  - { id: xs-package,               kind: cross-source, q: package,                                        want: [cargo:appendix/glossary.html, cargo:reference/manifest.html, python:3/tutorial/modules.html] }
-  - { id: xs-dependencies,          kind: cross-source, q: dependencies,                                   want: [cargo:guide/dependencies.html, cargo:reference/features.html, go:doc/modules/gomod-ref.html] }
-  - { id: xs-getting-started,       kind: cross-source, q: getting started tutorial,                       want: [go:doc/tutorial/getting-started.html] }
+  - { id: xs-env-vars,              kind: cross-source, q: environment variables,                          want: [cargo:cargo/reference/environment-variables.html] }
+  - { id: xs-features,              kind: cross-source, q: features,                                       want: [cargo:cargo/reference/features.html, cargo:cargo/appendix/glossary.html] }
+  - { id: xs-modules,               kind: cross-source, q: modules,                                        want: [python:3/tutorial/modules.html, go:doc/modules/gomod-ref, cargo:cargo/appendix/glossary.html, node:api/modules.html, node:api/esm.html] }
+  - { id: xs-package,               kind: cross-source, q: package,                                        want: [cargo:cargo/appendix/glossary.html, cargo:cargo/reference/manifest.html, python:3/tutorial/modules.html, cargo:cargo/guide/creating-a-new-project.html, cargo:cargo/guide/project-layout.html, cargo:cargo/reference/pkgid-spec.html] }
+  - { id: xs-dependencies,          kind: cross-source, q: dependencies,                                   want: [cargo:cargo/guide/dependencies.html, cargo:cargo/reference/features.html, go:doc/modules/gomod-ref] }
+  - { id: xs-getting-started,       kind: cross-source, q: getting started tutorial,                       want: [go:doc/tutorial/getting-started, go:doc/tutorial/generics, go:doc/tutorial/fuzz, go:doc/tutorial/workspaces, cargo:cargo/getting-started/index.html] }
   - { id: xs-iteration,             kind: cross-source, q: iteration,                                      want: [rust-std:std/iter/index.html, python:3/tutorial/controlflow.html] }
-  - { id: xs-comments,              kind: cross-source, q: writing documentation comments,                 want: [go:doc/comment.html] }
+  - { id: xs-comments,              kind: cross-source, q: writing documentation comments,                 want: [go:doc/comment] }
   - { id: xs-string-formatting,     kind: cross-source, q: string formatting,                              want: [python:3/tutorial/inputoutput.html] }
-  - { id: xs-command-line,          kind: cross-source, q: command-line options,                           want: [python:3/library/json.html, cargo:commands/cargo-build.html] }
+  - { id: xs-command-line,          kind: cross-source, q: command-line options,                           want: [python:3/library/json.html, cargo:cargo/commands/cargo-build.html, node:api/cli.html] }
   - { id: xs-arrays,                kind: cross-source, q: growable array,                                 want: [rust-std:std/vec/index.html] }
   - { id: xs-error-handling,        kind: cross-source, q: error handling,                                 want: [python:3/tutorial/errors.html, rust-std:std/fs/fn.read_to_string.html] }
-  - { id: xs-versioning,            kind: cross-source, q: version compatibility,                          want: [cargo:reference/manifest.html, cargo:reference/features.html, go:doc/modules/gomod-ref.html] }
-  - { id: xs-install,               kind: cross-source, q: installation,                                   want: [widget:index.html, go:doc/tutorial/getting-started.html] }
-  - { id: xs-glossary-terms,        kind: cross-source, q: what is a crate,                                want: [cargo:appendix/glossary.html] }
+  - { id: xs-versioning,            kind: cross-source, q: version compatibility,                          want: [cargo:cargo/reference/manifest.html, cargo:cargo/reference/features.html, go:doc/modules/gomod-ref] }
+  - { id: xs-install,               kind: cross-source, q: installation,                                   want: [go:doc/tutorial/getting-started] }
+  - { id: xs-glossary-terms,        kind: cross-source, q: what is a crate,                                want: [cargo:cargo/appendix/glossary.html] }
   - { id: xs-concurrency,           kind: cross-source, q: synchronization,                                want: [rust-std:std/sync/struct.Once.html] }

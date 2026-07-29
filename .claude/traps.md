@@ -153,11 +153,19 @@ a test written from the same misunderstanding as the code agrees with it. The go
   such query silently failed. `search::plain_text_query` neutralises this; **anything that builds a
   query must go through it.** Found by the S2-1 eval set on its first run — twelve dead symbol
   queries, and symbol recall@1 went 0.7465 → 0.9474 once fixed.
-- **The relevance gate is a strong diagnostic and a weak gate, and this is measured, not assumed.**
-  Cutting the title boost 60×, additionally cutting the code boost 1500×, and removing the `code`
-  field from the query entirely each moved MRR by ≤ 0.0036 and tripped nothing. A green relevance
-  run means "nothing catastrophic", not "ranking is fine". The per-query movement report is the
-  part that works. Making it a real gate needs a bigger corpus, not a tighter threshold.
+- **A relevance eval is only as sensitive as its corpus is large, and 26 documents is not large.**
+  At that size, removing an entire indexed field from the query moved MRR by 0.0036 and tripped
+  nothing — the metrics compress near the top because there is rarely a strong wrong answer for a
+  right one to beat. At 339 documents the same class of change moves MRR by 0.32. **Never read a
+  relevance number without knowing the corpus size**, and do not "improve" a score by shrinking or
+  easing the corpus. The Stage 2 exit gate carries a ≥ 150 document floor for this reason and the
+  harness asserts it.
+- **Expanding an eval corpus makes existing labels incomplete, not wrong.** Going 26 → 339 dropped
+  MRR from 0.92 to 0.72, and a large part of that was queries whose *correct* answer was now a page
+  that had not existed in the corpus before (`node:api/url.html` for "URL", `node:api/modules.html`
+  for "modules"). Relabel by reading actual results — `TOME_RELEVANCE_DUMP=1` prints them — but
+  only add a target that genuinely answers the query. Labelling a bad-but-high-ranking result to
+  make the number go up destroys the instrument.
 - **`TopDocs` is a builder in tantivy 0.26.** Only `.order_by_score()` implements `Collector`, and
   `with_limit` **panics on 0**, so a caller-supplied limit must be clamped.
 - **`MmapDirectory::open` returns its own error type**, not `TantivyError`.
