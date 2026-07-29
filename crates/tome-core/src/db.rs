@@ -80,6 +80,21 @@ const MIGRATIONS: &[&str] = &[
         PRIMARY KEY (source_id, path)
     ) STRICT, WITHOUT ROWID;
     ",
+    // 0002 — navigation order.
+    //
+    // Pages were listed alphabetically by path, so the Cargo Book opened on
+    // CHANGELOG.html and the Python tutorial on appendix.html — both of them
+    // the first file by name and neither the first page of the document. The
+    // crawler already visits pages in navigation order (it discovers links
+    // from the whole document, and a documentation site advertises its pages
+    // through its own contents list), and that order was being thrown away.
+    //
+    // Existing rows get 0, which sorts them together and falls back to path
+    // — the previous behaviour, so an un-resynced library is unchanged rather
+    // than scrambled.
+    "
+    ALTER TABLE pages ADD COLUMN ordinal INTEGER NOT NULL DEFAULT 0;
+    ",
 ];
 
 /// One open handle to the Tome database. Open one per process; see the
@@ -87,6 +102,13 @@ const MIGRATIONS: &[&str] = &[
 pub struct Database {
     conn: Connection,
 }
+
+/// The schema version a freshly-opened database ends up at.
+///
+/// Derived from [`MIGRATIONS`] rather than written down, so that adding a
+/// migration cannot leave a stale literal behind — which is exactly what a
+/// test asserting `== 1` did the first time a second migration appeared.
+pub const SCHEMA_VERSION: u32 = MIGRATIONS.len() as u32;
 
 impl Database {
     /// Open (creating and migrating if needed) the database for a library.
@@ -249,19 +271,29 @@ impl Database {
 
     // ---- pages -----------------------------------------------------------
 
-    pub fn upsert_page(&self, page: &Page) -> Result<()> {
+    /// Store a page's metadata.
+    ///
+    /// `ordinal` is its position in the source's navigation order, which the
+    /// crawler knows and [`Page`] deliberately does not: page *identity* is
+    /// `(source, path)` (see `model/mod.rs`), and where a page sits in a
+    /// contents list is a property of the source, not of the page. Keeping it
+    /// in the row rather than in the model also leaves the frozen serde shape
+    /// untouched.
+    pub fn upsert_page(&self, page: &Page, ordinal: u32) -> Result<()> {
         self.conn
             .execute(
                 "
                 INSERT INTO pages (
-                    source_id, path, title, content_hash, fetched_at, etag, last_modified
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                    source_id, path, title, content_hash, fetched_at, etag,
+                    last_modified, ordinal
+                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
                 ON CONFLICT(source_id, path) DO UPDATE SET
                     title = excluded.title,
                     content_hash = excluded.content_hash,
                     fetched_at = excluded.fetched_at,
                     etag = excluded.etag,
-                    last_modified = excluded.last_modified
+                    last_modified = excluded.last_modified,
+                    ordinal = excluded.ordinal
                 ",
                 params![
                     page.source.as_str(),
@@ -271,6 +303,7 @@ impl Database {
                     page.fetched_at.to_rfc3339(),
                     page.etag,
                     page.last_modified,
+                    ordinal,
                 ],
             )
             .map_err(db_err)?;
@@ -289,11 +322,14 @@ impl Database {
             .transpose()
     }
 
-    /// Every page of one source, ordered by path.
+    /// Every page of one source, in **navigation order** — the order the
+    /// crawler met them, which for a documentation site is the order its own
+    /// contents list advertises. Path is the tiebreak, so a library written
+    /// before ordinals existed still lists deterministically.
     pub fn list_pages(&self, source: &SourceId) -> Result<Vec<Page>> {
         let mut stmt = self
             .conn
-            .prepare("SELECT * FROM pages WHERE source_id = ?1 ORDER BY path")
+            .prepare("SELECT * FROM pages WHERE source_id = ?1 ORDER BY ordinal, path")
             .map_err(db_err)?;
         let rows = stmt
             .query_map(params![source.as_str()], page_from_row)

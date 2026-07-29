@@ -90,7 +90,7 @@ fn page_round_trips_every_field() {
     db.upsert_source(&full_source()).unwrap();
 
     let page = full_page();
-    db.upsert_page(&page).unwrap();
+    db.upsert_page(&page, 0).unwrap();
     let loaded = db
         .get_page(&sid("python"), &PagePath::new("library/os.html").unwrap())
         .unwrap()
@@ -107,7 +107,7 @@ fn upsert_source_updates_without_cascading_to_pages() {
     let (_tmp, db) = open_temp();
     let mut source = full_source();
     db.upsert_source(&source).unwrap();
-    db.upsert_page(&full_page()).unwrap();
+    db.upsert_page(&full_page(), 0).unwrap();
 
     source.name = "Python 3.13.1".into();
     source.page_count = 413;
@@ -130,10 +130,10 @@ fn upsert_page_replaces_on_the_natural_key() {
     db.upsert_source(&full_source()).unwrap();
 
     let mut page = full_page();
-    db.upsert_page(&page).unwrap();
+    db.upsert_page(&page, 0).unwrap();
     page.title = "os — updated".into();
     page.content_hash = ContentHash::from_digest([0x2B; 32]);
-    db.upsert_page(&page).unwrap();
+    db.upsert_page(&page, 0).unwrap();
 
     assert_eq!(db.page_count(&sid("python")).unwrap(), 1);
     assert_eq!(
@@ -149,7 +149,7 @@ fn upsert_page_replaces_on_the_natural_key() {
 fn deleting_a_source_cascades_to_its_pages() {
     let (_tmp, db) = open_temp();
     db.upsert_source(&full_source()).unwrap();
-    db.upsert_page(&full_page()).unwrap();
+    db.upsert_page(&full_page(), 0).unwrap();
 
     assert!(db.delete_source(&sid("python")).unwrap());
     assert_eq!(db.page_count(&sid("python")).unwrap(), 0);
@@ -163,7 +163,7 @@ fn a_page_without_its_source_is_refused() {
     // foreign_keys is OFF by default in SQLite; this test is what notices
     // if the pragma ever stops being applied.
     let (_tmp, db) = open_temp();
-    let err = db.upsert_page(&full_page()).unwrap_err();
+    let err = db.upsert_page(&full_page(), 0).unwrap_err();
     assert!(matches!(err, Error::Database { .. }));
 }
 
@@ -184,21 +184,67 @@ fn list_sources_orders_by_name_case_insensitively() {
 }
 
 #[test]
-fn list_pages_orders_by_path() {
+fn list_pages_falls_back_to_path_when_ordinals_are_equal() {
+    // Every page at ordinal 0 is what a library written before migration
+    // 0002 looks like. It must still list deterministically.
     let (_tmp, db) = open_temp();
     db.upsert_source(&full_source()).unwrap();
     for path in ["z.html", "a.html", "m/n.html"] {
         let mut page = full_page();
         page.path = PagePath::new(path).unwrap();
-        db.upsert_page(&page).unwrap();
+        db.upsert_page(&page, 0).unwrap();
     }
-    let paths: Vec<String> = db
-        .list_pages(&sid("python"))
+    assert_eq!(listed_paths(&db), ["a.html", "m/n.html", "z.html"]);
+}
+
+#[test]
+fn list_pages_orders_by_navigation_order_not_by_name() {
+    // The defect this replaced: pages sorted by path, so the Cargo Book
+    // opened on CHANGELOG.html and the Python tutorial on appendix.html —
+    // in both cases the first file by name and neither the first page of
+    // the document.
+    let (_tmp, db) = open_temp();
+    db.upsert_source(&full_source()).unwrap();
+    for (ordinal, path) in ["index.html", "zebra.html", "appendix.html"]
+        .into_iter()
+        .enumerate()
+    {
+        let mut page = full_page();
+        page.path = PagePath::new(path).unwrap();
+        db.upsert_page(&page, ordinal as u32).unwrap();
+    }
+    assert_eq!(
+        listed_paths(&db),
+        ["index.html", "zebra.html", "appendix.html"]
+    );
+}
+
+#[test]
+fn re_syncing_updates_a_pages_position() {
+    // A page that moves in the contents list must move in the sidebar, not
+    // keep the place it had on the first pull.
+    let (_tmp, db) = open_temp();
+    db.upsert_source(&full_source()).unwrap();
+    let mut first = full_page();
+    first.path = PagePath::new("a.html").unwrap();
+    let mut second = full_page();
+    second.path = PagePath::new("b.html").unwrap();
+
+    db.upsert_page(&first, 0).unwrap();
+    db.upsert_page(&second, 1).unwrap();
+    assert_eq!(listed_paths(&db), ["a.html", "b.html"]);
+
+    db.upsert_page(&first, 1).unwrap();
+    db.upsert_page(&second, 0).unwrap();
+    assert_eq!(listed_paths(&db), ["b.html", "a.html"]);
+}
+
+fn listed_paths(db: &Database) -> Vec<String> {
+    db.list_pages(&sid("python"))
         .unwrap()
         .into_iter()
         .map(|p| p.path.as_str().to_owned())
-        .collect();
-    assert_eq!(paths, ["a.html", "m/n.html", "z.html"]);
+        .collect()
 }
 
 #[test]
@@ -207,12 +253,15 @@ fn reopening_does_not_rerun_migrations_and_keeps_data() {
     let file = tmp.path().join("tome.db");
 
     let db = Database::open_at(&file).unwrap();
-    assert_eq!(db.schema_version().unwrap(), 1);
+    // Against the constant, not a literal: a literal here breaks on every
+    // migration and says nothing about the property under test, which is
+    // that reopening does not re-run them.
+    assert_eq!(db.schema_version().unwrap(), tome_core::db::SCHEMA_VERSION);
     db.upsert_source(&full_source()).unwrap();
     drop(db);
 
     let db = Database::open_at(&file).unwrap();
-    assert_eq!(db.schema_version().unwrap(), 1);
+    assert_eq!(db.schema_version().unwrap(), tome_core::db::SCHEMA_VERSION);
     assert!(db.get_source(&sid("python")).unwrap().is_some());
 }
 
