@@ -22,6 +22,9 @@ tracing-subscriber.workspace = true
 
 [dev-dependencies]
 tempfile = "3"
+# The CLI's JSON output is a contract; the tests parse it rather than
+# string-matching, so a key moving fails loudly.
+serde_json.workspace = true
 
 [lints]
 workspace = true

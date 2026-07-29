@@ -310,7 +310,7 @@ This is the stage that answers whether the product is possible.
 | S2-2 ✅ | Tantivy integration + schema | P2-001/002 | Opus — done 2026-07-29 — `tome-core/src/search/`: `schema.rs` (P2-002's seven fields), `tokenizer.rs` (camelCase/snake_case aware, emits the identifier *and* its parts), `extract.rs` (AST → fields), `mod.rs` (`SearchEngine` + `IndexSession`). SPIKE-003's harness removed as planned; its write-up stays |
 | S2-3 ✅ | Incremental indexing | P2-003 | Fable — done 2026-07-29 — `pipeline::index_source`, wired into `pull`. Change detection reads **the index**, not the database, so a cleared cache repopulates instead of reporting "all indexed" forever. One commit per sync, because a commit creates a segment and segment count is what degrades search (SPIKE-003 finding 4). A corrupt index is discarded and rebuilt — it is derived and lives in the cache. `tome search` implemented alongside (P4-005, brought forward) so the result is checkable by hand |
 | S2-4 ✅ | Ranking + boosts | P2-006 | Opus — done 2026-07-29 — `search/ranking.rs`. Coordinate descent over field boosts, a document-length penalty, and a query-time stopword policy, scored by S2-1 and constrained never to rank `symbol` queries below the untuned ranker. MRR 0.7489 → **0.8245**, recall@1 0.6377 → **0.7585**, `natural` MRR 0.2419 → **0.4596**; 48 queries better, 10 worse. **recall@3 reached 0.8744 against the 0.90 gate and tuning cannot close the rest** — see below |
-| S2-5 | Fuzzy matching | P2-009 | Fable, scored by S2-1 |
+| S2-5 ✅ | Fuzzy matching | P2-009 | Opus — done 2026-07-29 — `search/fuzzy.rs`. **Not** `FuzzyTermQuery`: it produces a `ConstScorer`, so every fuzzy hit would score identically and BM25 would be discarded for that term. Corrects the *query* against the term dictionary instead, which keeps scoring intact and makes "did you mean?" a by-product. `misspelling` recall@3 0.4167 → **0.7500**; nothing outside that category moved. Overhead ~2 µs when nothing is misspelled |
 | S2-6 | Symbol-aware search | P2-015 | Fable |
 | S2-7 | Search UI, results, scoping, history, keyboard | P2-004/005/008/016/017 | Fable ∥ |
 | S2-8 | In-page search | P2-007 | Fable |
@@ -358,10 +358,13 @@ private constants in `src/query/bm25.rs`, not weight parameters, so `Ranking::le
 applies a post-hoc divisor from the collector instead. Anyone re-reading this plan looking for
 `set_bm25_params` will not find it.
 
-**The Stage 2 exit gate is not met and tuning will not meet it.** recall@3 is 0.8744 against 0.90 —
-about five queries. The sweep converged, and a second run descending on recall@3 directly reached
-only 0.8792 while giving up MRR and symbol accuracy for it. The remaining block is `misspelling`
-(12 queries, 0.2500 recall@1), which is **S2-5's** by design. Do not report Stage 2 as passing.
+**The Stage 2 exit gate is one query short after S2-5.** recall@3 is **0.8986 against 0.90** over
+207 queries — 186 of them, where 187 would pass. A neighbouring configuration (`length_penalty`
+0.2) does reach 0.9034 and is deliberately **not** taken: picking a parameter because it crosses a
+threshold is fitting the gate rather than passing it, and that one costs `symbol` MRR
+(0.8817 → 0.8606), which the owner ranked first on 2026-07-29. The honest reading is that the gate
+is borderline and the gap is inside the noise of a corpus this size. **Do not report Stage 2 as
+passing**, and do not close the gap by re-labelling queries — that destroys the instrument.
 
 **S2-2 nonetheless landed first, and the table's order is the misleading part.** P2-019 lists
 P2-001 as a dependency for the obvious reason: a relevance harness needs an index to score. The

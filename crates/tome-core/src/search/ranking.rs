@@ -55,6 +55,24 @@ pub struct Ranking {
 
     /// Which words to drop from a typed query before it is parsed.
     pub stopwords: StopwordPolicy,
+
+    /// How much weight a corrected term carries relative to what was typed
+    /// (S2-5). `0.0` turns typo tolerance off entirely.
+    ///
+    /// Below 1.0 because a correction is a guess: a document that matched what
+    /// the user actually typed should not be displaced by one that matched
+    /// what they might have meant. In practice corrections are only generated
+    /// for terms that match *nothing*, so this rarely arbitrates between the
+    /// two — it mostly governs how much a correction may outweigh the terms
+    /// that were spelled correctly.
+    pub fuzzy: f32,
+
+    /// Ceiling on the edit distance a correction may cross.
+    ///
+    /// P2-009's schedule (0 for terms of ≤ 3 characters, 1 for 4–6, 2 beyond)
+    /// applies within this; the value only ever tightens it, and **2 is the
+    /// hard maximum** regardless — see [`super::fuzzy::max_distance`].
+    pub fuzzy_max_distance: u8,
 }
 
 /// Which words a query gives up before it is run.
@@ -78,26 +96,29 @@ pub enum StopwordPolicy {
 
 impl Ranking {
     /// The measured configuration, from `sweep_ranking_parameters` in
-    /// `tests/relevance.rs` on 2026-07-29 — coordinate descent on MRR over
-    /// 207 queries and 339 documents, constrained to never rank `symbol`
-    /// queries worse than the untuned ranker did.
+    /// `tests/relevance.rs` (2026-07-29) — coordinate descent over 207 queries
+    /// and 339 documents, constrained to never rank `symbol` queries worse
+    /// than the untuned ranker did, then checked against every one-step
+    /// neighbour.
     ///
-    /// | | before | tuned |
+    /// | | before S2-4 | tuned |
     /// |---|---|---|
-    /// | MRR | 0.7489 | **0.8245** |
+    /// | MRR | 0.7489 | **0.8351** |
     /// | recall@1 | 0.6377 | **0.7585** |
-    /// | recall@3 | 0.8357 | **0.8744** |
-    /// | `symbol` MRR | 0.8384 | **0.8792** |
-    /// | `natural` MRR | 0.2419 | **0.4596** |
+    /// | recall@3 | 0.8357 | **0.8986** |
+    /// | `symbol` MRR | 0.8384 | **0.8817** |
+    /// | `natural` MRR | 0.2419 | **0.4273** |
+    /// | `misspelling` MRR | 0.3125 | **0.6333** |
     ///
-    /// **recall@3 is still short of the Stage 2 exit gate's 0.90**, by roughly
-    /// five queries. Ranking alone did not close it and is not going to: the
-    /// sweep converged, and a second objective run maximising recall@3
-    /// directly reached only 0.8792 while giving up MRR and symbol accuracy to
-    /// get there. What remains is S2-5 (`misspelling` is 0.2500 recall@1 by
-    /// design until fuzzy matching exists) and better labels, not more tuning.
+    /// **recall@3 is 0.8986 against the Stage 2 exit gate's 0.90 — one query
+    /// short of 207.** A neighbouring configuration (`length_penalty` 0.2)
+    /// does reach 0.9034, and it is *not* taken: choosing a parameter because
+    /// it crosses a threshold is fitting the gate rather than passing it, and
+    /// that one costs `symbol` MRR (0.8817 → 0.8606), which the owner ranked
+    /// first. The honest reading is that the gate is borderline and the
+    /// remaining gap is inside the noise of a 207-query corpus.
     ///
-    /// Two of these values look wrong and are not:
+    /// Three of these values look wrong and are not:
     ///
     /// - **`title` is below `body`.** A title is a handful of tokens, so BM25's
     ///   own length normalisation already multiplies it heavily; an explicit
@@ -106,14 +127,20 @@ impl Ranking {
     /// - **`code` is below `headers`.** Measured, and consistent with the
     ///   earlier finding that removing the code field entirely is nearly a
     ///   wash — on these platforms method names are *also* headings.
+    /// - **`fuzzy_max_distance` is 2 although 1 scores identically.** No query
+    ///   in the corpus distinguishes them, so there is nothing to justify
+    ///   deviating from P2-009's specified schedule. A corpus with longer
+    ///   words would separate them.
     pub const TUNED: Self = Self {
         title: 0.75,
-        headers: 2.0,
+        headers: 1.5,
         body: 1.0,
         code: 1.0,
         length_pivot: 2_000,
         length_penalty: 0.4,
         stopwords: StopwordPolicy::Function,
+        fuzzy: 0.6,
+        fuzzy_max_distance: 2,
     };
 
     /// Field boosts only, with length penalty and stopwords off.
@@ -129,6 +156,8 @@ impl Ranking {
         length_pivot: 0,
         length_penalty: 0.0,
         stopwords: StopwordPolicy::None,
+        fuzzy: 0.0,
+        fuzzy_max_distance: 0,
     };
 }
 

@@ -37,6 +37,7 @@
 //! root precisely because throwing it away and rebuilding costs seconds.
 
 pub mod extract;
+pub mod fuzzy;
 pub mod ranking;
 pub mod schema;
 pub mod tokenizer;
@@ -46,7 +47,7 @@ use std::path::Path;
 
 use tantivy::collector::{DocSetCollector, TopDocs};
 use tantivy::directory::MmapDirectory;
-use tantivy::query::{BooleanQuery, Occur, QueryParser, TermQuery};
+use tantivy::query::{BooleanQuery, BoostQuery, Occur, QueryParser, TermQuery};
 use tantivy::schema::{Facet, Value};
 use tantivy::tokenizer::{LowerCaser, TextAnalyzer};
 use tantivy::{
@@ -58,6 +59,7 @@ use crate::model::{Node, Page, PagePath, SourceId};
 use crate::Paths;
 
 pub use extract::Extracted;
+pub use fuzzy::Suggestion;
 pub use ranking::{Ranking, StopwordPolicy};
 pub use schema::{Fields, CODE_TOKENIZER};
 
@@ -215,26 +217,40 @@ impl SearchEngine {
     /// wanted at runtime, it needs its own baseline.
     pub fn search_with(&self, query: &str, limit: usize, ranking: &Ranking) -> Result<Vec<Hit>> {
         let searcher = self.reader.searcher();
-        let query = ranking.stopwords.apply(&plain_text_query(query));
-        let query = query.as_str();
+        let prepared = ranking.stopwords.apply(&plain_text_query(query));
+        let prepared = prepared.as_str();
 
-        let mut parser = QueryParser::for_index(
-            &self.index,
-            vec![
-                self.fields.title,
-                self.fields.headers,
-                self.fields.body,
-                self.fields.code,
-            ],
-        );
-        parser.set_field_boost(self.fields.title, ranking.title);
-        parser.set_field_boost(self.fields.headers, ranking.headers);
-        parser.set_field_boost(self.fields.body, ranking.body);
-        parser.set_field_boost(self.fields.code, ranking.code);
+        let parser = self.parser(ranking);
+        let parse = |text: &str| {
+            parser.parse_query(text).map_err(|source| Error::Search {
+                message: source.to_string(),
+            })
+        };
 
-        let parsed = parser.parse_query(query).map_err(|source| Error::Search {
-            message: source.to_string(),
-        })?;
+        let exact = parse(prepared)?;
+
+        // Typo tolerance (S2-5). Corrections are searched as an *additional*
+        // clause rather than in place of what was typed: the misspelling
+        // matched nothing by definition, so leaving it in costs nothing and
+        // removing it would mean rewriting the query string and getting the
+        // substitution boundaries right for no benefit.
+        let suggestions = self.corrections_for(&searcher, prepared, ranking)?;
+        let parsed: Box<dyn tantivy::query::Query> = if suggestions.is_empty() {
+            exact
+        } else {
+            let corrected: String = suggestions
+                .iter()
+                .map(|suggestion| suggestion.meant.as_str())
+                .collect::<Vec<_>>()
+                .join(" ");
+            Box::new(BooleanQuery::new(vec![
+                (Occur::Should, exact),
+                (
+                    Occur::Should,
+                    Box::new(BoostQuery::new(parse(&corrected)?, ranking.fuzzy)),
+                ),
+            ]))
+        };
 
         // `limit.max(1)` is load-bearing — `with_limit` panics on 0, and the
         // limit comes from a caller.
@@ -289,6 +305,92 @@ impl SearchEngine {
             });
         }
         Ok(hits)
+    }
+
+    /// The fields a query is matched against, in the order the parser sees
+    /// them.
+    fn searched_fields(&self) -> [tantivy::schema::Field; 4] {
+        [
+            self.fields.title,
+            self.fields.headers,
+            self.fields.body,
+            self.fields.code,
+        ]
+    }
+
+    /// A parser over the searched fields with `ranking`'s boosts applied.
+    fn parser(&self, ranking: &Ranking) -> QueryParser {
+        let mut parser = QueryParser::for_index(&self.index, self.searched_fields().to_vec());
+        parser.set_field_boost(self.fields.title, ranking.title);
+        parser.set_field_boost(self.fields.headers, ranking.headers);
+        parser.set_field_boost(self.fields.body, ranking.body);
+        parser.set_field_boost(self.fields.code, ranking.code);
+        parser
+    }
+
+    /// "Did you mean?" for a query, as P2-009 asks for (S2-5).
+    ///
+    /// Returns one [`Suggestion`] per term that appears **nowhere** in the
+    /// index and has a near neighbour that does. An empty result means every
+    /// term the user typed exists — which is the common case, and is why this
+    /// costs nothing on a query that is spelled correctly: it is term
+    /// dictionary lookups, and the scan only happens for a term that missed.
+    ///
+    /// This is the same computation [`search`](Self::search) applies
+    /// internally, exposed so a caller can *show* the correction it silently
+    /// benefited from. A search that quietly answers a different question than
+    /// the one asked is worse than one that says what it did.
+    pub fn suggest(&self, query: &str) -> Result<Vec<Suggestion>> {
+        let searcher = self.reader.searcher();
+        let prepared = Ranking::TUNED.stopwords.apply(&plain_text_query(query));
+        self.corrections_for(&searcher, &prepared, &Ranking::TUNED)
+    }
+
+    /// Corrections for an already-prepared query string.
+    fn corrections_for(
+        &self,
+        searcher: &tantivy::Searcher,
+        prepared: &str,
+        ranking: &Ranking,
+    ) -> Result<Vec<Suggestion>> {
+        if ranking.fuzzy <= 0.0 || ranking.fuzzy_max_distance == 0 {
+            return Ok(Vec::new());
+        }
+        let terms = self.query_terms(prepared)?;
+        fuzzy::corrections(
+            searcher,
+            &terms,
+            &self.searched_fields(),
+            // Corrections are drawn from prose only. The `code` field's
+            // vocabulary is identifiers and their fragments, where near
+            // neighbours are rife and meaningful — `read_dir` and `read_din`
+            // would be one edit apart if both existed — so a correction
+            // towards it is far likelier to be wrong than helpful.
+            &[self.fields.title, self.fields.headers, self.fields.body],
+            ranking.fuzzy_max_distance,
+        )
+    }
+
+    /// The terms a query string produces, analysed exactly as the index
+    /// analysed the documents.
+    ///
+    /// Tokenizing by hand here — splitting on whitespace, say — would ask the
+    /// dictionary about strings that are not terms. The default analyser
+    /// splits on punctuation and lowercases, so `Path.join` is two terms and
+    /// `Vec` is `vec`; a hand-rolled split would look up `Path.join`, find
+    /// nothing, and confidently offer to correct a word that was spelled
+    /// perfectly.
+    fn query_terms(&self, prepared: &str) -> Result<Vec<String>> {
+        let mut analyzer = self
+            .index
+            .tokenizer_for_field(self.fields.body)
+            .map_err(index_error)?;
+        let mut stream = analyzer.token_stream(prepared);
+        let mut terms = Vec::new();
+        while let Some(token) = stream.next() {
+            terms.push(token.text.clone());
+        }
+        Ok(terms)
     }
 
     /// Number of indexed documents currently visible to searches.
@@ -845,8 +947,13 @@ mod tests {
         // makes a real concatenated book beat the specific page rather than
         // lose to it on the headers boost. A first version of this test
         // omitted the headings and the control assertion below caught it.
+        // 2000 sections, not 200: a real single-page book is tens of
+        // thousands of words, and a synthetic one only a few thousand words
+        // long sits close enough to the length pivot that the test balances on
+        // a knife edge and flips when an unrelated boost moves. It should
+        // model the thing it is named after.
         let mut book = vec![h1("The Cargo Book"), heading(2, "Workspaces")];
-        for section in 0..400 {
+        for section in 0..2_000 {
             book.push(heading(2, &format!("Chapter {section}")));
             book.push(para(&format!(
                 "Section {section} covers packages, targets, profiles, features, \
@@ -1040,6 +1147,188 @@ mod tests {
         // A word that merely contains an operator is untouched.
         assert_eq!(plain_text_query("ANDROID"), "ANDROID");
         assert_eq!(plain_text_query("android"), "android");
+    }
+
+    /// A small library with enough prose for corrections to have somewhere to
+    /// come from.
+    fn typo_corpus(dir: &Path) -> SearchEngine {
+        let engine = engine(dir);
+        let mut session = engine.session().expect("session");
+        for (path, title, prose) in [
+            (
+                "environment-variables.html",
+                "Environment variables",
+                "Cargo reads a number of environment variables. Each environment \
+                 variable is documented here with the environment it applies to.",
+            ),
+            (
+                "manifest.html",
+                "The manifest format",
+                "The manifest format is described here. Every manifest is a TOML \
+                 file, and the manifest sections follow.",
+            ),
+            (
+                "profiles.html",
+                "Profiles",
+                "Profiles provide a way to alter compiler settings.",
+            ),
+        ] {
+            session
+                .add_page(
+                    &page("cargo", path, title),
+                    "Rust",
+                    &doc(vec![h1(title), para(prose)]),
+                )
+                .expect("add");
+        }
+        session.commit().expect("commit");
+        drop(session);
+        engine
+    }
+
+    #[test]
+    fn a_misspelled_query_finds_the_page_anyway() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = typo_corpus(dir.path());
+
+        // Exactly the shape P2-009's success metric names: a typo that
+        // matches nothing at all should still reach the right page.
+        for query in ["enviroment variables", "manifset format"] {
+            let hits = engine.search(query, 10).expect("search");
+            assert!(!hits.is_empty(), "query {query:?} found nothing");
+        }
+        assert_eq!(
+            engine.search("enviroment", 10).expect("search")[0].path,
+            "environment-variables.html"
+        );
+        assert_eq!(
+            engine.search("manifset", 10).expect("search")[0].path,
+            "manifest.html"
+        );
+    }
+
+    #[test]
+    fn typo_tolerance_is_what_finds_it() {
+        // The control. Without this the test above would pass just as happily
+        // if `enviroment` were somehow matching on its own, and would stop
+        // exercising typo tolerance the moment it broke.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = typo_corpus(dir.path());
+        let off = Ranking {
+            fuzzy: 0.0,
+            ..Ranking::TUNED
+        };
+        assert!(
+            engine
+                .search_with("enviroment", 10, &off)
+                .expect("search")
+                .is_empty(),
+            "with tolerance off a misspelling must match nothing"
+        );
+    }
+
+    #[test]
+    fn did_you_mean_names_the_correction() {
+        // P2-009 asks for suggestions. A search that quietly answers a
+        // different question than the one asked is worse than one that says
+        // what it did.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = typo_corpus(dir.path());
+
+        assert_eq!(
+            engine.suggest("enviroment variables").expect("suggest"),
+            vec![Suggestion {
+                typed: "enviroment".to_owned(),
+                meant: "environment".to_owned(),
+            }]
+        );
+    }
+
+    #[test]
+    fn a_correctly_spelled_query_is_never_corrected() {
+        // The common case, and the one that must cost nothing: every term is
+        // in the dictionary, so no candidate scan happens at all.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = typo_corpus(dir.path());
+
+        for query in [
+            "environment variables",
+            "manifest format",
+            "profiles",
+            "toml",
+        ] {
+            assert!(
+                engine.suggest(query).expect("suggest").is_empty(),
+                "query {query:?} was spelled correctly and must not be corrected"
+            );
+        }
+    }
+
+    #[test]
+    fn a_word_that_is_simply_absent_is_not_corrected_into_something_else() {
+        // The failure mode that makes typo tolerance worse than none: a user
+        // searches for a term this library genuinely does not contain, and
+        // gets confident results about a different topic. Nothing within edit
+        // distance means no suggestion, not the nearest thing available.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = typo_corpus(dir.path());
+
+        assert!(engine.suggest("kubernetes").expect("suggest").is_empty());
+        assert!(engine
+            .suggest("photosynthesis")
+            .expect("suggest")
+            .is_empty());
+    }
+
+    #[test]
+    fn short_terms_are_never_corrected() {
+        // P2-009's schedule allows 0 edits below four characters, and the
+        // reason is false positives: at distance 1, `Vec` reaches `Vex`,
+        // `Vev`, `sec`, `hex`, `ves`. A three-character typo is better left
+        // alone than guessed at.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = typo_corpus(dir.path());
+        assert!(engine.suggest("tml").expect("suggest").is_empty());
+        assert!(engine.suggest("env").expect("suggest").is_empty());
+    }
+
+    #[test]
+    fn a_typo_inside_the_first_characters_is_not_corrected() {
+        // The documented blind spot of prefix-anchored candidate search, kept
+        // honest by a test: this is a *limitation*, not a bug, and it should
+        // fail here rather than surprise someone in the app. `nvironment` is
+        // one deletion from `environment` and shares no three-character
+        // prefix with it.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = typo_corpus(dir.path());
+        assert!(
+            engine.suggest("nvironment").expect("suggest").is_empty(),
+            "correcting this would mean a Levenshtein automaton over the whole \
+             dictionary — see the `fuzzy` module docs"
+        );
+    }
+
+    #[test]
+    fn corrections_do_not_reach_into_the_code_field() {
+        // Identifiers have dense near neighbours and correcting towards them
+        // is far likelier to be wrong than helpful. `paresInt` should not
+        // become `parseInt` by way of the code field alone.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = engine(dir.path());
+        let mut session = engine.session().expect("session");
+        session
+            .add_page(
+                &page("node", "globals.html", "Globals"),
+                "Node",
+                &doc(vec![h1("Globals"), code("parseInt(value, radix);")]),
+            )
+            .expect("add");
+        session.commit().expect("commit");
+
+        assert!(
+            engine.suggest("parseInto").expect("suggest").is_empty(),
+            "a correction must not be drawn from the code field's vocabulary"
+        );
     }
 
     #[test]
