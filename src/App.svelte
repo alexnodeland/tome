@@ -12,7 +12,7 @@
   import Outline from '$lib/components/Outline.svelte';
   import Reader from '$lib/components/Reader.svelte';
   import SearchModal from '$lib/components/SearchModal.svelte';
-  import { isCommand } from '$lib/keys';
+  import { isCommand, isCommandShift } from '$lib/keys';
   import { classifyLink, NavigationHistory, type HistoryEntry } from '$lib/navigation';
   import { preferences } from '$lib/stores/preferences';
   import {
@@ -263,6 +263,19 @@
     } else if (isCommand(event, '\\')) {
       event.preventDefault();
       layout?.toggleBoth();
+    } else if (isCommand(event, 'f')) {
+      // ⌘F is the browser's own find in a dev-server tab, and it would search
+      // the app's chrome rather than the page — the reader's document is not
+      // reachable from here. Preventing the default and routing to the frame
+      // is what makes it find the thing the user is looking at.
+      event.preventDefault();
+      reader?.openFind();
+    } else if (isCommand(event, 'g')) {
+      event.preventDefault();
+      reader?.stepFind(1);
+    } else if (isCommandShift(event, 'g')) {
+      event.preventDefault();
+      reader?.stepFind(-1);
     } else if (isCommand(event, '[')) {
       event.preventDefault();
       void goBack();

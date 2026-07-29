@@ -28,6 +28,13 @@ export default [
         document: 'readonly',
         performance: 'readonly',
         requestAnimationFrame: 'readonly',
+        NodeFilter: 'readonly',
+        // In-page find (S2-8) paints ranges through the CSS Custom Highlight
+        // API rather than mutating the DOM. Both globals are feature-detected
+        // at run time — see `canHighlight` — so listing them here asserts
+        // only that they are browser globals, not that they always exist.
+        CSS: 'readonly',
+        Highlight: 'readonly',
       },
     },
   },

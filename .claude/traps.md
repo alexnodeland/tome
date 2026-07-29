@@ -296,6 +296,29 @@ a test written from the same misunderstanding as the code agrees with it. The go
   Commands here are thin wrappers over plain functions taking `&Paths`; a command that does its
   work inline is a command that is never tested.
 
+- **`event.key` is uppercase when Shift is held.** `event.key === 'g'` never fires for ⇧⌘G, so
+  every Shift-bearing shortcut in Appendix C — and there are three — silently did nothing.
+  `isCommand` now excludes Shift and `isCommandShift` matches it, both comparing
+  case-insensitively. The two are mutually exclusive so one event cannot fire two actions.
+- **Nothing in the app can read the reader's document.** The frame is `sandbox="allow-scripts"`
+  with no `allow-same-origin`, so its origin is opaque: `window.find()`, `querySelector` and
+  `getSelection` from the shell all operate on the app's chrome. Anything that needs the page's
+  text — in-page find, and future annotation anchoring — runs in `public/reader-frame.js` and
+  answers by `postMessage`.
+- **Do not wrap matches in `<mark>`.** `Range.surroundContents` throws whenever a range partially
+  covers a node, which is the *normal* case for a match crossing the `<span>`s the syntax
+  highlighter emits. The CSS Custom Highlight API paints ranges without touching the DOM, which
+  also keeps the standing rule that highlighting is a render concern and not a mutation. It is
+  feature-detected and the result is reported, so a missing API shows "unavailable" rather than
+  "no matches" — a search that never ran must not claim the page is empty.
+- **A cosmetic failure must not take the answer with it.** `Range.getBoundingClientRect` does not
+  exist in every DOM, and an unguarded call from the scroll-to-match threw *out of the message
+  handler*, before the reply was sent — so the find bar reported "no matches" for a page full of
+  them. Same class as the `scrollIntoView` guard in the search modal.
+- **The frame replies asynchronously.** `postMessage` is queued as a task, so a test that asserts
+  synchronously after dispatching a message reads the state from before it was handled and passes
+  vacuously. `frameFind.test.ts` awaits a macrotask after every post.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

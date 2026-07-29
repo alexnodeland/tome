@@ -9,6 +9,7 @@
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
+  import FindBar from '$lib/components/FindBar.svelte';
   import { ReaderFrame } from '$lib/reader/bridge';
   import type { ReaderPage } from '$lib/tauri';
 
@@ -43,10 +44,22 @@
   let bridge: ReaderFrame | undefined;
   let shownKey = $state<string | null>(null);
 
+  // In-page find (S2-8). The state lives here rather than in the shell
+  // because it belongs to the frame's lifetime: changing page clears it.
+  let findOpen = $state(false);
+  let findTotal = $state(0);
+  let findIndex = $state(0);
+  let findSupported = $state(true);
+
   onMount(() => {
     bridge = new ReaderFrame(element, {
       onNavigate: (href, modified) => onnavigate?.(href, modified),
       onScroll: (state) => onscroll?.({ top: state.top, activeId: state.activeId }),
+      onFindResults: (state) => {
+        findTotal = state.total;
+        findIndex = state.index;
+        findSupported = state.supported;
+      },
     });
     bridge.attach();
     return () => bridge?.destroy();
@@ -62,11 +75,41 @@
     if (key === shownKey) return;
     shownKey = key;
     bridge.showPage(page.html, { fragment: fragment ?? undefined, scrollTop });
+    // The frame drops its match ranges when the document is replaced; the
+    // counter here has to follow, or the bar reports matches for a page that
+    // is no longer displayed.
+    findTotal = 0;
+    findIndex = 0;
   });
 
   /** Scroll the frame to a heading. Called by the TOC sidebar (S1-14). */
   export function scrollToHeading(id: string): void {
     bridge?.scrollTo(id);
+  }
+
+  /** Open the find bar, or refocus it if it is already open (⌘F). */
+  export function openFind(): void {
+    findOpen = true;
+  }
+
+  export function closeFind(): void {
+    findOpen = false;
+    // Clearing on close is the point of closing: leaving the page painted
+    // yellow after the bar has gone gives no way to remove the highlighting.
+    bridge?.findClear();
+    findTotal = 0;
+    findIndex = 0;
+  }
+
+  /** ⌘G / ⇧⌘G. Does nothing when the bar is closed, rather than searching for
+   *  whatever was last typed into a bar the user cannot see. */
+  export function stepFind(direction: 1 | -1): void {
+    if (!findOpen) return;
+    bridge?.findStep(direction);
+  }
+
+  export function isFindOpen(): boolean {
+    return findOpen;
   }
 </script>
 
@@ -75,6 +118,16 @@
        the one place the sandbox could be weakened is in code next to the
        comment explaining why it must not be. -->
   <iframe bind:this={element} title="Documentation"></iframe>
+
+  <FindBar
+    open={findOpen}
+    total={findTotal}
+    index={findIndex}
+    supported={findSupported}
+    onfind={(query) => bridge?.find(query)}
+    onstep={(direction) => bridge?.findStep(direction)}
+    onclose={closeFind}
+  />
 
   {#if !page}
     <p class="placeholder">Select a page to read.</p>

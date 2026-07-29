@@ -441,6 +441,29 @@ html {
    blocks rather than clipping them at a scroll boundary that does not exist
    on paper. */
 
+/* In-page find (S2-8, P2-007).
+
+   `::highlight()` rather than a class on a wrapper element, because there is
+   no wrapper: the frame paints ranges through the CSS Custom Highlight API and
+   never touches the DOM. Wrapping matches in <mark> would mean calling
+   `Range.surroundContents`, which throws whenever a range partially covers a
+   node — the normal case for a match crossing the <span>s the syntax
+   highlighter emits.
+
+   Only a small set of properties is allowed on a highlight pseudo-element
+   (colour, background, text-decoration, shadow); layout properties are ignored
+   by design, since a highlight must not be able to reflow the document. */
+::highlight(tome-find) {
+  background-color: var(--color-highlight-yellow);
+  color: var(--color-text-primary);
+}
+
+/* The current match, registered second so it paints over the general one. */
+::highlight(tome-find-current) {
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
 @media print {
   :root {
     color-scheme: light;
