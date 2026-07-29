@@ -1130,14 +1130,47 @@ Enable full keyboard control of search interface.
 Create automated benchmarks to track search performance.
 
 #### Acceptance Criteria
-- [ ] Benchmark index build time
-- [ ] Benchmark query latency (simple, complex, fuzzy)
-- [ ] Benchmark with varying index sizes
-- [ ] Memory usage during indexing
-- [ ] Regression detection in CI
-- [ ] Performance report generation
+- [x] Benchmark index build time — and gate it: indexing must stay under 10 ms per page, which is
+      still an order of magnitude below the cost of *fetching* one politely (SPIKE-003 finding 1).
+      That ratio is the whole justification for keeping the index in the cache
+- [x] Benchmark query latency, broken down by query kind — `misspelling` is the row to watch, being
+      the only kind that triggers a term-dictionary scan (S2-5)
+- [x] Benchmark with varying index sizes — 1×, 4× and 16× the corpus
+- [~] Memory usage during indexing — **not measured here.** SPIKE-003 measured peak RSS at 100 000
+      pages (439 MB) with a harness built for it; reproducing that inside a test would need the
+      same harness and the same corpus size, and a figure taken at 339 pages would be a number
+      without a meaning
+- [~] Regression detection in CI — **deliberately no committed timing baseline**; see below
+- [x] Performance report generation — `search_performance_report`, ignored by default
 
 #### Technical Notes
+
+**There is no committed timing baseline, and that is a decision rather than an omission.** Every
+other corpus here commits one and gates on regression against it — relevance, detection. Timings
+cannot work that way: a baseline recorded on one laptop fails on a slower one and passes on a
+faster one *while hiding a real regression*, and the failure reads as a code bug rather than a
+difference in the machine. It would be suppressed within a month.
+
+So the gate is an **absolute** threshold with enormous headroom. The spec asks for P95 < 100 ms;
+measured over the real corpus with the real 207 queries it is **158 µs in release and 1.47 ms in
+debug**. It fires on catastrophic regression — a lost index, an accidental full scan — and on
+nothing else. That is a narrower promise than the other corpora make, and it is the honest one.
+
+**The queries are the eval set's, not generated ones.** A synthetic query has whatever selectivity
+its author gave it, and a benchmark over generated pages measures the generator's idea of a
+document. The sketch below is kept for the record.
+
+Measured on 2026-07-29 (release, 339 documents, 207 queries):
+
+| Documents | Build | p50 | p95 |
+|---|---|---|---|
+| 339 | 437 ms | 83 µs | 167 µs |
+| 1 356 | 480 ms | 107 µs | 250 µs |
+| 5 424 | 728 ms | 132 µs | 343 µs |
+
+Latency grows **sub-linearly** with a 16× corpus, which is what an inverted index should do and
+what makes SPIKE-003's 100 000-page figures believable from here.
+
 ```rust
 #[bench]
 fn bench_simple_query(b: &mut Bencher) {
@@ -1161,9 +1194,11 @@ fn bench_index_build(b: &mut Bencher) {
 ```
 
 #### Success Metrics
-- Benchmarks complete in CI < 5 minutes
-- Regression alerts for > 20% slowdown
-- Coverage of critical paths
+- ✅ Benchmarks complete quickly — the gate runs in ~5 s in a debug build, ~1 s in release; the
+  full report is ~3 s and is `#[ignore]`d
+- [~] Regression alerts for > 20 % slowdown — not implemented, because a cross-machine wall-clock
+  baseline is unsound. See the note above
+- ✅ Coverage of critical paths — index build, and query latency by kind across three index sizes
 
 ---
 

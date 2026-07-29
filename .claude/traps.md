@@ -385,6 +385,16 @@ a test written from the same misunderstanding as the code agrees with it. The go
   vector, never through a shell. `PATH` is the user's shell's to control; a documentation reader
   resolving an executable through it is a documentation reader running arbitrary code.
 
+- **A committed timing baseline is unsound, unlike every other baseline here.** Relevance and
+  detection both commit one and gate on regression; timings cannot, because a figure recorded on
+  one laptop fails on a slower one and passes on a faster one *while hiding a real regression*, and
+  the failure reads as a code bug rather than a difference in the machine. The search benchmark
+  gates on an **absolute** threshold with ~600× headroom instead: it catches a lost index or an
+  accidental full scan, and deliberately nothing subtler.
+- **Benchmark with the eval set's queries, not generated ones.** A synthetic query has whatever
+  selectivity its author gave it, and a benchmark over generated pages measures the generator's
+  idea of a document.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does
