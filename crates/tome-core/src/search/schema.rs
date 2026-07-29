@@ -59,6 +59,14 @@ pub struct Fields {
     /// Hierarchical facet (`/Python/Standard Library`) for category
     /// filtering.
     pub category: Field,
+    /// The page's content hash, for incremental indexing (S2-3).
+    ///
+    /// **Stored but deliberately NOT indexed.** Nothing ever queries a hash by
+    /// term, and SPIKE-003 finding 2 is that index size scales with
+    /// vocabulary: 100 000 unique hashes would be 100 000 term-dictionary
+    /// entries bought for nothing. The sync path reads it from the stored
+    /// document instead.
+    pub content_hash: Field,
 }
 
 /// Query-time boosts.
@@ -101,6 +109,7 @@ pub fn build() -> (Schema, Fields) {
         body: builder.add_text_field("body", TEXT),
         code: builder.add_text_field("code", code_options),
         category: builder.add_facet_field("category", INDEXED),
+        content_hash: builder.add_text_field("content_hash", STORED),
     };
 
     (builder.build(), fields)
@@ -141,7 +150,25 @@ mod tests {
             .filter(|(_, entry)| entry.is_stored())
             .map(|(_, entry)| entry.name().to_owned())
             .collect();
-        assert_eq!(stored, vec!["source_id", "path", "title"]);
+        assert_eq!(
+            stored,
+            vec!["source_id", "path", "title", "content_hash"],
+            "only result-display fields and the sync key are stored"
+        );
+    }
+
+    #[test]
+    fn content_hash_is_stored_but_not_indexed() {
+        // A hash is never queried by term, and 100k unique hashes in the term
+        // dictionary is exactly the vocabulary growth SPIKE-003 measured as
+        // the driver of index size.
+        let (schema, fields) = build();
+        let entry = schema.get_field_entry(fields.content_hash);
+        assert!(entry.is_stored());
+        assert!(
+            !entry.is_indexed(),
+            "content_hash must not enter the term dictionary"
+        );
     }
 
     #[test]

@@ -308,7 +308,7 @@ This is the stage that answers whether the product is possible.
 |---|------|------|-------|
 | S2-1 ✅ | **Relevance eval set + harness** | P2-019 | Opus — done 2026-07-29 — `corpus/relevance/` (207 labelled queries, 339 documents, 6 sources) + `tests/relevance.rs`. Found a real defect on its first run: `()` and `[]` are query-parser syntax, so twelve symbol queries returned nothing. Symbol recall@1 0.7465 → **0.9474** after the fix. **Also measured its own weakness** — see below |
 | S2-2 ✅ | Tantivy integration + schema | P2-001/002 | Opus — done 2026-07-29 — `tome-core/src/search/`: `schema.rs` (P2-002's seven fields), `tokenizer.rs` (camelCase/snake_case aware, emits the identifier *and* its parts), `extract.rs` (AST → fields), `mod.rs` (`SearchEngine` + `IndexSession`). SPIKE-003's harness removed as planned; its write-up stays |
-| S2-3 | Incremental indexing | P2-003 | Fable |
+| S2-3 ✅ | Incremental indexing | P2-003 | Fable — done 2026-07-29 — `pipeline::index_source`, wired into `pull`. Change detection reads **the index**, not the database, so a cleared cache repopulates instead of reporting "all indexed" forever. One commit per sync, because a commit creates a segment and segment count is what degrades search (SPIKE-003 finding 4). A corrupt index is discarded and rebuilt — it is derived and lives in the cache. `tome search` implemented alongside (P4-005, brought forward) so the result is checkable by hand |
 | S2-4 | Ranking + boosts | P2-006 | Fable, scored by S2-1 |
 | S2-5 | Fuzzy matching | P2-009 | Fable, scored by S2-1 |
 | S2-6 | Symbol-aware search | P2-015 | Fable |

@@ -40,17 +40,18 @@ pub mod extract;
 pub mod schema;
 pub mod tokenizer;
 
+use std::collections::BTreeMap;
 use std::path::Path;
 
-use tantivy::collector::TopDocs;
+use tantivy::collector::{DocSetCollector, TopDocs};
 use tantivy::directory::MmapDirectory;
-use tantivy::query::QueryParser;
+use tantivy::query::{BooleanQuery, Occur, QueryParser, TermQuery};
 use tantivy::schema::{Facet, Value};
 use tantivy::tokenizer::{LowerCaser, TextAnalyzer};
 use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument, Term};
 
 use crate::error::{Error, Result};
-use crate::model::{Node, Page, SourceId};
+use crate::model::{Node, Page, PagePath, SourceId};
 use crate::Paths;
 
 pub use extract::Extracted;
@@ -84,6 +85,39 @@ impl SearchEngine {
     /// Open the library's index, creating it if absent.
     pub fn open(paths: &Paths) -> Result<Self> {
         Self::open_at(&paths.index_dir())
+    }
+
+    /// Open the library's index, rebuilding it from scratch if it will not
+    /// open (P2-003: "handle index corruption gracefully").
+    ///
+    /// Discarding the index is the *correct* response, not a desperate one:
+    /// it lives under the cache root precisely because it is derived, and
+    /// SPIKE-003 finding 1 measured a rebuild at 5–21 seconds for 100 000
+    /// pages against about seven hours to re-crawl them. Nothing
+    /// irreplaceable is here.
+    ///
+    /// Returns whether it had to rebuild, so a caller can reindex rather than
+    /// leave the user with a silently empty search.
+    pub fn open_or_rebuild(paths: &Paths) -> Result<(Self, bool)> {
+        let dir = paths.index_dir();
+        match Self::open_at(&dir) {
+            Ok(engine) => Ok((engine, false)),
+            Err(error) => {
+                tracing::warn!(
+                    %error,
+                    "search index could not be opened; discarding and rebuilding"
+                );
+                // Remove rather than truncate: a half-written segment file is
+                // exactly what would not open a second time either.
+                if dir.exists() {
+                    std::fs::remove_dir_all(&dir).map_err(|source| Error::CreateDirectory {
+                        path: dir.clone(),
+                        source,
+                    })?;
+                }
+                Ok((Self::open_at(&dir)?, true))
+            }
+        }
     }
 
     /// Open an index in a specific directory.
@@ -238,6 +272,41 @@ impl SearchEngine {
     pub fn segment_count(&self) -> usize {
         self.reader.searcher().segment_readers().len()
     }
+
+    /// Every page currently indexed for a source, as `path → content_hash`.
+    ///
+    /// This is the input to incremental indexing (S2-3), and it is read from
+    /// **the index itself** rather than from the database on purpose. The
+    /// database lives under the state root and the index under the cache
+    /// root, so the two can legitimately diverge — a user clearing their cache,
+    /// or macOS evicting it under disk pressure, leaves a full database and an
+    /// empty index. Asking the database what is indexed would then report
+    /// "everything, nothing to do" and leave search permanently empty with no
+    /// error anywhere. Asking the index makes the sync self-correcting.
+    pub fn indexed_pages(&self, source: &SourceId) -> Result<BTreeMap<String, String>> {
+        let searcher = self.reader.searcher();
+        let query = TermQuery::new(
+            Term::from_field_text(self.fields.source_id, source.as_str()),
+            tantivy::schema::IndexRecordOption::Basic,
+        );
+        let docs = searcher
+            .search(&query, &DocSetCollector)
+            .map_err(index_error)?;
+
+        let mut out = BTreeMap::new();
+        for address in docs {
+            let document: TantivyDocument = searcher.doc(address).map_err(index_error)?;
+            let text = |field| {
+                document
+                    .get_first(field)
+                    .and_then(|value| value.as_str())
+                    .unwrap_or_default()
+                    .to_owned()
+            };
+            out.insert(text(self.fields.path), text(self.fields.content_hash));
+        }
+        Ok(out)
+    }
 }
 
 /// Register the custom tokenizer on the index.
@@ -277,6 +346,7 @@ impl IndexSession<'_> {
             self.fields.body => extracted.body,
             self.fields.code => extracted.code,
             self.fields.category => facet_for(category),
+            self.fields.content_hash => page.content_hash.as_str(),
         );
 
         // Multi-valued: one entry per heading, so a phrase query cannot run
@@ -298,6 +368,39 @@ impl IndexSession<'_> {
             self.fields.source_id,
             source.as_str(),
         ));
+        Ok(())
+    }
+
+    /// Remove one page.
+    ///
+    /// A page's identity is the *pair* `(source_id, path)` — two sources may
+    /// hold the same path, and routinely do (`index.html`). Tantivy's cheaper
+    /// `delete_term` takes a single term, so this uses `delete_query` with a
+    /// conjunction rather than adding a synthetic `source_id\0path` field to
+    /// the schema: that field would be one more term per document, and
+    /// SPIKE-003 finding 2 measured index size as vocabulary-driven. Deletes
+    /// happen once per changed page during a sync, so the query costs nothing
+    /// worth optimising away.
+    pub fn delete_page(&mut self, source: &SourceId, path: &PagePath) -> Result<()> {
+        let query = BooleanQuery::new(vec![
+            (
+                Occur::Must,
+                Box::new(TermQuery::new(
+                    Term::from_field_text(self.fields.source_id, source.as_str()),
+                    tantivy::schema::IndexRecordOption::Basic,
+                )) as Box<dyn tantivy::query::Query>,
+            ),
+            (
+                Occur::Must,
+                Box::new(TermQuery::new(
+                    Term::from_field_text(self.fields.path, path.as_str()),
+                    tantivy::schema::IndexRecordOption::Basic,
+                )),
+            ),
+        ]);
+        self.writer
+            .delete_query(Box::new(query))
+            .map_err(index_error)?;
         Ok(())
     }
 

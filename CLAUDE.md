@@ -15,11 +15,12 @@ the reader work end to end: `tome pull` fetches a documentation site (robots, ra
 scope), normalizes, sanitizes, and localizes it into the library, and the app renders it offline in
 a sandboxed iframe with a library sidebar, a page outline, and back/forward.
 
-**Search exists as a library only.** `tome-core/src/search/` has the Tantivy index, schema, code
-tokenizer, and AST-to-text extraction (S2-2), but **nothing indexes during a pull and there is no
-search UI** — no user can reach it yet. **Sync, annotations, MCP, and the local HTTP API do not
-exist at all.** When asked whether something works, check rather than assume — much of this repo
-still describes intent rather than behaviour.
+**Search works from the CLI.** `tome pull` indexes as it goes and only rewrites pages whose content
+hash changed (S2-2, S2-3), and `tome search` queries it. There is **no search UI in the app yet**
+(S2-7), and ranking is untuned — the relevance eval reads 0.84 recall@3 against a ≥ 0.90 exit gate,
+with natural-language queries the worst category by far. **Sync, annotations, MCP, and the local
+HTTP API do not exist at all.** When asked whether something works, check rather than assume — much
+of this repo still describes intent rather than behaviour.
 
 ## Where things are
 

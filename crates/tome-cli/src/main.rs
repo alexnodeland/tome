@@ -19,6 +19,7 @@ use clap::{Parser, Subcommand};
 use tome_core::config::SourceConfig;
 use tome_core::db::Database;
 use tome_core::model::SourceId;
+use tome_core::search::SearchEngine;
 use tome_core::Paths;
 
 #[derive(Parser)]
@@ -130,13 +131,21 @@ fn main() -> Result<()> {
                 paths.sources_dir().display()
             );
         }
+        Command::Search {
+            query,
+            scope,
+            limit,
+        } => search(&paths, &query, scope.as_deref(), limit, cli.json)?,
         other => {
             let name = match other {
-                Command::Search { .. } => "search",
                 Command::Remove { .. } => "remove",
                 Command::Serve { .. } => "serve",
                 Command::Mcp { .. } => "mcp",
-                Command::Add { .. } | Command::Pull { .. } | Command::List | Command::Status => {
+                Command::Add { .. }
+                | Command::Pull { .. }
+                | Command::List
+                | Command::Search { .. }
+                | Command::Status => {
                     unreachable!("handled above")
                 }
             };
@@ -266,6 +275,24 @@ fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool) -> Result<(
                 report.asset_errors.len()
             );
         }
+        if let Some(index) = report.index {
+            if index.rebuilt {
+                println!("  search index was unreadable and has been rebuilt");
+            }
+            if index.is_noop() {
+                println!(
+                    "  search index already up to date ({} pages)",
+                    index.unchanged
+                );
+            } else {
+                // Named counts rather than a single total: "12 indexed" hides
+                // whether a re-pull found real changes or re-did work.
+                println!(
+                    "  search index: {} added, {} updated, {} removed, {} unchanged",
+                    index.added, index.updated, index.removed, index.unchanged
+                );
+            }
+        }
     }
 
     Ok(())
@@ -334,6 +361,69 @@ fn list(paths: &Paths, json: bool) -> Result<()> {
             ),
             None => println!("{:<24} {:<8} (never pulled)", id.as_str(), "-"),
         }
+    }
+    Ok(())
+}
+
+/// `tome search` (P4-005, brought forward by S2-3).
+///
+/// S2-3 wires indexing into `pull`; without a way to query it, "search works"
+/// would be a claim resting entirely on tests. This is the minimum that makes
+/// it checkable by hand. Result snippets (P2-005) and `--scope` accepting a
+/// category rather than only a source id are still P4-005's to finish.
+fn search(paths: &Paths, query: &str, scope: Option<&str>, limit: usize, json: bool) -> Result<()> {
+    // Read-only, so it must not bring a library into existence — same rule as
+    // `tome list`. A machine that has pulled nothing has an empty index, and
+    // "no results" is the correct answer rather than an error.
+    if !paths.index_dir().exists() {
+        if json {
+            println!("{}", serde_json::json!({ "results": [] }));
+        } else {
+            println!("No results — nothing has been pulled yet. Try `tome pull <source>`.");
+        }
+        return Ok(());
+    }
+
+    let engine = SearchEngine::open(paths)?;
+    // Over-fetch when scoping, because filtering happens after ranking and
+    // would otherwise return fewer than `limit` results from a large library.
+    // Scoping in the query itself is P2-016; this is the honest stopgap, and
+    // it is bounded so a huge limit cannot ask for the whole index.
+    let fetch = if scope.is_some() {
+        limit.saturating_mul(10).min(1000)
+    } else {
+        limit
+    };
+
+    let hits: Vec<_> = engine
+        .search(query, fetch)?
+        .into_iter()
+        .filter(|hit| scope.is_none_or(|s| hit.source.as_str() == s))
+        .take(limit)
+        .collect();
+
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "results": hits.iter().map(|hit| serde_json::json!({
+                    "source": hit.source.as_str(),
+                    "path": hit.path,
+                    "title": hit.title,
+                    "score": hit.score,
+                })).collect::<Vec<_>>()
+            })
+        );
+        return Ok(());
+    }
+
+    if hits.is_empty() {
+        println!("No results for {query:?}.");
+        return Ok(());
+    }
+    for hit in &hits {
+        println!("{:<24} {}", hit.source.as_str(), hit.title);
+        println!("{:<24} {}", "", hit.path);
     }
     Ok(())
 }
