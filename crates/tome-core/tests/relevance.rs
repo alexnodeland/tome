@@ -49,35 +49,40 @@
 //! syntax. Fixing that moved symbol recall@1 from 0.7465 to 0.9474 on the old
 //! corpus.
 //!
-//! # What S2-4 and S2-5 changed, measured
+//! # What S2-4, S2-5 and S2-6 changed, measured
 //!
 //! `sweep_ranking_parameters` below is the tool; [`Ranking::TUNED`] holds what
-//! it found. Against the untuned ranker, over the same 207 queries:
+//! it found. Over the same 207 queries throughout:
 //!
-//! | | before S2-4 | after S2-4 | after S2-5 |
-//! |---|---|---|---|
-//! | MRR | 0.7489 | 0.8245 | 0.8351 |
-//! | recall@1 | 0.6377 | 0.7585 | 0.7585 |
-//! | recall@3 | 0.8357 | 0.8744 | 0.8986 |
-//! | `natural` MRR | 0.2419 | 0.4596 | 0.4273 |
-//! | `symbol` MRR | 0.8384 | 0.8792 | 0.8817 |
-//! | `misspelling` MRR | 0.3125 | 0.3500 | 0.6333 |
+//! | | before S2-4 | S2-4 | S2-5 | S2-6 |
+//! |---|---|---|---|---|
+//! | MRR | 0.7489 | 0.8245 | 0.8351 | 0.8374 |
+//! | recall@1 | 0.6377 | 0.7585 | 0.7585 | 0.7585 |
+//! | recall@3 | 0.8357 | 0.8744 | 0.8986 | **0.9082** |
+//! | `natural` MRR | 0.2419 | 0.4596 | 0.4273 | 0.4633 |
+//! | `symbol` MRR | 0.8384 | 0.8792 | 0.8817 | **0.8919** |
+//! | `misspelling` MRR | 0.3125 | 0.3500 | 0.6333 | 0.6389 |
 //!
 //! S2-4 was field boosts, a document-length penalty and query-time stopwords;
-//! S2-5 was typo tolerance. Turning typo tolerance on moved **only**
-//! `misspelling` queries, which is the behaviour wanted from it.
+//! S2-5 typo tolerance; S2-6 a symbol field. Each moved mainly the category it
+//! was aimed at, which is the behaviour wanted from all three.
+//!
+//! **recall@3 clears the Stage 2 exit gate of 0.90** — 188 queries of 207 — and
+//! it took all three tickets to get there. At no point was a parameter chosen
+//! because it crossed the threshold; a candidate that did exactly that was
+//! rejected during S2-5. See [`Ranking::TUNED`].
 //!
 //! # What is still weak
 //!
-//! **recall@3 is 0.8986 against a Stage 2 exit gate of 0.90 — one query short
-//! of 207.** A neighbouring configuration reaches 0.9034, and taking it would
-//! be fitting the gate rather than passing it; see [`Ranking::TUNED`].
+//! `natural` (0.4633 MRR) is the weakest category, and it is a genuine tension
+//! rather than a bug: the pages that answer a "how do I …" question in prose
+//! are the enormous single-page ones (`go:doc/faq`, `cargo:cargo/print.html`)
+//! that the length penalty exists to demote. Closing it probably needs
+//! passage-level retrieval, not another boost.
 //!
-//! `natural` (0.4273 MRR) is now the weakest category. Two of its queries want
-//! a page that answers a "how do I …" question in prose, and the pages that
-//! do are the enormous single-page ones the length penalty exists to demote —
-//! so it is a genuine tension rather than a bug, and closing it probably needs
-//! passage-level retrieval rather than another boost.
+//! `cross-source` (0.6750 MRR) is second, and is partly a labelling artefact:
+//! a query answered equally well by three platforms has three right answers
+//! and the labels name a subset.
 //!
 //! Two `misspelling` queries are unreachable by design: `modual` -> `module`
 //! is 2 edits on a 6-character term and `pth` -> `path` is 1 edit on a
@@ -557,7 +562,7 @@ fn evaluate(engine: &SearchEngine, queries: &[Query], ranking: &Ranking) -> Scor
 fn sweep_row(label: &str, ranking: &Ranking, board: &Scoreboard) -> String {
     format!(
         "  {label:<26} t={:<5.2} h={:<4.1} b={:<4.1} c={:<4.1} pivot={:<6} pen={:<4.2} sw={:<10} \
-         fz={:<4.2}/{} | MRR {:.4}  r@1 {:.4}  r@3 {:.4}  sym {:.4}  nat {:.4}  ms {:.4}",
+sy={:<4.2} fz={:<4.2}/{} | MRR {:.4}  r@1 {:.4}  r@3 {:.4}  sym {:.4}  nat {:.4}  ms {:.4}",
         ranking.title,
         ranking.headers,
         ranking.body,
@@ -565,6 +570,7 @@ fn sweep_row(label: &str, ranking: &Ranking, board: &Scoreboard) -> String {
         ranking.length_pivot,
         ranking.length_penalty,
         format!("{:?}", ranking.stopwords),
+        ranking.symbols,
         ranking.fuzzy,
         ranking.fuzzy_max_distance,
         board.mrr,
@@ -686,6 +692,27 @@ fn sweep_ranking_parameters() {
             "headers 3.0",
             Ranking {
                 headers: 3.0,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "symbols 0.0",
+            Ranking {
+                symbols: 0.0,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "symbols 1.0",
+            Ranking {
+                symbols: 1.0,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "symbols 2.0",
+            Ranking {
+                symbols: 2.0,
                 ..Ranking::TUNED
             },
         ),
@@ -856,6 +883,70 @@ fn fuzzy_cost() {
     );
 }
 
+/// What symbol extraction actually finds across the corpus (S2-6).
+///
+/// `cargo test -p tome-core --test relevance -- --ignored --nocapture symbols`
+///
+/// P2-015 asks for "symbol extraction covers 80%+ of common patterns" and "no
+/// false positives for prose", and neither is checkable by reading the code.
+/// This prints the symbols per source and the most common names, which is
+/// where a bad extractor announces itself: if the top names are `main`, `buf`,
+/// `foo` and `options`, the extractor is reading example scaffolding — which
+/// is exactly what P2-015's own technical note produces, and why this
+/// implementation reads headings instead of code blocks.
+#[test]
+#[ignore = "a measurement, not a gate: run it by hand when changing extraction"]
+fn symbol_extraction_report() {
+    use tome_core::search::symbols;
+
+    let dir = corpus_dir().join("relevance");
+    let corpus: Corpus = serde_yaml_ng::from_str(
+        &std::fs::read_to_string(dir.join("corpus.yaml")).expect("read corpus.yaml"),
+    )
+    .expect("parse corpus.yaml");
+    let documents = load_documents(&corpus.sources);
+
+    let mut by_source: BTreeMap<&str, (usize, usize, usize)> = BTreeMap::new();
+    let mut names: BTreeMap<String, usize> = BTreeMap::new();
+    let mut kinds: BTreeMap<&str, usize> = BTreeMap::new();
+
+    for document in &documents {
+        let found = symbols::extract(&document.path, &document.page.title, &document.page.body);
+        let entry = by_source.entry(&document.source).or_insert((0, 0, 0));
+        entry.0 += 1;
+        entry.1 += found.all.len();
+        if let Some(primary) = &found.primary {
+            entry.2 += 1;
+            *kinds.entry(primary.kind.as_str()).or_default() += 1;
+        }
+        for symbol in &found.all {
+            *names.entry(symbol.name.clone()).or_default() += 1;
+        }
+    }
+
+    println!("\nsymbol extraction — {} documents\n", documents.len());
+    println!(
+        "  {:<14} {:>6} {:>9} {:>10}",
+        "source", "pages", "symbols", "reference"
+    );
+    for (source, (pages, found, primary)) in &by_source {
+        println!("  {source:<14} {pages:>6} {found:>9} {primary:>10}");
+    }
+
+    println!("\n  primary kinds: {kinds:?}");
+    println!("  distinct symbol names: {}", names.len());
+
+    let mut ranked: Vec<_> = names.iter().collect();
+    ranked.sort_by(|a, b| b.1.cmp(a.1).then(a.0.cmp(b.0)));
+    println!(
+        "\n  most common (the tell — scaffolding names here means the extractor is\n  \
+         reading examples rather than declarations):"
+    );
+    for (name, count) in ranked.iter().take(25) {
+        println!("    {count:>4}  {name}");
+    }
+}
+
 /// Coordinate descent from [`Ranking::UNTUNED`], maximising `pick`.
 fn descend(
     engine: &SearchEngine,
@@ -891,6 +982,13 @@ fn descend(
                 r.headers = [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0][i];
             }),
             7,
+        ),
+        (
+            "symbols",
+            Box::new(|r: &mut Ranking, i: usize| {
+                r.symbols = [0.0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0][i];
+            }),
+            8,
         ),
         (
             "code",

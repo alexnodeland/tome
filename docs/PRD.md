@@ -1087,9 +1087,21 @@ cargo                    Environment variables
                          cargo/reference/environment-variables.html
 ```
 
-Under `--json` the corrections are a `suggestions` array of `{typed, meant}` objects. It is
-**always present, even when empty**, so `tome search --json | jq` needs no empty-library special
-case — the same rule `tome list --json` follows.
+Prefixing a term with `@` searches **declared symbols only** (P2-015) — the pages that declare it,
+rather than every page that mentions it:
+
+```
+$ tome search "@with_capacity"
+rust-std                 Struct Vec  [type]
+                         std/vec/struct.Vec.html
+```
+
+The `[type]` suffix is the kind of symbol the page documents — `function`, `type`, `trait`,
+`module`, `constant`, `macro` — and is absent for a page that documents no single symbol.
+
+Under `--json`, `results` entries carry `symbol_kind` (`null` for prose pages) and corrections are a
+`suggestions` array of `{typed, meant}` objects. Both keys are **always present, even when empty**,
+so `tome search --json | jq` needs no special case — the same rule `tome list --json` follows.
 
 **Naming: `pull` fetches documentation; there is no `tome sync`.**
 

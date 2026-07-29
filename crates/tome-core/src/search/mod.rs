@@ -40,6 +40,7 @@ pub mod extract;
 pub mod fuzzy;
 pub mod ranking;
 pub mod schema;
+pub mod symbols;
 pub mod tokenizer;
 
 use std::collections::BTreeMap;
@@ -62,6 +63,7 @@ pub use extract::Extracted;
 pub use fuzzy::Suggestion;
 pub use ranking::{Ranking, StopwordPolicy};
 pub use schema::{Fields, CODE_TOKENIZER};
+pub use symbols::{Symbol, SymbolKind, Symbols};
 
 /// Writer memory budget, in bytes.
 ///
@@ -78,6 +80,9 @@ pub struct Hit {
     pub path: String,
     pub title: String,
     pub score: f32,
+    /// What this page documents, when it is a reference page for one symbol
+    /// (P2-015). `None` for prose — a guide, a tutorial, an index.
+    pub symbol_kind: Option<SymbolKind>,
 }
 
 /// The library's search index.
@@ -143,7 +148,19 @@ impl SearchEngine {
         let directory = MmapDirectory::open(dir).map_err(|source| Error::Search {
             message: source.to_string(),
         })?;
-        let index = Index::open_or_create(directory, index_schema).map_err(index_error)?;
+        // A schema mismatch is not a generic search failure: it means this
+        // build changed `schema::build` and every existing library's index is
+        // unreadable until it is rebuilt. It gets its own error so a *read*
+        // command can say that, rather than either printing tantivy's internal
+        // wording or quietly deleting an index the user did not ask it to
+        // touch. `open_or_rebuild` is the path that may discard.
+        let index = Index::open_or_create(directory, index_schema).map_err(|source| {
+            if matches!(source, tantivy::TantivyError::SchemaError(_)) {
+                Error::IndexSchemaOutdated
+            } else {
+                index_error(source)
+            }
+        })?;
 
         register_tokenizers(&index);
 
@@ -217,6 +234,16 @@ impl SearchEngine {
     /// wanted at runtime, it needs its own baseline.
     pub fn search_with(&self, query: &str, limit: usize, ranking: &Ranking) -> Result<Vec<Hit>> {
         let searcher = self.reader.searcher();
+
+        // `@symbol` forces a symbol-only search (P2-015). Split out *before*
+        // `plain_text_query`, which would otherwise leave `@` in the query
+        // text as an ordinary character and search for it.
+        let forced = forced_symbols(query);
+        if !forced.is_empty() {
+            let parsed = self.symbol_only_query(&forced)?;
+            return self.collect(&searcher, parsed.as_ref(), limit, ranking);
+        }
+
         let prepared = ranking.stopwords.apply(&plain_text_query(query));
         let prepared = prepared.as_str();
 
@@ -252,6 +279,21 @@ impl SearchEngine {
             ]))
         };
 
+        self.collect(&searcher, parsed.as_ref(), limit, ranking)
+    }
+
+    /// Run a built query through the ranking collector and read the hits back.
+    ///
+    /// Shared by the ordinary path and the `@symbol` one so that a forced
+    /// symbol search is still length-penalised and still reports symbol kinds
+    /// — a second collector here would be a second place for ranking to drift.
+    fn collect(
+        &self,
+        searcher: &tantivy::Searcher,
+        parsed: &dyn tantivy::query::Query,
+        limit: usize,
+        ranking: &Ranking,
+    ) -> Result<Vec<Hit>> {
         // `limit.max(1)` is load-bearing — `with_limit` panics on 0, and the
         // limit comes from a caller.
         //
@@ -275,7 +317,7 @@ impl SearchEngine {
                     ranking::length_scaled(original, length, pivot, strength)
                 }
             });
-        let top = searcher.search(&parsed, &collector).map_err(index_error)?;
+        let top = searcher.search(parsed, &collector).map_err(index_error)?;
 
         let mut hits = Vec::with_capacity(top.len());
         for (score, address) in top {
@@ -302,19 +344,36 @@ impl SearchEngine {
                 path: text(self.fields.path),
                 title: text(self.fields.title),
                 score,
+                symbol_kind: SymbolKind::parse(&text(self.fields.symbol_kind)),
             });
         }
         Ok(hits)
     }
 
+    /// A query over the `symbols` field alone, for `@symbol` (P2-015).
+    ///
+    /// Deliberately not "the ordinary query with the symbols boost turned up":
+    /// `@` is a user saying *only* declarations, and a boost still returns
+    /// every page that mentions the word in prose. Restricting the field is
+    /// what makes the syntax worth typing.
+    fn symbol_only_query(&self, terms: &[String]) -> Result<Box<dyn tantivy::query::Query>> {
+        let mut parser = QueryParser::for_index(&self.index, vec![self.fields.declarations]);
+        parser.set_field_boost(self.fields.declarations, 1.0);
+        let text = plain_text_query(&terms.join(" "));
+        parser.parse_query(&text).map_err(|source| Error::Search {
+            message: source.to_string(),
+        })
+    }
+
     /// The fields a query is matched against, in the order the parser sees
     /// them.
-    fn searched_fields(&self) -> [tantivy::schema::Field; 4] {
+    fn searched_fields(&self) -> [tantivy::schema::Field; 5] {
         [
             self.fields.title,
             self.fields.headers,
             self.fields.body,
             self.fields.code,
+            self.fields.symbol,
         ]
     }
 
@@ -325,6 +384,7 @@ impl SearchEngine {
         parser.set_field_boost(self.fields.headers, ranking.headers);
         parser.set_field_boost(self.fields.body, ranking.body);
         parser.set_field_boost(self.fields.code, ranking.code);
+        parser.set_field_boost(self.fields.symbol, ranking.symbols);
         parser
     }
 
@@ -475,6 +535,9 @@ impl IndexSession<'_> {
     /// results can be filtered by. `content` is the page's stored AST.
     pub fn add_page(&mut self, page: &Page, category: &str, content: &Node) -> Result<()> {
         let extracted = extract::extract(content);
+        // Symbols come from the path, the title and the headings — never from
+        // code blocks. See `symbols`' module docs for the measurement.
+        let found = symbols::extract(page.path.as_str(), page.title.as_str(), content);
 
         let mut document = doc!(
             self.fields.source_id => page.source.as_str(),
@@ -483,8 +546,18 @@ impl IndexSession<'_> {
             self.fields.body => extracted.body,
             self.fields.code => extracted.code,
             self.fields.category => facet_for(category),
+            self.fields.symbol => found.primary_name(),
+            self.fields.declarations => found.names(),
             self.fields.content_hash => page.content_hash.as_str(),
         );
+
+        // Only the primary symbol's kind is stored, and only when the page has
+        // one: a guide or a tutorial is not a reference page for anything, and
+        // writing an empty string for every such page would put a term in the
+        // stored data for no reader.
+        if let Some(primary) = &found.primary {
+            document.add_text(self.fields.symbol_kind, primary.kind.as_str());
+        }
 
         // Multi-valued: one entry per heading, so a phrase query cannot run
         // from the end of one heading into the start of the next.
@@ -568,6 +641,27 @@ fn facet_for(category: &str) -> Facet {
         return Facet::root();
     }
     Facet::from_path(trimmed.split('/').filter(|s| !s.is_empty()))
+}
+
+/// The `@`-prefixed terms in a query, which force a symbol-only search
+/// (P2-015).
+///
+/// Read before [`plain_text_query`] gets the string, because `@` is not
+/// query-parser syntax and would otherwise survive into the query as an
+/// ordinary character — `@Vec` would search for the literal text `@Vec` and
+/// find nothing.
+///
+/// A bare `@` with nothing after it yields nothing, so typing the sigil and
+/// pausing gives an ordinary search rather than an empty one. Terms without
+/// the sigil in the same query are **dropped**: `@Vec push` means "the symbol
+/// Vec", and silently searching prose for `push` alongside it would make the
+/// results indistinguishable from not having typed `@` at all.
+fn forced_symbols(raw: &str) -> Vec<String> {
+    raw.split_whitespace()
+        .filter_map(|word| word.strip_prefix('@'))
+        .filter(|rest| !rest.is_empty())
+        .map(str::to_owned)
+        .collect()
 }
 
 /// Neutralise Tantivy query-parser syntax in text a person typed.
@@ -1329,6 +1423,196 @@ mod tests {
             engine.suggest("parseInto").expect("suggest").is_empty(),
             "a correction must not be drawn from the code field's vocabulary"
         );
+    }
+
+    /// A rustdoc-shaped reference page and a prose page that talks about it.
+    fn symbol_corpus(dir: &Path) -> SearchEngine {
+        let engine = engine(dir);
+        let mut session = engine.session().expect("session");
+
+        session
+            .add_page(
+                &page("rust", "std/vec/struct.Vec.html", "Struct Vec"),
+                "Rust",
+                &doc(vec![
+                    h1("Struct Vec"),
+                    para("A contiguous growable array type."),
+                    heading(4, "pub fn with_capacity(capacity: usize) -> Vec<T>"),
+                    heading(4, "pub fn push(&mut self, value: T)"),
+                ]),
+            )
+            .expect("add");
+
+        // Prose that mentions the same words, declares nothing.
+        session
+            .add_page(
+                &page(
+                    "rust",
+                    "book/ch08-01-vectors.html",
+                    "Storing Lists of Values",
+                ),
+                "Rust",
+                &doc(vec![
+                    h1("Storing Lists of Values"),
+                    para(
+                        "A vector lets you store values. Use with_capacity to reserve \
+                         room, and push to add to it. Vec is the type you want.",
+                    ),
+                ]),
+            )
+            .expect("add");
+
+        session.commit().expect("commit");
+        drop(session);
+        engine
+    }
+
+    #[test]
+    fn at_symbol_returns_only_pages_that_declare_it() {
+        // P2-015's `@symbol`. The point of the syntax is precision: both pages
+        // here contain the word `with_capacity`, and only one declares it.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = symbol_corpus(dir.path());
+
+        let hits = engine.search("@with_capacity", 10).expect("search");
+        assert_eq!(hits.len(), 1, "got {hits:?}");
+        assert_eq!(hits[0].path, "std/vec/struct.Vec.html");
+
+        // Without the sigil the prose page is a legitimate result, which is
+        // the contrast that makes `@` worth typing.
+        let plain = engine.search("with_capacity", 10).expect("search");
+        assert_eq!(plain.len(), 2, "got {plain:?}");
+    }
+
+    #[test]
+    fn at_symbol_finds_declarations_that_are_not_the_page_subject() {
+        // `push` is declared by the Vec page but is not what the page is
+        // *about*, so it lives in `declarations` rather than `symbol`. If
+        // `@` searched only the primary symbol this would find nothing.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = symbol_corpus(dir.path());
+        let hits = engine.search("@push", 10).expect("search");
+        assert_eq!(hits.len(), 1, "got {hits:?}");
+        assert_eq!(hits[0].path, "std/vec/struct.Vec.html");
+    }
+
+    #[test]
+    fn a_bare_at_is_an_ordinary_search() {
+        // Someone who has typed the sigil and not yet typed a name should get
+        // results, not an empty list. A search box sees this on every
+        // keystroke.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = symbol_corpus(dir.path());
+        assert!(!engine.search("@ vector", 10).expect("search").is_empty());
+        assert!(engine.search("@", 10).is_ok());
+    }
+
+    #[test]
+    fn results_report_what_kind_of_symbol_the_page_documents() {
+        // P2-015's "symbol type in results". A prose page documents no symbol
+        // and must say so rather than guessing a kind.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = symbol_corpus(dir.path());
+
+        let hits = engine.search("@Vec", 10).expect("search");
+        assert_eq!(hits[0].symbol_kind, Some(SymbolKind::Type));
+
+        let prose = engine
+            .search("storing lists of values", 10)
+            .expect("search");
+        assert_eq!(
+            prose[0].symbol_kind, None,
+            "a prose page is not a reference page for a symbol"
+        );
+    }
+
+    #[test]
+    fn declarations_are_not_blended_into_an_ordinary_query() {
+        // Measured on the eval corpus: blending them made relevance markedly
+        // worse, because every rustdoc page declares `from`, `into`, `borrow`
+        // and `fmt` as trait boilerplate. Pinned here so the field cannot be
+        // quietly added to the ordinary query later.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let engine = engine(dir.path());
+        let mut session = engine.session().expect("session");
+        session
+            .add_page(
+                &page("rust", "std/vec/struct.Vec.html", "Struct Vec"),
+                "Rust",
+                &doc(vec![
+                    h1("Struct Vec"),
+                    heading(4, "pub fn zzunlikely(&self) -> bool"),
+                ]),
+            )
+            .expect("add");
+        session
+            .add_page(
+                &page("rust", "guide.html", "A guide"),
+                "Rust",
+                &doc(vec![
+                    h1("A guide"),
+                    para("zzunlikely appears in prose here."),
+                ]),
+            )
+            .expect("add");
+        session.commit().expect("commit");
+
+        // The declaration exists, but an ordinary query must reach it through
+        // `headers` rather than `declarations` — so the prose page, which
+        // genuinely contains the word, is not pushed out.
+        let hits = engine.search("zzunlikely", 10).expect("search");
+        assert_eq!(hits.len(), 2, "got {hits:?}");
+        // And `@` still reaches the declaration alone.
+        let forced = engine.search("@zzunlikely", 10).expect("search");
+        assert_eq!(forced.len(), 1);
+        assert_eq!(forced[0].path, "std/vec/struct.Vec.html");
+    }
+
+    #[test]
+    fn forced_symbols_reads_only_the_sigil_terms() {
+        assert_eq!(forced_symbols("@Vec"), vec!["Vec".to_owned()]);
+        assert_eq!(
+            forced_symbols("@Vec @HashMap"),
+            vec!["Vec".to_owned(), "HashMap".to_owned()]
+        );
+        // Unprefixed terms are dropped: `@Vec push` means the symbol Vec, and
+        // quietly searching prose for `push` alongside it would make the
+        // results indistinguishable from an ordinary query.
+        assert_eq!(forced_symbols("@Vec push"), vec!["Vec".to_owned()]);
+        // A bare sigil is not a symbol search.
+        assert!(forced_symbols("@").is_empty());
+        assert!(forced_symbols("@ Vec").is_empty());
+        assert!(forced_symbols("plain query").is_empty());
+        // An `@` inside a word is not a sigil — `user@example.com`.
+        assert!(forced_symbols("user@example.com").is_empty());
+    }
+
+    #[test]
+    fn an_outdated_index_says_so_rather_than_failing_obscurely() {
+        // Adding a field to `schema::build` makes every existing library's
+        // index unreadable. A read command has to be able to tell the user
+        // that, and must not delete the index to find out.
+        let dir = tempfile::tempdir().expect("tempdir");
+        {
+            let mut builder = tantivy::schema::Schema::builder();
+            builder.add_text_field("something_else", tantivy::schema::TEXT);
+            let directory = MmapDirectory::open(dir.path()).expect("open dir");
+            Index::open_or_create(directory, builder.build()).expect("create old index");
+        }
+
+        let Err(error) = SearchEngine::open_at(dir.path()) else {
+            panic!("a mismatched schema must not open");
+        };
+        assert!(
+            matches!(error, Error::IndexSchemaOutdated),
+            "got {error:?}, which will not tell anyone what to do"
+        );
+        assert!(
+            error.to_string().contains("tome pull"),
+            "the message must name the remedy: {error}"
+        );
+        // And the index is still there — a read must not destroy it.
+        assert!(dir.path().join("meta.json").exists());
     }
 
     #[test]

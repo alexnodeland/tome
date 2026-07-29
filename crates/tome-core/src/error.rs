@@ -85,6 +85,24 @@ pub enum Error {
     #[error("Search failed: {message}")]
     Search { message: String },
 
+    /// The index on disk was written against a different schema.
+    ///
+    /// Its own variant rather than a [`Search`](Self::Search) with a tantivy
+    /// message in it, because it is the one search failure with a specific,
+    /// safe remedy that the user can act on — re-index — and because a read
+    /// command must be able to *say* that rather than silently deleting a
+    /// derived-but-expensive-to-repopulate index behind the user's back.
+    ///
+    /// Adding, removing or retyping a field in `search::schema` causes this
+    /// for every existing library. The index lives under the cache root
+    /// precisely so that is recoverable: SPIKE-003 measured a rebuild at
+    /// 5–21 seconds for 100 000 pages, against about seven hours to re-crawl.
+    #[error(
+        "The search index was built for an older version of Tome and cannot be read. \
+         Run `tome pull --all` to rebuild it."
+    )]
+    IndexSchemaOutdated,
+
     #[error("{0}")]
     Io(#[from] std::io::Error),
 }

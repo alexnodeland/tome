@@ -52,6 +52,10 @@ enum Command {
         all: bool,
     },
     /// Search documentation.
+    ///
+    /// Prefix a term with `@` to search declared symbols only:
+    /// `tome search @with_capacity` returns the pages that *declare* it,
+    /// rather than every page that mentions it.
     Search {
         query: String,
         #[arg(long)]
@@ -417,6 +421,9 @@ fn search(paths: &Paths, query: &str, scope: Option<&str>, limit: usize, json: b
                     "path": hit.path,
                     "title": hit.title,
                     "score": hit.score,
+                    // `null` for a page that documents no single symbol — a
+                    // guide or a tutorial. Always present, like `suggestions`.
+                    "symbol_kind": hit.symbol_kind.map(|kind| kind.as_str()),
                 })).collect::<Vec<_>>(),
                 // Always present, even when empty, so `tome search --json | jq`
                 // needs no special case. The same rule `tome list --json`
@@ -444,7 +451,18 @@ fn search(paths: &Paths, query: &str, scope: Option<&str>, limit: usize, json: b
         return Ok(());
     }
     for hit in &hits {
-        println!("{:<24} {}", hit.source.as_str(), hit.title);
+        // The kind, when the page documents one symbol, goes on the title line
+        // — it is what tells a reader that `Vec` is a type and `read_to_string`
+        // a function without opening either (P2-015).
+        match hit.symbol_kind {
+            Some(kind) => println!(
+                "{:<24} {}  [{}]",
+                hit.source.as_str(),
+                hit.title,
+                kind.as_str()
+            ),
+            None => println!("{:<24} {}", hit.source.as_str(), hit.title),
+        }
         println!("{:<24} {}", "", hit.path);
     }
     Ok(())

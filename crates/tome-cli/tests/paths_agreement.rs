@@ -252,3 +252,114 @@ fn search_reports_the_typo_it_corrected() {
         "reference/environment-variables.html"
     );
 }
+
+#[test]
+fn search_reports_symbol_kinds_and_honours_the_at_sigil() {
+    // Through the real binary, because both the `[type]` suffix on the human
+    // output and the `symbol_kind` key in the JSON are contracts (P2-015).
+    use tome_core::model::{ContentHash, Node, Page, PagePath, SourceId};
+
+    let home = tempfile::tempdir().expect("tempdir");
+    let paths = Paths::under_root(home.path());
+    paths.ensure_created().expect("create library");
+
+    let heading = |level: u8, value: &str| Node::Heading {
+        level,
+        id: None,
+        children: vec![Node::Text {
+            value: value.to_owned(),
+        }],
+    };
+
+    {
+        let engine = tome_core::search::SearchEngine::open(&paths).expect("open index");
+        let mut session = engine.session().expect("session");
+        let add = |session: &mut tome_core::search::IndexSession<'_>,
+                   path: &str,
+                   title: &str,
+                   body: Vec<Node>| {
+            session
+                .add_page(
+                    &Page::new(
+                        SourceId::new("rust").expect("source id"),
+                        PagePath::new(path).expect("page path"),
+                        title,
+                        ContentHash::new("0".repeat(64)).expect("hash"),
+                    ),
+                    "Rust",
+                    &Node::Document { children: body },
+                )
+                .expect("add page");
+        };
+        add(
+            &mut session,
+            "std/vec/struct.Vec.html",
+            "Struct Vec",
+            vec![
+                heading(1, "Struct Vec"),
+                heading(4, "pub fn with_capacity(capacity: usize) -> Vec<T>"),
+            ],
+        );
+        add(
+            &mut session,
+            "book/vectors.html",
+            "Storing Lists",
+            vec![
+                heading(1, "Storing Lists"),
+                Node::Paragraph {
+                    children: vec![Node::Text {
+                        value: "Use with_capacity to reserve room in a vector.".to_owned(),
+                    }],
+                },
+            ],
+        );
+        session.commit().expect("commit");
+    }
+
+    let run = |query: &str, json: bool| {
+        let mut args = vec!["search", query];
+        if json {
+            args.push("--json");
+        }
+        let out = Command::new(tome_bin())
+            .args(&args)
+            .env("TOME_HOME", home.path())
+            .output()
+            .expect("`tome search` runs");
+        assert!(
+            out.status.success(),
+            "search failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).expect("stdout is UTF-8")
+    };
+
+    // `@` narrows to declarations. Both pages contain `with_capacity`; only
+    // one declares it.
+    let forced: serde_json::Value =
+        serde_json::from_str(&run("@with_capacity", true)).expect("JSON");
+    let results = forced["results"].as_array().expect("results array");
+    assert_eq!(results.len(), 1, "got {results:?}");
+    assert_eq!(results[0]["path"], "std/vec/struct.Vec.html");
+    assert_eq!(results[0]["symbol_kind"], "type");
+
+    // Without the sigil both are legitimate results.
+    let plain: serde_json::Value = serde_json::from_str(&run("with_capacity", true)).expect("JSON");
+    assert_eq!(plain["results"].as_array().expect("array").len(), 2);
+
+    // A page that documents no single symbol reports null rather than being
+    // omitted, so `jq` needs no special case.
+    let prose = plain["results"]
+        .as_array()
+        .expect("array")
+        .iter()
+        .find(|hit| hit["path"] == "book/vectors.html")
+        .expect("the prose page is in the results");
+    assert!(prose["symbol_kind"].is_null(), "got {prose:?}");
+
+    // And the human output labels the kind.
+    assert!(
+        run("@with_capacity", false).contains("[type]"),
+        "the kind should be visible without --json"
+    );
+}
