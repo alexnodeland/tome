@@ -60,16 +60,14 @@ images included, anchors working, and the golden corpus committed.*
 | Golden corpus committed | **Done.** 26 real pages, six platforms, licences verified per source |
 | Network off | **Proven by test, not by pulling the plug.** `tests/reader_offline.rs` shuts the fixture server down and asserts the rendered HTML reaches for nothing; the same assertion run over the real pulled data finds zero remote references. Nobody has literally turned the wifi off and read for an hour |
 
-Two honest caveats:
+One caveat: **frame pacing under bridge traffic is still unmeasured**, exactly as SPIKE-002
+predicted — an occluded WKWebView suspends rAF entirely. Nothing in the reader gates on rAF for
+that reason (scroll reporting throttles on `performance.now()`), but the 60 Hz acceptance item
+needs eyes on a window.
 
-1. **The `docs.python.org` pulls were scoped** (`include_patterns` + `max_pages: 150`), not a
-   full-site crawl. The pipeline reports `hit_page_cap` when it stops early, so nothing pretends
-   otherwise — but "the whole of docs.python.org" is thousands of pages at ≤ 4 req/s, and that
-   is the owner's call to make on a volunteer-run site, not a demo's.
-2. **Frame pacing under bridge traffic is still unmeasured**, exactly as SPIKE-002 predicted: an
-   occluded WKWebView suspends rAF entirely. Nothing in the reader gates on rAF for that reason
-   (scroll reporting throttles on `performance.now()`), but the 60 Hz acceptance item needs eyes
-   on a window.
+**A full-site `docs.python.org` crawl is not wanted** (owner, 2026-07-29). The scoped pulls
+demonstrated the gate; the local demo libraries under `/tmp` have been removed. The Python pages
+in the golden corpus stay — those are test infrastructure, not a cached library.
 
 **Try it now:**
 
@@ -183,7 +181,22 @@ Also settled, from the plan review — regressing any of these undoes real work:
 
 Each of these cost real time. They are fixed; this is so a future change doesn't reintroduce them.
 
-**Content fidelity (found by pulling real sites, not by tests)**
+**Content fidelity — nine defects, every one found by looking at a real page**
+
+Not one was caught by a test, because a test written from the same misunderstanding as the code
+agrees with it. The golden corpus (26 real pages, six platforms) is the standing defence.
+
+- **A copy button inside `<pre>`.** Node's API docs put their copy-button strip *inside* the
+  code block, so every example ended in `jscopy` / `jsoncopy` — 37 of them. The `pre` arm now
+  reads the `<code>` element, falling back to a chrome-skipping walk for Sphinx, which has no
+  `<code>` and whose spans *are* the code.
+- **Permalinks are chrome anywhere**, not just in headings: rustdoc's per-method `§`, mdBook's
+  footnote `↩`. And dropping one must **leave its `id` behind** — Node's
+  `<a id="osarch" href="#osarch">#</a>` is the deep-link target for that API entry.
+- **A permalink marker is not always `¶`.** Node uses `#`, so every Node page was titled `OS#`.
+- **Breadcrumbs and end-of-page furniture** survive into the content root (`std::fs`,
+  "Was this page helpful?"). `hidden` and `aria-hidden` are the HTML's own signals and need no
+  class list; the rest is a documented substring list, kept safe by the corpus.
 
 - **`split_whitespace().join(" ")` deletes boundary whitespace.** It was collapsing runs *and*
   trimming, so every space next to an inline element vanished: `the interactive <a>REPL</a>` →
@@ -203,6 +216,9 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
   no-remote-`src` check was green while *every* image was silently degrading to alt text. The
   test now counts rendered images.
 - **The offline gate is about subresources, not links.** An `<a href>` is inert until clicked.
+- **`grid-template-rows: auto auto 1fr` assigns tracks by child order.** With a conditional
+  banner between the header and the panels, the panels landed in an `auto` track and the shell
+  only filled the window when its content happened to be tall enough. Flex column instead.
 
 **The reader (from S1-11..S1-15)**
 
@@ -284,8 +300,6 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 
 ## Open — needs the user, don't decide alone
 
-- **A full `docs.python.org` crawl** — the scoped pulls prove the gate; a whole-site crawl is
-  thousands of requests to a volunteer-run site and is the owner's call.
 - **`two-face`** for TypeScript/TOML syntax highlighting — a licence decision.
 - **DEC-005** docset import priority · **DEC-006** `watch` fetch vs notify · **DEC-007** note
   format · **DEC-008** export targets. All non-blocking.
