@@ -1,0 +1,263 @@
+# Relevance eval set (S2-1, spec P2-019).
+#
+# Adding a query is one line. Fields:
+#
+#   id    stable identifier; the baseline is keyed by it, so RENAMING AN ID
+#         reads as "one query deleted, one added" rather than as a rename
+#   kind  symbol | natural | phrase | acronym | misspelling | cross-source
+#   q     the query, exactly as a user would type it
+#   want  documents that would be a correct top result, as `source:path`.
+#         MORE THAN ONE IS ALLOWED and often right: several of these pages
+#         legitimately answer the same question, and insisting on a single
+#         gold document would penalise a ranker for being correct.
+#
+# Every label was written against the actual page content (titles, headings,
+# and code) rather than from memory of what these projects document. A wrong
+# label is worse than a missing query: it teaches the harness to reject a
+# correct ranking.
+#
+# `kind` is not used for scoring. It exists so a regression can be read as
+# "fuzzy matching got worse" rather than as an undifferentiated number.
+
+queries:
+  # ---------------------------------------------------------------- Python
+  - { id: py-if-statement,          kind: symbol,       q: if statement,                                   want: [python:3/tutorial/controlflow.html] }
+  - { id: py-for-statement,         kind: symbol,       q: for statement,                                  want: [python:3/tutorial/controlflow.html] }
+  - { id: py-range-function,        kind: symbol,       q: range(),                                        want: [python:3/tutorial/controlflow.html] }
+  - { id: py-break-continue,        kind: phrase,       q: break and continue statements,                  want: [python:3/tutorial/controlflow.html] }
+  - { id: py-else-on-loops,         kind: phrase,       q: else clauses on loops,                          want: [python:3/tutorial/controlflow.html] }
+  - { id: py-pass-statement,        kind: symbol,       q: pass statement,                                 want: [python:3/tutorial/controlflow.html] }
+  - { id: py-match-statement,       kind: symbol,       q: match statement,                                want: [python:3/tutorial/controlflow.html] }
+  - { id: py-defining-functions,    kind: phrase,       q: defining functions,                             want: [python:3/tutorial/controlflow.html] }
+  - { id: py-default-args,          kind: phrase,       q: default argument values,                        want: [python:3/tutorial/controlflow.html] }
+  - { id: py-keyword-args,          kind: phrase,       q: keyword arguments,                              want: [python:3/tutorial/controlflow.html] }
+  - { id: py-arbitrary-args,        kind: phrase,       q: arbitrary argument lists,                       want: [python:3/tutorial/controlflow.html] }
+  - { id: py-loop-nl,               kind: natural,      q: how do I write a for loop,                      want: [python:3/tutorial/controlflow.html] }
+  - { id: py-lists-more,            kind: phrase,       q: more on lists,                                  want: [python:3/tutorial/datastructures.html] }
+  - { id: py-list-as-stack,         kind: phrase,       q: using lists as stacks,                          want: [python:3/tutorial/datastructures.html] }
+  - { id: py-list-as-queue,         kind: phrase,       q: using lists as queues,                          want: [python:3/tutorial/datastructures.html] }
+  - { id: py-list-comprehension,    kind: phrase,       q: list comprehensions,                            want: [python:3/tutorial/datastructures.html] }
+  - { id: py-nested-comprehension,  kind: phrase,       q: nested list comprehensions,                     want: [python:3/tutorial/datastructures.html] }
+  - { id: py-del-statement,         kind: symbol,       q: del statement,                                  want: [python:3/tutorial/datastructures.html] }
+  - { id: py-tuples,                kind: phrase,       q: tuples and sequences,                           want: [python:3/tutorial/datastructures.html] }
+  - { id: py-sets,                  kind: symbol,       q: sets,                                           want: [python:3/tutorial/datastructures.html] }
+  - { id: py-dictionaries,          kind: symbol,       q: dictionaries,                                   want: [python:3/tutorial/datastructures.html] }
+  - { id: py-looping-techniques,    kind: phrase,       q: looping techniques,                             want: [python:3/tutorial/datastructures.html] }
+  - { id: py-comparing-sequences,   kind: phrase,       q: comparing sequences and other types,            want: [python:3/tutorial/datastructures.html] }
+  - { id: py-dict-nl,               kind: natural,      q: how do I use a dictionary in python,            want: [python:3/tutorial/datastructures.html] }
+  - { id: py-syntax-errors,         kind: phrase,       q: syntax errors,                                  want: [python:3/tutorial/errors.html] }
+  - { id: py-handling-exceptions,   kind: phrase,       q: handling exceptions,                            want: [python:3/tutorial/errors.html] }
+  - { id: py-raising-exceptions,    kind: phrase,       q: raising exceptions,                             want: [python:3/tutorial/errors.html] }
+  - { id: py-exception-chaining,    kind: phrase,       q: exception chaining,                             want: [python:3/tutorial/errors.html] }
+  - { id: py-user-defined-exc,      kind: phrase,       q: user-defined exceptions,                        want: [python:3/tutorial/errors.html] }
+  - { id: py-cleanup-actions,       kind: phrase,       q: defining clean-up actions,                      want: [python:3/tutorial/errors.html] }
+  - { id: py-try-except-nl,         kind: natural,      q: how do I catch an exception,                    want: [python:3/tutorial/errors.html] }
+  - { id: py-fstrings,              kind: phrase,       q: formatted string literals,                      want: [python:3/tutorial/inputoutput.html] }
+  - { id: py-str-format,            kind: symbol,       q: str.format(),                                   want: [python:3/tutorial/inputoutput.html] }
+  - { id: py-old-formatting,        kind: phrase,       q: old string formatting,                          want: [python:3/tutorial/inputoutput.html] }
+  - { id: py-file-methods,          kind: phrase,       q: methods of file objects,                        want: [python:3/tutorial/inputoutput.html] }
+  - { id: py-fancier-output,        kind: phrase,       q: fancier output formatting,                      want: [python:3/tutorial/inputoutput.html] }
+  - { id: py-json-module,           kind: symbol,       q: json encoder and decoder,                       want: [python:3/library/json.html] }
+  - { id: py-json-basic-usage,      kind: phrase,       q: json basic usage,                               want: [python:3/library/json.html] }
+  - { id: py-json-nan,              kind: phrase,       q: infinite and NaN number values,                 want: [python:3/library/json.html] }
+  - { id: py-json-cli,              kind: phrase,       q: json command-line interface,                    want: [python:3/library/json.html] }
+  - { id: py-module-search-path,    kind: phrase,       q: the module search path,                         want: [python:3/tutorial/modules.html] }
+  - { id: py-standard-modules,      kind: phrase,       q: standard modules,                               want: [python:3/tutorial/modules.html] }
+  - { id: py-dir-function,          kind: symbol,       q: dir(),                                          want: [python:3/tutorial/modules.html] }
+  - { id: py-packages,              kind: symbol,       q: packages,                                       want: [python:3/tutorial/modules.html] }
+  - { id: py-import-star,           kind: phrase,       q: importing * from a package,                     want: [python:3/tutorial/modules.html] }
+  - { id: py-modules-as-scripts,    kind: phrase,       q: executing modules as scripts,                   want: [python:3/tutorial/modules.html] }
+
+  # ------------------------------------------------------------------ Cargo
+  - { id: cg-build-command,         kind: symbol,       q: cargo-build,                                    want: [cargo:commands/cargo-build.html] }
+  - { id: cg-build-nl,              kind: natural,      q: how do I compile the current package,           want: [cargo:commands/cargo-build.html] }
+  - { id: cg-package-selection,     kind: phrase,       q: package selection,                              want: [cargo:commands/cargo-build.html] }
+  - { id: cg-target-selection,      kind: phrase,       q: target selection,                               want: [cargo:commands/cargo-build.html] }
+  - { id: cg-compilation-options,   kind: phrase,       q: compilation options,                            want: [cargo:commands/cargo-build.html] }
+  - { id: cg-manifest-options,      kind: phrase,       q: manifest options,                               want: [cargo:commands/cargo-build.html, cargo:reference/manifest.html] }
+  - { id: cg-cratesio,              kind: symbol,       q: crates.io,                                      want: [cargo:guide/dependencies.html] }
+  - { id: cg-adding-dependency,     kind: phrase,       q: adding a dependency,                            want: [cargo:guide/dependencies.html] }
+  - { id: cg-dependency-nl,         kind: natural,      q: how do I add a dependency to my project,        want: [cargo:guide/dependencies.html] }
+  - { id: cg-env-reads,             kind: phrase,       q: environment variables cargo reads,              want: [cargo:reference/environment-variables.html] }
+  - { id: cg-env-build-scripts,     kind: phrase,       q: environment variables cargo sets for build scripts, want: [cargo:reference/environment-variables.html] }
+  - { id: cg-dynamic-library-paths, kind: phrase,       q: dynamic library paths,                          want: [cargo:reference/environment-variables.html] }
+  - { id: cg-config-env,            kind: phrase,       q: configuration environment variables,            want: [cargo:reference/environment-variables.html] }
+  - { id: cg-features-section,      kind: symbol,       q: "[features] section",                           want: [cargo:reference/features.html] }
+  - { id: cg-default-feature,       kind: phrase,       q: the default feature,                            want: [cargo:reference/features.html] }
+  - { id: cg-optional-dependencies, kind: phrase,       q: optional dependencies,                          want: [cargo:reference/features.html] }
+  - { id: cg-feature-unification,   kind: phrase,       q: feature unification,                            want: [cargo:reference/features.html] }
+  - { id: cg-mutually-exclusive,    kind: phrase,       q: mutually exclusive features,                    want: [cargo:reference/features.html] }
+  - { id: cg-resolver-v2,           kind: phrase,       q: feature resolver version 2,                     want: [cargo:reference/features.html] }
+  - { id: cg-required-features,     kind: phrase,       q: required features,                              want: [cargo:reference/features.html] }
+  - { id: cg-semver-compat,         kind: phrase,       q: semver compatibility,                           want: [cargo:reference/features.html] }
+  - { id: cg-glossary-artifact,     kind: symbol,       q: artifact,                                       want: [cargo:appendix/glossary.html] }
+  - { id: cg-glossary-edition,      kind: symbol,       q: edition,                                        want: [cargo:appendix/glossary.html, cargo:reference/manifest.html] }
+  - { id: cg-glossary-lockfile,     kind: phrase,       q: lock file,                                      want: [cargo:appendix/glossary.html] }
+  - { id: cg-cargo-lock,            kind: symbol,       q: Cargo.lock,                                     want: [cargo:appendix/glossary.html] }
+  - { id: cg-glossary-member,       kind: symbol,       q: member,                                         want: [cargo:appendix/glossary.html] }
+  - { id: cg-manifest-format,       kind: phrase,       q: the manifest format,                            want: [cargo:reference/manifest.html] }
+  - { id: cg-cargo-toml,            kind: symbol,       q: Cargo.toml,                                     want: [cargo:reference/manifest.html, cargo:appendix/glossary.html] }
+  - { id: cg-package-section,       kind: symbol,       q: "[package] section",                            want: [cargo:reference/manifest.html] }
+  - { id: cg-rust-version-field,    kind: phrase,       q: the rust-version field,                         want: [cargo:reference/manifest.html] }
+  - { id: cg-license-field,         kind: phrase,       q: the license and license-file fields,            want: [cargo:reference/manifest.html] }
+  - { id: cg-keywords-field,        kind: phrase,       q: the keywords field,                             want: [cargo:reference/manifest.html] }
+  - { id: cg-documentation-field,   kind: phrase,       q: the documentation field,                        want: [cargo:reference/manifest.html] }
+  - { id: cg-version-field-nl,      kind: natural,      q: where do I set the version of my package,       want: [cargo:reference/manifest.html] }
+
+  # --------------------------------------------------------------- Rust std
+  - { id: rs-read-to-string,        kind: symbol,       q: read_to_string,                                 want: [rust-std:std/fs/fn.read_to_string.html] }
+  - { id: rs-read-to-string-nl,     kind: natural,      q: read the entire contents of a file into a string, want: [rust-std:std/fs/fn.read_to_string.html] }
+  - { id: rs-read-file-nl,          kind: natural,      q: how do I read a file,                           want: [rust-std:std/fs/fn.read_to_string.html] }
+  - { id: rs-once,                  kind: symbol,       q: Once,                                           want: [rust-std:std/sync/struct.Once.html] }
+  - { id: rs-once-struct,           kind: symbol,       q: struct Once,                                    want: [rust-std:std/sync/struct.Once.html] }
+  - { id: rs-one-time-init,         kind: natural,      q: one-time global initialization,                 want: [rust-std:std/sync/struct.Once.html] }
+  - { id: rs-sync-primitive,        kind: phrase,       q: low-level synchronization primitive,            want: [rust-std:std/sync/struct.Once.html] }
+  - { id: rs-vec,                   kind: symbol,       q: Vec,                                            want: [rust-std:std/vec/index.html] }
+  - { id: rs-vec-module,            kind: symbol,       q: module vec,                                     want: [rust-std:std/vec/index.html] }
+  - { id: rs-growable-array,        kind: phrase,       q: contiguous growable array type,                 want: [rust-std:std/vec/index.html] }
+  - { id: rs-memory-layout,         kind: phrase,       q: memory layout,                                  want: [rust-std:std/vec/index.html] }
+  - { id: rs-iter-module,           kind: symbol,       q: module iter,                                    want: [rust-std:std/iter/index.html] }
+  - { id: rs-iterator-trait,        kind: symbol,       q: Iterator,                                       want: [rust-std:std/iter/index.html] }
+  - { id: rs-composable-iteration,  kind: phrase,       q: composable external iteration,                  want: [rust-std:std/iter/index.html] }
+  - { id: rs-into-iterator,         kind: symbol,       q: IntoIterator,                                   want: [rust-std:std/iter/index.html] }
+  - { id: rs-implementing-iterator, kind: phrase,       q: implementing Iterator,                          want: [rust-std:std/iter/index.html] }
+  - { id: rs-iterating-by-ref,      kind: phrase,       q: iterating by reference,                         want: [rust-std:std/iter/index.html] }
+  - { id: rs-adapters,              kind: symbol,       q: adapters,                                       want: [rust-std:std/iter/index.html] }
+  - { id: rs-laziness,              kind: symbol,       q: laziness,                                       want: [rust-std:std/iter/index.html] }
+  - { id: rs-for-loops-intoiter,    kind: phrase,       q: for loops and IntoIterator,                     want: [rust-std:std/iter/index.html] }
+  # `Vec::new` is the example P2-019 names. The `::` is why: it is a field
+  # separator to the query parser, so this errored outright until S2-1 found it.
+  - { id: rs-vec-new,               kind: symbol,       q: "Vec::new",                                     want: [rust-std:std/vec/index.html] }
+  - { id: rs-vec-with-capacity,     kind: symbol,       q: "Vec::with_capacity",                           want: [rust-std:std/vec/index.html] }
+  - { id: rs-fs-read-to-string-path, kind: symbol,      q: "std::fs::read_to_string",                      want: [rust-std:std/fs/fn.read_to_string.html] }
+  - { id: rs-once-call-once,        kind: symbol,       q: "Once::new()",                                  want: [rust-std:std/sync/struct.Once.html] }
+  - { id: rs-iter-trait-path,       kind: symbol,       q: "std::iter",                                    want: [rust-std:std/iter/index.html] }
+
+  # ------------------------------------------------------------------- Node
+  - { id: nd-os-eol,                kind: symbol,       q: os.EOL,                                         want: [node:api/os.html] }
+  - { id: nd-os-cpus,               kind: symbol,       q: os.cpus(),                                      want: [node:api/os.html] }
+  - { id: nd-os-arch,               kind: symbol,       q: os.arch(),                                      want: [node:api/os.html] }
+  - { id: nd-os-homedir,            kind: symbol,       q: os.homedir(),                                   want: [node:api/os.html] }
+  - { id: nd-os-hostname,           kind: symbol,       q: os.hostname(),                                  want: [node:api/os.html] }
+  - { id: nd-os-freemem,            kind: symbol,       q: os.freemem(),                                   want: [node:api/os.html] }
+  - { id: nd-os-loadavg,            kind: symbol,       q: os.loadavg(),                                   want: [node:api/os.html] }
+  - { id: nd-os-endianness,         kind: symbol,       q: os.endianness(),                                want: [node:api/os.html] }
+  - { id: nd-os-parallelism,        kind: symbol,       q: os.availableParallelism(),                      want: [node:api/os.html] }
+  - { id: nd-os-devnull,            kind: symbol,       q: os.devNull,                                     want: [node:api/os.html] }
+  - { id: nd-os-getpriority,        kind: symbol,       q: os.getPriority,                                 want: [node:api/os.html] }
+  - { id: nd-os-machine,            kind: symbol,       q: os.machine(),                                   want: [node:api/os.html] }
+  - { id: nd-os-constants,          kind: symbol,       q: os.constants,                                   want: [node:api/os.html] }
+  - { id: nd-os-homedir-nl,         kind: natural,      q: how do I get the home directory in node,        want: [node:api/os.html] }
+  - { id: nd-path-basename,         kind: symbol,       q: path.basename,                                  want: [node:api/path.html] }
+  - { id: nd-path-dirname,          kind: symbol,       q: path.dirname,                                   want: [node:api/path.html] }
+  - { id: nd-path-extname,          kind: symbol,       q: path.extname,                                   want: [node:api/path.html] }
+  - { id: nd-path-join,             kind: symbol,       q: path.join,                                      want: [node:api/path.html] }
+  - { id: nd-path-normalize,        kind: symbol,       q: path.normalize,                                 want: [node:api/path.html] }
+  - { id: nd-path-parse,            kind: symbol,       q: path.parse,                                     want: [node:api/path.html] }
+  - { id: nd-path-format,           kind: symbol,       q: path.format,                                    want: [node:api/path.html] }
+  - { id: nd-path-isabsolute,       kind: symbol,       q: path.isAbsolute,                                want: [node:api/path.html] }
+  - { id: nd-path-relative,         kind: symbol,       q: path.relative,                                  want: [node:api/path.html] }
+  - { id: nd-path-delimiter,        kind: symbol,       q: path.delimiter,                                 want: [node:api/path.html] }
+  - { id: nd-path-posix,            kind: symbol,       q: path.posix,                                     want: [node:api/path.html] }
+  - { id: nd-path-matchesglob,      kind: symbol,       q: path.matchesGlob,                               want: [node:api/path.html] }
+  - { id: nd-path-windows-posix,    kind: phrase,       q: Windows vs POSIX,                               want: [node:api/path.html] }
+  - { id: nd-path-extension-nl,     kind: natural,      q: how do I get the file extension,                want: [node:api/path.html] }
+  - { id: nd-qs-parse,              kind: symbol,       q: querystring.parse,                              want: [node:api/querystring.html] }
+  - { id: nd-qs-stringify,          kind: symbol,       q: querystring.stringify,                          want: [node:api/querystring.html] }
+  - { id: nd-qs-escape,             kind: symbol,       q: querystring.escape,                             want: [node:api/querystring.html] }
+  - { id: nd-qs-unescape,           kind: symbol,       q: querystring.unescape,                           want: [node:api/querystring.html] }
+  - { id: nd-qs-encode,             kind: symbol,       q: querystring.encode,                             want: [node:api/querystring.html] }
+  - { id: nd-qs-decode,             kind: symbol,       q: querystring.decode,                             want: [node:api/querystring.html] }
+  - { id: nd-qs-nl,                 kind: natural,      q: parse a url query string,                       want: [node:api/querystring.html] }
+
+  # ------------------------------------------------------------- Kubernetes
+  - { id: k8-pods,                  kind: symbol,       q: pods,                                           want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-what-is-a-pod,         kind: natural,      q: what is a pod,                                  want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-smallest-unit,         kind: phrase,       q: smallest deployable units of computing,         want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-pod-templates,         kind: phrase,       q: pod templates,                                  want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-pod-os,                kind: acronym,      q: pod OS,                                         want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-workload-resources,    kind: phrase,       q: workload resources for managing pods,           want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-pods-controllers,      kind: phrase,       q: pods and controllers,                           want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-pod-update,            kind: phrase,       q: pod update and replacement,                     want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-pod-subresources,      kind: phrase,       q: pod subresources,                               want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-storage-in-pods,       kind: phrase,       q: storage in pods,                                want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-resource-sharing,      kind: phrase,       q: resource sharing and communication,             want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: k8-scheduling-group,      kind: phrase,       q: specifying a scheduling group,                  want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+
+  # --------------------------------------------------------------------- Go
+  - { id: go-doc-comments,          kind: phrase,       q: Go doc comments,                                want: [go:doc/comment.html] }
+  - { id: go-doc-links,             kind: phrase,       q: doc links,                                      want: [go:doc/comment.html] }
+  - { id: go-doc-code-blocks,       kind: phrase,       q: code blocks in doc comments,                    want: [go:doc/comment.html] }
+  - { id: go-doc-headings,          kind: phrase,       q: headings in doc comments,                       want: [go:doc/comment.html] }
+  - { id: go-doc-consts,            kind: symbol,       q: consts,                                         want: [go:doc/comment.html] }
+  - { id: go-doc-vars,              kind: symbol,       q: vars,                                           want: [go:doc/comment.html] }
+  - { id: go-doc-funcs,             kind: symbol,       q: funcs,                                          want: [go:doc/comment.html] }
+  - { id: go-gomod-reference,       kind: phrase,       q: go.mod file reference,                          want: [go:doc/modules/gomod-ref.html] }
+  - { id: go-gomod-module,          kind: symbol,       q: module directive,                               want: [go:doc/modules/gomod-ref.html] }
+  - { id: go-gomod-toolchain,       kind: symbol,       q: toolchain,                                      want: [go:doc/modules/gomod-ref.html] }
+  - { id: go-gomod-nl,              kind: natural,      q: what goes in a go.mod file,                     want: [go:doc/modules/gomod-ref.html] }
+  - { id: go-gomod-deps-nl,         kind: natural,      q: how do I declare module dependencies in go,     want: [go:doc/modules/gomod-ref.html] }
+  - { id: go-getting-started,       kind: phrase,       q: get started with Go,                            want: [go:doc/tutorial/getting-started.html] }
+  - { id: go-install,               kind: phrase,       q: install Go,                                     want: [go:doc/tutorial/getting-started.html] }
+  - { id: go-external-package,      kind: phrase,       q: call code in an external package,               want: [go:doc/tutorial/getting-started.html] }
+  - { id: go-prerequisites,         kind: symbol,       q: prerequisites,                                  want: [go:doc/tutorial/getting-started.html] }
+  - { id: go-tutorial-nl,           kind: natural,      q: how do I write my first go program,             want: [go:doc/tutorial/getting-started.html] }
+
+  # --------------------------------------------------- The Widget fixture
+  - { id: wd-widget,                kind: symbol,       q: Widget,                                         want: [widget:index.html] }
+  - { id: wd-installation,          kind: symbol,       q: installation,                                   want: [widget:index.html] }
+  - { id: wd-user-guide,            kind: phrase,       q: user guide,                                     want: [widget:guide/index.html] }
+  - { id: wd-api-reference,         kind: phrase,       q: API reference,                                  want: [widget:api/reference.html] }
+  - { id: wd-given-size,            kind: phrase,       q: a widget of a given size,                       want: [widget:api/reference.html] }
+
+  # ------------------------------------------------------------ Acronyms
+  # Short, capitalised, and ambiguous — the shape most likely to be mangled
+  # by a tokenizer change.
+  - { id: ac-eol,                   kind: acronym,      q: EOL,                                            want: [node:api/os.html] }
+  - { id: ac-json,                  kind: acronym,      q: JSON,                                           want: [python:3/library/json.html] }
+  - { id: ac-toml,                  kind: acronym,      q: TOML,                                           want: [cargo:reference/manifest.html] }
+  - { id: ac-posix,                 kind: acronym,      q: POSIX,                                          want: [node:api/path.html] }
+  - { id: ac-semver,                kind: acronym,      q: SemVer,                                         want: [cargo:reference/features.html, cargo:reference/manifest.html] }
+  - { id: ac-nan,                   kind: acronym,      q: NaN,                                            want: [python:3/library/json.html] }
+  - { id: ac-cpu,                   kind: acronym,      q: CPU,                                            want: [node:api/os.html] }
+  - { id: ac-url,                   kind: acronym,      q: URL,                                            want: [node:api/querystring.html] }
+
+  # -------------------------------------------------------- Misspellings
+  # P2-019 requires these. They are expected to FAIL until S2-5 adds fuzzy
+  # matching — that is the point. A misspelling that starts passing without
+  # S2-5 means something changed that nobody intended.
+  - { id: ms-recieve-string,        kind: misspelling,  q: read_to_sting,                                  want: [rust-std:std/fs/fn.read_to_string.html] }
+  - { id: ms-iterater,              kind: misspelling,  q: iterater,                                       want: [rust-std:std/iter/index.html] }
+  - { id: ms-dictionarys,           kind: misspelling,  q: dictionarys,                                    want: [python:3/tutorial/datastructures.html] }
+  - { id: ms-excepton,              kind: misspelling,  q: excepton handling,                              want: [python:3/tutorial/errors.html] }
+  - { id: ms-kubernets,             kind: misspelling,  q: kubernets pods,                                 want: [kubernetes:docs/concepts/workloads/pods/index.html] }
+  - { id: ms-dependancies,          kind: misspelling,  q: dependancies,                                   want: [cargo:guide/dependencies.html] }
+  - { id: ms-enviroment,            kind: misspelling,  q: enviroment variables,                           want: [cargo:reference/environment-variables.html] }
+  - { id: ms-comprehention,         kind: misspelling,  q: list comprehention,                             want: [python:3/tutorial/datastructures.html] }
+  - { id: ms-quearystring,          kind: misspelling,  q: quearystring,                                   want: [node:api/querystring.html] }
+  - { id: ms-manifset,              kind: misspelling,  q: manifset format,                                want: [cargo:reference/manifest.html] }
+  - { id: ms-pth-join,              kind: misspelling,  q: pth.join,                                       want: [node:api/path.html] }
+  - { id: ms-modual,                kind: misspelling,  q: modual search path,                             want: [python:3/tutorial/modules.html] }
+
+  # ------------------------------------------------------- Cross-source
+  # The answer is not in the source the wording points at, or is in more than
+  # one. These are what catch a ranker that has learned to favour whichever
+  # source has the most pages.
+  - { id: xs-read-file-any,         kind: cross-source, q: reading and writing files,                      want: [python:3/tutorial/inputoutput.html, rust-std:std/fs/fn.read_to_string.html] }
+  - { id: xs-json-encode,           kind: cross-source, q: encode an object as json,                       want: [python:3/library/json.html, node:api/querystring.html] }
+  - { id: xs-env-vars,              kind: cross-source, q: environment variables,                          want: [cargo:reference/environment-variables.html] }
+  - { id: xs-features,              kind: cross-source, q: features,                                       want: [cargo:reference/features.html, cargo:appendix/glossary.html] }
+  - { id: xs-modules,               kind: cross-source, q: modules,                                        want: [python:3/tutorial/modules.html, go:doc/modules/gomod-ref.html, cargo:appendix/glossary.html] }
+  - { id: xs-package,               kind: cross-source, q: package,                                        want: [cargo:appendix/glossary.html, cargo:reference/manifest.html, python:3/tutorial/modules.html] }
+  - { id: xs-dependencies,          kind: cross-source, q: dependencies,                                   want: [cargo:guide/dependencies.html, cargo:reference/features.html, go:doc/modules/gomod-ref.html] }
+  - { id: xs-getting-started,       kind: cross-source, q: getting started tutorial,                       want: [go:doc/tutorial/getting-started.html] }
+  - { id: xs-iteration,             kind: cross-source, q: iteration,                                      want: [rust-std:std/iter/index.html, python:3/tutorial/controlflow.html] }
+  - { id: xs-comments,              kind: cross-source, q: writing documentation comments,                 want: [go:doc/comment.html] }
+  - { id: xs-string-formatting,     kind: cross-source, q: string formatting,                              want: [python:3/tutorial/inputoutput.html] }
+  - { id: xs-command-line,          kind: cross-source, q: command-line options,                           want: [python:3/library/json.html, cargo:commands/cargo-build.html] }
+  - { id: xs-arrays,                kind: cross-source, q: growable array,                                 want: [rust-std:std/vec/index.html] }
+  - { id: xs-error-handling,        kind: cross-source, q: error handling,                                 want: [python:3/tutorial/errors.html, rust-std:std/fs/fn.read_to_string.html] }
+  - { id: xs-versioning,            kind: cross-source, q: version compatibility,                          want: [cargo:reference/manifest.html, cargo:reference/features.html, go:doc/modules/gomod-ref.html] }
+  - { id: xs-install,               kind: cross-source, q: installation,                                   want: [widget:index.html, go:doc/tutorial/getting-started.html] }
+  - { id: xs-glossary-terms,        kind: cross-source, q: what is a crate,                                want: [cargo:appendix/glossary.html] }
+  - { id: xs-concurrency,           kind: cross-source, q: synchronization,                                want: [rust-std:std/sync/struct.Once.html] }
