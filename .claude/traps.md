@@ -70,9 +70,15 @@ The common thread is that almost none of these fail loudly. That is why they are
   variant fails the build and forces a decision about which field its text belongs in. A `_ => {}`
   would route new content to nowhere, discoverable only as a page that cannot be found by words it
   visibly contains.
-- **The field boosts in `search::schema::boost` are unmeasured placeholders**, labelled as such.
-  Tuning them belongs to S2-4, scored against S2-1's eval set. Changing them by intuition is
-  exactly what building the eval set first is meant to prevent.
+- **`Ranking::TUNED` is measured, and changing it by intuition throws the measurement away.** S2-4
+  set every value in it by coordinate descent against S2-1's eval set. Two of them look wrong and
+  are not: `title` (0.75) sits *below* `body`, because a title is a handful of tokens and BM25's own
+  length normalisation already multiplies it heavily — an explicit boost on top was double-counting;
+  and `code` (1.0) sits below `headers`, because on these platforms method names are also headings.
+  Re-run `sweep_ranking_parameters` before touching any of it, and update `baseline.json` in the
+  same change.
+- **The whole product searches with `Ranking::TUNED`.** `search_with` exists for the sweep alone.
+  A second configuration reaching users would make the baseline describe a ranking nobody gets.
 
 ---
 
@@ -181,9 +187,37 @@ a test written from the same misunderstanding as the code agrees with it. The go
   for reasons that have nothing to do with the site — page cap, dropped network, closed laptop —
   and treating "not seen this run" as "deleted upstream" would delete a user's library a few
   hundred pages at a time. Content is hours of polite crawling; the index that reads it is seconds
-  to rebuild. Pruning needs a policy (complete crawl, no errors, no cap) that nobody has agreed.
-- **`TopDocs` is a builder in tantivy 0.26.** Only `.order_by_score()` implements `Collector`, and
-  `with_limit` **panics on 0**, so a caller-supplied limit must be clamped.
+  to rebuild. The policy was agreed on 2026-07-29 — prune **only** when the crawl completed with no
+  errors and without hitting the page cap — and is recorded on `Database::delete_page`, but is
+  **not implemented**. Whoever implements it owes the test that a capped or errored crawl deletes
+  nothing; that guard is the whole point and it fails silently.
+- **`TopDocs` is a builder in tantivy 0.26.** Only `.order_by_score()` and `.tweak_score(…)`
+  implement `Collector`, and `with_limit` **panics on 0**, so a caller-supplied limit must be
+  clamped.
+- **BM25's `k1` and `b` are private constants in tantivy 0.26**, not weight parameters. The
+  textbook lever for "one enormous page outranks every specific one" is raising `b`, and it is
+  unreachable without forking the crate. `Ranking::length_penalty` applies a post-hoc divisor from
+  the collector instead. The plan described the `b` lever before anyone checked; do not go looking
+  for `set_bm25_params`.
+- **Coordinate descent cannot move a pair of multiplicative parameters.** `length_pivot` and
+  `length_penalty` are inert unless *both* are non-zero, so a sweep that varied each alone from a
+  zero start found both worthless and reported, confidently, that length normalisation did not
+  help. Sweeping them as one joint coordinate moved MRR by 0.019 — the second-largest single gain
+  in S2-4. **Any parameter that only acts in combination with another must be swept jointly.**
+- **A synthetic ranking test is very easy to write so that it does not test the thing it is named
+  for.** Two of them here did. `title_outranks_body` omitted the h1 that normalization guarantees
+  every stored page has, so it was really testing the `title` field alone and duly failed when
+  tuning moved weight to `headers` — on a page shape that cannot occur. The book-dump test's first
+  draft did not reproduce the defect at all, because a real concatenated book carries every
+  chapter's *headings* too. **Assert the control case**: that with the mechanism disabled, the bad
+  outcome happens. That is what caught both.
+- **Stopwords are dropped from the query, never from the index**, so IDF is untouched and the
+  policy can be changed or reverted with no reindex. Two refusals in `StopwordPolicy::apply` are
+  load-bearing: a query containing a quote is returned untouched (a phrase with a hole matches
+  nothing), and a query that is *entirely* stopwords is returned untouched (an empty query looks
+  like a broken index). `in`, `is`, `not`, `and`, `or`, `for`, `if`, `return` and `type` are
+  deliberately **not** stopwords — they are keywords in the documented languages, and a docs reader
+  that cannot look up Python's `in` operator has traded a real capability for a marginal one.
 - **`MmapDirectory::open` returns its own error type**, not `TantivyError`.
 - **Tantivy enters at default features, unlike syntect.** SPIKE-003 measured it that way and the
   adoption case is those numbers. `stemmer` in particular changes which documents match, so it is a

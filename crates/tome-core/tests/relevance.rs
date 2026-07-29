@@ -40,34 +40,47 @@
 //! | Search `body` only | 0.7489 → **0.4293** | 118 worse, 27 better | **yes**, both gates |
 //!
 //! That is the behaviour wanted: decisive on real damage, silent on changes
-//! that are neutral or positive. The first two rows are not gate failures,
-//! they are **findings**, and both belong to S2-4:
-//!
-//! - **A title boost of 3.0 is too high.** Cutting it improves MRR. Do not
-//!   act on that here; S2-4 is where boosts get tuned, with this harness as
-//!   the scoreboard.
-//! - **The `code` field contributes almost nothing.** Removing it is a wash,
-//!   because on these platforms method names are *also* headings, so `headers`
-//!   already carries them. That is worth knowing before S2-6 builds
-//!   symbol-aware search on the assumption that the code field is load-bearing.
+//! that are neutral or positive. The first two rows were not gate failures,
+//! they were **findings**, and S2-4 acted on both — the title boost came down
+//! from 3.0 to 0.75 and the code boost from 1.5 to 1.0.
 //!
 //! What the eval set caught on its very first run was a real defect: twelve
 //! symbol queries returning nothing because `()` and `[]` are query-parser
 //! syntax. Fixing that moved symbol recall@1 from 0.7465 to 0.9474 on the old
 //! corpus.
 //!
-//! # What is currently weak
+//! # What S2-4 changed, measured
 //!
-//! `natural` sits at 0.0625 recall@1 — **the worst category by far**, and not
-//! a labelling artefact. One enormous FAQ page (`go:doc/faq`) ranks first for
-//! nearly every "how do I …" query, because it is long and full of
-//! question-shaped prose. `cargo:cargo/print.html`, which is the entire Cargo
-//! book concatenated onto one page, does the same to Cargo queries. Long
-//! single-page documents beating specific ones is the clearest ranking defect
-//! this corpus exposes, and it is S2-4's to fix.
+//! `sweep_ranking_parameters` below is the tool; [`Ranking::TUNED`] holds what
+//! it found. Against the untuned ranker, over the same 207 queries:
 //!
-//! `misspelling` sits at 0.1667 and is *expected* to until S2-5 adds fuzzy
-//! matching.
+//! | | before | after |
+//! |---|---|---|
+//! | MRR | 0.7489 | 0.8245 |
+//! | recall@1 | 0.6377 | 0.7585 |
+//! | recall@3 | 0.8357 | 0.8744 |
+//! | `natural` MRR | 0.2419 | 0.4596 |
+//! | `symbol` MRR | 0.8384 | 0.8792 |
+//!
+//! 48 queries improved and 10 got worse, and every category improved. Five
+//! queries that previously found nothing at all within the top ten now rank.
+//!
+//! # What is still weak
+//!
+//! **recall@3 is 0.8744 against a Stage 2 exit gate of 0.90**, and tuning is
+//! not going to close the remaining gap of roughly five queries: the sweep
+//! converged, and descending on recall@3 directly reached only 0.8792 while
+//! giving up MRR and symbol accuracy for it.
+//!
+//! `misspelling` (0.2500 recall@1) is the largest single block of remaining
+//! failures and is *expected* to be until S2-5 adds fuzzy matching — it alone
+//! is 12 of the 207 queries, nine of which miss the top three.
+//!
+//! `natural` is no longer the worst category. The defect behind it — one
+//! enormous page (`go:doc/faq`, `cargo:cargo/print.html`) outranking every
+//! specific page because length made it match everything — is what
+//! `Ranking::length_penalty` addresses, since BM25's own `b` is a private
+//! constant in tantivy 0.26 and cannot be raised.
 
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 
@@ -77,7 +90,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tome_core::model::{ContentHash, Page, PagePath, SourceId};
-use tome_core::search::SearchEngine;
+use tome_core::search::{Ranking, SearchEngine, StopwordPolicy};
 
 /// How deep a hit still counts. Also the depth `recall@10` reports, and the
 /// cutoff below which a rank is recorded as "not found" (0).
@@ -326,11 +339,11 @@ fn dump_poor_results(engine: &SearchEngine, queries: &[Query], ranks: &BTreeMap<
 }
 
 /// Rank of the first acceptable hit, 1-based; 0 if none within `DEPTH`.
-fn rank_of(engine: &SearchEngine, query: &Query) -> usize {
+fn rank_of(engine: &SearchEngine, query: &Query, ranking: &Ranking) -> usize {
     // A query the parser rejects scores 0 rather than failing the run: the
     // eval set deliberately contains user-shaped input, and "this query is
     // unparseable" is a relevance result, not a harness error.
-    let Ok(hits) = engine.search(&query.q, DEPTH) else {
+    let Ok(hits) = engine.search_with(&query.q, DEPTH, ranking) else {
         return 0;
     };
     hits.iter()
@@ -408,7 +421,7 @@ fn relevance_does_not_regress() {
     let ranks: BTreeMap<String, usize> = queries
         .queries
         .iter()
-        .map(|query| (query.id.clone(), rank_of(&engine, query)))
+        .map(|query| (query.id.clone(), rank_of(&engine, query, &Ranking::TUNED)))
         .collect();
     let metrics = Metrics::from_ranks(&ranks);
     dump_poor_results(&engine, &queries.queries, &ranks);
@@ -474,6 +487,269 @@ fn relevance_does_not_regress() {
     );
 
     println!("{report}\n{}", moved.report);
+}
+
+// ----------------------------------------------------------------- the sweep
+
+/// What one parameter set scores.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Scoreboard {
+    mrr: f64,
+    recall_at_1: f64,
+    recall_at_3: f64,
+    /// `symbol` queries only. The owner's decision of 2026-07-29 is that this
+    /// is the category to optimise, because it is what an agent asks for over
+    /// MCP, so the sweep treats it as a constraint rather than an average.
+    symbol_mrr: f64,
+    symbol_recall_at_1: f64,
+    natural_mrr: f64,
+}
+
+fn evaluate(engine: &SearchEngine, queries: &[Query], ranking: &Ranking) -> Scoreboard {
+    let mut all = Vec::with_capacity(queries.len());
+    let mut symbol = Vec::new();
+    let mut natural = Vec::new();
+
+    for query in queries {
+        let rank = rank_of(engine, query, ranking);
+        all.push(rank);
+        match query.kind.as_str() {
+            "symbol" => symbol.push(rank),
+            "natural" => natural.push(rank),
+            _ => {}
+        }
+    }
+
+    let mrr = |ranks: &[usize]| {
+        if ranks.is_empty() {
+            return 0.0;
+        }
+        ranks
+            .iter()
+            .map(|r| if *r >= 1 { 1.0 / *r as f64 } else { 0.0 })
+            .sum::<f64>()
+            / ranks.len() as f64
+    };
+    let recall = |ranks: &[usize], k: usize| {
+        if ranks.is_empty() {
+            return 0.0;
+        }
+        ranks.iter().filter(|r| **r >= 1 && **r <= k).count() as f64 / ranks.len() as f64
+    };
+
+    Scoreboard {
+        mrr: mrr(&all),
+        recall_at_1: recall(&all, 1),
+        recall_at_3: recall(&all, 3),
+        symbol_mrr: mrr(&symbol),
+        symbol_recall_at_1: recall(&symbol, 1),
+        natural_mrr: mrr(&natural),
+    }
+}
+
+/// One line of the sweep table.
+fn sweep_row(label: &str, ranking: &Ranking, board: &Scoreboard) -> String {
+    format!(
+        "  {label:<26} t={:<5.2} h={:<4.1} b={:<4.1} c={:<4.1} pivot={:<6} pen={:<4.2} sw={:<10} \
+         | MRR {:.4}  r@1 {:.4}  r@3 {:.4}  sym {:.4}  nat {:.4}",
+        ranking.title,
+        ranking.headers,
+        ranking.body,
+        ranking.code,
+        ranking.length_pivot,
+        ranking.length_penalty,
+        format!("{:?}", ranking.stopwords),
+        board.mrr,
+        board.recall_at_1,
+        board.recall_at_3,
+        board.symbol_mrr,
+        board.natural_mrr,
+    )
+}
+
+/// Coordinate descent over the ranking parameters.
+///
+/// `cargo test -p tome-core --test relevance -- --ignored --nocapture sweep`
+///
+/// **Ignored on purpose, and it is not a gate.** It optimises against the eval
+/// set, so of course it improves on it; the number that means anything is what
+/// `relevance_does_not_regress` reports afterwards on the committed baseline.
+/// Running it as part of `check.sh` would also silently pin CI's wall clock to
+/// a search of a few hundred configurations.
+///
+/// The output is a transcript, not a verdict: read which coordinate moved and
+/// by how much, then set [`Ranking::TUNED`] by hand. Coordinate descent finds a
+/// local optimum on 207 queries, which is not the same thing as a good ranker,
+/// and a parameter that buys 0.002 MRR has been fitted to this corpus rather
+/// than learned from it.
+#[test]
+#[ignore = "a tuning tool, not a gate: run it by hand when tuning ranking"]
+fn sweep_ranking_parameters() {
+    let dir = corpus_dir().join("relevance");
+    let corpus: Corpus = serde_yaml_ng::from_str(
+        &std::fs::read_to_string(dir.join("corpus.yaml")).expect("read corpus.yaml"),
+    )
+    .expect("parse corpus.yaml");
+    let queries: QuerySet = serde_yaml_ng::from_str(
+        &std::fs::read_to_string(dir.join("queries.yaml")).expect("read queries.yaml"),
+    )
+    .expect("parse queries.yaml");
+
+    let documents = load_documents(&corpus.sources);
+    let index_dir = tempfile::tempdir().expect("tempdir");
+    let engine = build_index(index_dir.path(), &documents);
+    let queries = queries.queries;
+
+    println!(
+        "\nranking sweep — {} queries, {} documents",
+        queries.len(),
+        documents.len()
+    );
+
+    let untuned = evaluate(&engine, &queries, &Ranking::UNTUNED);
+    println!("{}", sweep_row("before S2-4", &Ranking::UNTUNED, &untuned));
+
+    // The owner's constraint, made mechanical: a configuration that ranks
+    // symbol lookups worse than the untuned ranker did is rejected outright,
+    // however much it helps the average.
+    let symbol_floor = untuned.symbol_recall_at_1;
+    println!("  symbol recall@1 floor: {symbol_floor:.4}\n");
+
+    // The two objectives worth descending on, run separately rather than
+    // blended. MRR is the smoother signal; recall@3 is what the Stage 2 exit
+    // gate actually asks for, and a weighted sum of the two would optimise
+    // neither while looking principled.
+    for (objective, pick) in [
+        ("MRR", (|b: &Scoreboard| b.mrr) as fn(&Scoreboard) -> f64),
+        ("recall@3", |b: &Scoreboard| b.recall_at_3),
+    ] {
+        println!("  ── descending on {objective} ──");
+        let (best, board) = descend(&engine, &queries, symbol_floor, pick);
+        println!(
+            "{}",
+            sweep_row(&format!("optimum ({objective})"), &best, &board)
+        );
+        println!();
+    }
+
+    println!("{}", sweep_row("before S2-4", &Ranking::UNTUNED, &untuned));
+    let tuned = evaluate(&engine, &queries, &Ranking::TUNED);
+    println!("{}", sweep_row("Ranking::TUNED", &Ranking::TUNED, &tuned));
+    println!(
+        "\n  If an optimum differs from `Ranking::TUNED`, that is a decision to make, \
+         not a diff to apply."
+    );
+}
+
+/// Coordinate descent from [`Ranking::UNTUNED`], maximising `pick`.
+fn descend(
+    engine: &SearchEngine,
+    queries: &[Query],
+    symbol_floor: f64,
+    pick: fn(&Scoreboard) -> f64,
+) -> (Ranking, Scoreboard) {
+    // Each coordinate, and the values it may take. `body` stays at 1.0
+    // throughout: the boosts are only meaningful relative to one another, so
+    // fixing one removes a redundant dimension from the search.
+    //
+    // The length pivot and penalty are **one coordinate, not two**. They are
+    // multiplicative — a pivot with a zero penalty does nothing, and a penalty
+    // with a zero pivot does nothing — so coordinate descent varying either
+    // alone from the untuned start finds both inert and never moves. The first
+    // version of this sweep did exactly that and reported, quite confidently,
+    // that length normalisation was worthless.
+    const PIVOTS: [u32; 7] = [0, 250, 500, 1_000, 2_000, 4_000, 8_000];
+    const PENALTIES: [f32; 6] = [0.0, 0.2, 0.4, 0.6, 1.0, 1.6];
+
+    #[allow(clippy::type_complexity)]
+    let coordinates: Vec<(&str, Box<dyn Fn(&mut Ranking, usize)>, usize)> = vec![
+        (
+            "title",
+            Box::new(|r: &mut Ranking, i: usize| {
+                r.title = [0.05, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0][i];
+            }),
+            9,
+        ),
+        (
+            "headers",
+            Box::new(|r: &mut Ranking, i: usize| {
+                r.headers = [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0][i];
+            }),
+            7,
+        ),
+        (
+            "code",
+            Box::new(|r: &mut Ranking, i: usize| {
+                r.code = [0.0, 0.5, 1.0, 1.5, 2.0, 3.0][i];
+            }),
+            6,
+        ),
+        (
+            "length",
+            Box::new(|r: &mut Ranking, i: usize| {
+                r.length_pivot = PIVOTS[i / PENALTIES.len()];
+                r.length_penalty = PENALTIES[i % PENALTIES.len()];
+            }),
+            PIVOTS.len() * PENALTIES.len(),
+        ),
+        (
+            "stopwords",
+            Box::new(|r: &mut Ranking, i: usize| {
+                r.stopwords = [
+                    StopwordPolicy::None,
+                    StopwordPolicy::Questions,
+                    StopwordPolicy::Function,
+                ][i];
+            }),
+            3,
+        ),
+    ];
+
+    let mut best = Ranking::UNTUNED;
+    let mut best_board = evaluate(engine, queries, &best);
+
+    // Several passes. The coordinates interact — a length penalty changes
+    // which title boost is right — so one pass would only report the effect of
+    // each parameter against the *untuned* value of every other.
+    for pass in 1..=4 {
+        let mut moved = false;
+        for (name, set, count) in &coordinates {
+            let mut local_best = best;
+            let mut local_board = best_board;
+            for i in 0..*count {
+                let mut candidate = best;
+                set(&mut candidate, i);
+                if candidate == best {
+                    continue;
+                }
+                let board = evaluate(engine, queries, &candidate);
+                // The owner's constraint: symbol lookup is not traded away,
+                // however much a candidate helps the average.
+                if board.symbol_recall_at_1 + f64::EPSILON < symbol_floor {
+                    continue;
+                }
+                if pick(&board) > pick(&local_board) {
+                    local_best = candidate;
+                    local_board = board;
+                }
+            }
+            if local_best != best {
+                println!(
+                    "    pass {pass}: {name:<10} {:.4} → {:.4}",
+                    pick(&best_board),
+                    pick(&local_board)
+                );
+                best = local_best;
+                best_board = local_board;
+                moved = true;
+            }
+        }
+        if !moved {
+            println!("    pass {pass}: converged");
+            break;
+        }
+    }
+    (best, best_board)
 }
 
 fn write_baseline(path: &Path, baseline: &Baseline) {

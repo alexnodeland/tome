@@ -6,9 +6,10 @@
 > defect turns out to have been non-obvious; delete an entry when it stops being true.
 >
 > **[`.claude/continuation.md`](.claude/continuation.md) is the current in-flight state** — where
-> Stage 2 stands and what S2-4 should do. It is deliberately volatile and gets **deleted when S2-4
-> lands**. The two files must not merge: durable knowledge goes in `traps.md`, status goes in the
-> continuation note, and the last continuation note was deleted for blurring that line.
+> Stage 2 stands and what the next ticket should do. It is deliberately volatile and is rewritten
+> or deleted as tickets land. The two files must not merge: durable knowledge goes in `traps.md`,
+> status goes in the continuation note, and an earlier continuation note was deleted for blurring
+> that line.
 
 ## What this repository is
 
@@ -21,9 +22,10 @@ scope), normalizes, sanitizes, and localizes it into the library, and the app re
 a sandboxed iframe with a library sidebar, a page outline, and back/forward.
 
 **Search works from the CLI.** `tome pull` indexes as it goes and only rewrites pages whose content
-hash changed (S2-2, S2-3), and `tome search` queries it. There is **no search UI in the app yet**
-(S2-7), and ranking is untuned — the relevance eval reads 0.84 recall@3 against a ≥ 0.90 exit gate,
-with natural-language queries the worst category by far. **Sync, annotations, MCP, and the local
+hash changed (S2-2, S2-3), `tome search` queries it, and ranking is tuned against a measured eval
+set (S2-4). There is **no search UI in the app yet** (S2-7), and **Stage 2 does not pass its exit
+gate**: the relevance eval reads 0.87 recall@3 against a ≥ 0.90 target, with misspelled queries the
+remaining block — S2-5's fuzzy matching, not more tuning. **Sync, annotations, MCP, and the local
 HTTP API do not exist at all.** When asked whether something works, check rather than assume — much
 of this repo still describes intent rather than behaviour.
 
