@@ -16,6 +16,10 @@
           {
             "type": "anchor",
             "id": "os_os"
+          },
+          {
+            "type": "anchor",
+            "id": "os"
           }
         ]
       },
@@ -79,7 +83,7 @@
       {
         "type": "code_block",
         "language": "mjs",
-        "code": "import os from 'node:os';\nconst os = require('node:os');\njavascriptcopy"
+        "code": "import os from 'node:os';"
       },
       {
         "type": "heading",
@@ -93,6 +97,10 @@
           {
             "type": "anchor",
             "id": "os_os_eol"
+          },
+          {
+            "type": "anchor",
+            "id": "oseol"
           }
         ]
       },
@@ -178,6 +186,10 @@
           {
             "type": "anchor",
             "id": "os_os_availableparallelism"
+          },
+          {
+            "type": "anchor",
+            "id": "osavailableparallelism"
           }
         ]
       },
@@ -256,6 +268,10 @@
           {
             "type": "anchor",
             "id": "os_os_arch"
+          },
+          {
+            "type": "anchor",
+            "id": "osarch"
           }
         ]
       },
@@ -414,6 +430,10 @@
           {
             "type": "anchor",
             "id": "os_os_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "osconstants"
           }
         ]
       },
@@ -483,6 +503,10 @@
           {
             "type": "anchor",
             "id": "os_os_cpus"
+          },
+          {
+            "type": "anchor",
+            "id": "oscpus"
           }
         ]
       },
@@ -771,7 +795,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "[\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 252020,\n      nice: 0,\n      sys: 30340,\n      idle: 1070356870,\n      irq: 0,\n    },\n  },\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 306960,\n      nice: 0,\n      sys: 26980,\n      idle: 1071569080,\n      irq: 0,\n    },\n  },\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 248450,\n      nice: 0,\n      sys: 21750,\n      idle: 1070919370,\n      irq: 0,\n    },\n  },\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 256880,\n      nice: 0,\n      sys: 19430,\n      idle: 1070905480,\n      irq: 20,\n    },\n  },\n];\njscopy"
+        "code": "[\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 252020,\n      nice: 0,\n      sys: 30340,\n      idle: 1070356870,\n      irq: 0,\n    },\n  },\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 306960,\n      nice: 0,\n      sys: 26980,\n      idle: 1071569080,\n      irq: 0,\n    },\n  },\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 248450,\n      nice: 0,\n      sys: 21750,\n      idle: 1070919370,\n      irq: 0,\n    },\n  },\n  {\n    model: 'Intel(R) Core(TM) i7 CPU         860  @ 2.80GHz',\n    speed: 2926,\n    times: {\n      user: 256880,\n      nice: 0,\n      sys: 19430,\n      idle: 1070905480,\n      irq: 20,\n    },\n  },\n];"
       },
       {
         "type": "paragraph",
@@ -834,6 +858,10 @@
           {
             "type": "anchor",
             "id": "os_os_devnull"
+          },
+          {
+            "type": "anchor",
+            "id": "osdevnull"
           }
         ]
       },
@@ -919,6 +947,10 @@
           {
             "type": "anchor",
             "id": "os_os_endianness"
+          },
+          {
+            "type": "anchor",
+            "id": "osendianness"
           }
         ]
       },
@@ -998,6 +1030,10 @@
           {
             "type": "anchor",
             "id": "os_os_freemem"
+          },
+          {
+            "type": "anchor",
+            "id": "osfreemem"
           }
         ]
       },
@@ -1052,6 +1088,10 @@
           {
             "type": "anchor",
             "id": "os_os_getpriority_pid"
+          },
+          {
+            "type": "anchor",
+            "id": "osgetprioritypid"
           }
         ]
       },
@@ -1178,6 +1218,10 @@
           {
             "type": "anchor",
             "id": "os_os_homedir"
+          },
+          {
+            "type": "anchor",
+            "id": "oshomedir"
           }
         ]
       },
@@ -1281,6 +1325,10 @@
           {
             "type": "anchor",
             "id": "os_os_hostname"
+          },
+          {
+            "type": "anchor",
+            "id": "oshostname"
           }
         ]
       },
@@ -1335,6 +1383,10 @@
           {
             "type": "anchor",
             "id": "os_os_loadavg"
+          },
+          {
+            "type": "anchor",
+            "id": "osloadavg"
           }
         ]
       },
@@ -1419,6 +1471,10 @@
           {
             "type": "anchor",
             "id": "os_os_machine"
+          },
+          {
+            "type": "anchor",
+            "id": "osmachine"
           }
         ]
       },
@@ -1616,6 +1672,10 @@
           {
             "type": "anchor",
             "id": "os_os_networkinterfaces"
+          },
+          {
+            "type": "anchor",
+            "id": "osnetworkinterfaces"
           }
         ]
       },
@@ -2020,7 +2080,7 @@
       {
         "type": "code_block",
         "language": "json",
-        "code": "{\n  \"lo:\": [\n    {\n      \"address:\": \"127.0.0.1\",\n      \"netmask:\": \"255.0.0.0\",\n      \"family:\": \"IPv4\",\n      \"mac:\": \"00:00:00:00:00:00\",\n      \"internal:\": true,\n      \"cidr:\": \"127.0.0.1/8\"\n    },\n    {\n      \"address:\": \"::1\",\n      \"netmask:\": \"ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\",\n      \"family:\": \"IPv6\",\n      \"mac:\": \"00:00:00:00:00:00\",\n      \"scopeid:\": 0,\n      \"internal:\": true,\n      \"cidr:\": \"::1/128\"\n    }\n  ],\n  \"eth0:\": [\n    {\n      \"address:\": \"192.168.1.108\",\n      \"netmask:\": \"255.255.255.0\",\n      \"family:\": \"IPv4\",\n      \"mac:\": \"01:02:03:0a:0b:0c\",\n      \"internal:\": false,\n      \"cidr:\": \"192.168.1.108/24\"\n    },\n    {\n      \"address:\": \"fe80::a00:27ff:fe4e:66a1\",\n      \"netmask:\": \"ffff:ffff:ffff:ffff::\",\n      \"family:\": \"IPv6\",\n      \"mac:\": \"01:02:03:0a:0b:0c\",\n      \"scopeid:\": 1,\n      \"internal:\": false,\n      \"cidr:\": \"fe80::a00:27ff:fe4e:66a1/64\"\n    }\n  ]\n}\njsoncopy"
+        "code": "{\n  \"lo:\": [\n    {\n      \"address:\": \"127.0.0.1\",\n      \"netmask:\": \"255.0.0.0\",\n      \"family:\": \"IPv4\",\n      \"mac:\": \"00:00:00:00:00:00\",\n      \"internal:\": true,\n      \"cidr:\": \"127.0.0.1/8\"\n    },\n    {\n      \"address:\": \"::1\",\n      \"netmask:\": \"ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\",\n      \"family:\": \"IPv6\",\n      \"mac:\": \"00:00:00:00:00:00\",\n      \"scopeid:\": 0,\n      \"internal:\": true,\n      \"cidr:\": \"::1/128\"\n    }\n  ],\n  \"eth0:\": [\n    {\n      \"address:\": \"192.168.1.108\",\n      \"netmask:\": \"255.255.255.0\",\n      \"family:\": \"IPv4\",\n      \"mac:\": \"01:02:03:0a:0b:0c\",\n      \"internal:\": false,\n      \"cidr:\": \"192.168.1.108/24\"\n    },\n    {\n      \"address:\": \"fe80::a00:27ff:fe4e:66a1\",\n      \"netmask:\": \"ffff:ffff:ffff:ffff::\",\n      \"family:\": \"IPv6\",\n      \"mac:\": \"01:02:03:0a:0b:0c\",\n      \"scopeid:\": 1,\n      \"internal:\": false,\n      \"cidr:\": \"fe80::a00:27ff:fe4e:66a1/64\"\n    }\n  ]\n}"
       },
       {
         "type": "heading",
@@ -2034,6 +2094,10 @@
           {
             "type": "anchor",
             "id": "os_os_platform"
+          },
+          {
+            "type": "anchor",
+            "id": "osplatform"
           }
         ]
       },
@@ -2200,6 +2264,10 @@
           {
             "type": "anchor",
             "id": "os_os_release"
+          },
+          {
+            "type": "anchor",
+            "id": "osrelease"
           }
         ]
       },
@@ -2301,6 +2369,10 @@
           {
             "type": "anchor",
             "id": "os_os_setpriority_pid_priority"
+          },
+          {
+            "type": "anchor",
+            "id": "ossetprioritypid-priority"
           }
         ]
       },
@@ -2517,6 +2589,10 @@
           {
             "type": "anchor",
             "id": "os_os_tmpdir"
+          },
+          {
+            "type": "anchor",
+            "id": "ostmpdir"
           }
         ]
       },
@@ -2758,6 +2834,10 @@
           {
             "type": "anchor",
             "id": "os_os_totalmem"
+          },
+          {
+            "type": "anchor",
+            "id": "ostotalmem"
           }
         ]
       },
@@ -2812,6 +2892,10 @@
           {
             "type": "anchor",
             "id": "os_os_type"
+          },
+          {
+            "type": "anchor",
+            "id": "ostype"
           }
         ]
       },
@@ -2944,6 +3028,10 @@
           {
             "type": "anchor",
             "id": "os_os_uptime"
+          },
+          {
+            "type": "anchor",
+            "id": "osuptime"
           }
         ]
       },
@@ -3046,6 +3134,10 @@
           {
             "type": "anchor",
             "id": "os_os_userinfo_options"
+          },
+          {
+            "type": "anchor",
+            "id": "osuserinfooptions"
           }
         ]
       },
@@ -3379,6 +3471,10 @@
           {
             "type": "anchor",
             "id": "os_os_version"
+          },
+          {
+            "type": "anchor",
+            "id": "osversion"
           }
         ]
       },
@@ -3488,6 +3584,10 @@
           {
             "type": "anchor",
             "id": "os_os_constants_1"
+          },
+          {
+            "type": "anchor",
+            "id": "os-constants"
           }
         ]
       },
@@ -3529,6 +3629,10 @@
           {
             "type": "anchor",
             "id": "os_signal_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "signal-constants"
           }
         ]
       },
@@ -4404,6 +4508,10 @@
           {
             "type": "anchor",
             "id": "os_error_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "error-constants"
           }
         ]
       },
@@ -4436,6 +4544,10 @@
           {
             "type": "anchor",
             "id": "os_posix_error_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "posix-error-constants"
           }
         ]
       },
@@ -6070,6 +6182,10 @@
           {
             "type": "anchor",
             "id": "os_windows_specific_error_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "windows-specific-error-constants"
           }
         ]
       },
@@ -7285,6 +7401,10 @@
           {
             "type": "anchor",
             "id": "os_dlopen_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "dlopen-constants"
           }
         ]
       },
@@ -7463,6 +7583,10 @@
           {
             "type": "anchor",
             "id": "os_priority_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "priority-constants"
           }
         ]
       },
@@ -7786,6 +7910,10 @@
           {
             "type": "anchor",
             "id": "os_libuv_constants"
+          },
+          {
+            "type": "anchor",
+            "id": "libuv-constants"
           }
         ]
       },

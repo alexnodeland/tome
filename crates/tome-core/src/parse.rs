@@ -149,6 +149,83 @@ fn selector(s: &str) -> scraper::Selector {
 /// Elements whose entire subtree is not content. `header`/`footer`/`nav`
 /// at any depth: on documentation pages these are chrome even when they
 /// appear inside the content column.
+/// Class or id fragments whose element and subtree are page furniture.
+///
+/// Matched as a **case-insensitive substring** of any class token or the id,
+/// because every generator compounds these words differently — go.dev writes
+/// `SiteBreadcrumb` and `BreadcrumbNav-li`, rustdoc writes
+/// `rustdoc-breadcrumbs`, Docsy writes `td-page-meta__lastmod`. A substring
+/// list is a blunt instrument and each entry is here because it was seen
+/// leaking into the golden corpus, not because it might:
+///
+/// - `breadcrumb` — the trail above the title. go.dev, rustdoc, kubernetes.io.
+/// - `hideme` — rustdoc's `<summary>` label, literally named for being hidden.
+///   It is the "Expand description" toggle, an affordance the reader has no
+///   equivalent of.
+/// - `screen-reader`, `sr-only`, `visually-hidden`, `assistive-text` — text
+///   that is invisible on the source page by construction. go.dev uses it for
+///   "Press Enter to activate/deactivate dropdown".
+/// - `code-toolbar` — the copy-button strip Node puts **inside** `<pre>`.
+///   Belt and braces: the `pre` arm now reads the `<code>` element rather
+///   than the whole `<pre>`, which is the real fix.
+/// - `pre-footer`, `page-meta`, `feedback` — end-of-page furniture on Docsy
+///   sites (kubernetes.io): "Was this page helpful?", "Last modified …".
+///
+/// The risk of substring matching is a false positive on real content. It is
+/// accepted here because the corpus is the check: adding a term shows up as a
+/// golden diff on 26 real pages, so an over-broad rule is visible before it
+/// ships rather than after.
+const DROP_CLASS_FRAGMENTS: &[&str] = &[
+    "breadcrumb",
+    "hideme",
+    "screen-reader",
+    "sr-only",
+    "visually-hidden",
+    "assistive-text",
+    "code-toolbar",
+    "pre-footer",
+    "page-meta",
+    "feedback",
+];
+
+/// Whether this element is page furniture rather than content.
+///
+/// Two signals, and the first two are the HTML's own rather than a guess:
+///
+/// - **`hidden`** — the author says it is not rendered. A reader showing text
+///   the source page hides is showing something nobody wrote for a reader.
+/// - **`aria-hidden="true"`** — decorative, and explicitly not for anyone
+///   consuming the document as text, which is exactly what this AST is for.
+/// - a class or id fragment from [`DROP_CLASS_FRAGMENTS`].
+fn is_chrome(el: ElementRef<'_>) -> bool {
+    if el.value().attr("hidden").is_some() {
+        return true;
+    }
+    if el
+        .value()
+        .attr("aria-hidden")
+        .is_some_and(|v| v.eq_ignore_ascii_case("true"))
+    {
+        return true;
+    }
+
+    let mut haystack = String::new();
+    if let Some(class) = el.value().attr("class") {
+        haystack.push_str(class);
+        haystack.push(' ');
+    }
+    if let Some(id) = el.value().attr("id") {
+        haystack.push_str(id);
+    }
+    if haystack.is_empty() {
+        return false;
+    }
+    let haystack = haystack.to_ascii_lowercase();
+    DROP_CLASS_FRAGMENTS
+        .iter()
+        .any(|fragment| haystack.contains(fragment))
+}
+
 const DROP: &[&str] = &[
     "script", "style", "noscript", "template", "nav", "aside", "header", "footer", "form",
     "iframe", "object", "embed", "select", "button", "svg", "canvas", "dialog",
@@ -196,6 +273,38 @@ fn walk(
 
 /// Children of an **inline** element: boundary whitespace is part of the
 /// surrounding flow and is kept.
+/// All text in a subtree, skipping the parts that are not content.
+///
+/// `ElementRef::text()` walks everything, including the `<button>`s and
+/// toolbars that documentation generators put inside otherwise-plain
+/// elements. Used for `<pre>` blocks that have no `<code>` inside them.
+fn content_text(element: ElementRef<'_>) -> String {
+    let mut out = String::new();
+    let mut skip_until = None;
+    for node in element.descendants() {
+        // Skipping a subtree means ignoring every node until traversal
+        // returns above the element that started the skip.
+        if let Some(id) = skip_until {
+            if node.ancestors().any(|a| a.id() == id) {
+                continue;
+            }
+            skip_until = None;
+        }
+        match node.value() {
+            scraper::node::Node::Element(el) => {
+                let dropped =
+                    DROP.contains(&el.name()) || ElementRef::wrap(node).is_some_and(is_chrome);
+                if dropped {
+                    skip_until = Some(node.id());
+                }
+            }
+            scraper::node::Node::Text(text) => out.push_str(&text.text),
+            _ => {}
+        }
+    }
+    out
+}
+
 fn children_to_nodes(element: ElementRef<'_>, links: &mut Vec<String>) -> Vec<Node> {
     let mut out = Vec::new();
     for child in element.children() {
@@ -213,6 +322,7 @@ fn block_children(element: ElementRef<'_>, links: &mut Vec<String>) -> Vec<Node>
 fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: &mut Vec<String>) {
     match name {
         _ if DROP.contains(&name) => {}
+        _ if is_chrome(el) => {}
 
         "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
             // Sphinx puts a pilcrow permalink inside every heading
@@ -253,7 +363,23 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
                         .filter_map(ElementRef::wrap)
                         .find_map(|a| language_from_class(&class_list(a)))
                 });
-            let code = el.text().collect::<String>();
+            // **The `<code>` element's text, not the `<pre>`'s.**
+            //
+            // Node's API docs put a copy-button strip *inside* the `<pre>`:
+            // `<pre><code>…</code><div class="code-toolbar"><span>js</span>
+            // <button>copy</button></div></pre>`. Collecting the whole
+            // subtree appended "jscopy" to the end of 37 code blocks in the
+            // corpus — garbage that a reader would copy along with the code.
+            //
+            // Falling back to the `<pre>` when there is no `<code>` is not a
+            // compromise: Sphinx emits `<div class="highlight"><pre><span>…`
+            // with no `<code>` at all, and there the spans *are* the code.
+            // That path skips dropped subtrees so a stray button cannot leak
+            // in the same way.
+            let code = match code_el {
+                Some(code_el) => code_el.text().collect::<String>(),
+                None => content_text(el),
+            };
             out.push(Node::CodeBlock {
                 language,
                 code: code.trim_end().to_owned(),
@@ -266,6 +392,19 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
 
         "a" => {
             if let Some(href) = attr(el, "href") {
+                // A permalink is chrome wherever it appears, not only inside
+                // a heading. rustdoc hangs a `§` off every method signature
+                // and mdBook a `↩` off every footnote; both used to render as
+                // stray glyphs in the middle of the prose.
+                //
+                // Its `id`, if it has one, is a deep-link target and outlives
+                // the link — the same care the wrapper-unwrapping arm takes.
+                if is_permalink(&href, el) {
+                    if let Some(id) = attr(el, "id") {
+                        out.push(Node::Anchor { id });
+                    }
+                    return;
+                }
                 links.push(href.clone());
                 out.push(Node::Link {
                     href,
@@ -508,7 +647,26 @@ fn language_from_class(classes: &[String]) -> Option<String> {
 /// as a title and a TOC label. The corpus is what turned this from a
 /// Sphinx-only list into a list — every Node page's title came out as `OS#`,
 /// `Path#`, `Query string#` until `#` was on it.
-const PERMALINK_MARKERS: &[&str] = &["¶", "§", "#", "🔗", "&para;"];
+/// Markers that mean "permalink to this thing", not content.
+///
+/// `↩` is here for a different reason from the rest: it is the *back*-link at
+/// the end of a footnote (mdBook writes one on every footnote in the Cargo
+/// manifest page). Same shape — a fragment href whose whole text is one
+/// glyph — and the same answer.
+const PERMALINK_MARKERS: &[&str] = &["¶", "§", "#", "🔗", "⚓", "↩", "↵", "&para;"];
+
+/// Whether an `<a>` is a permalink affordance: a same-page fragment whose
+/// entire visible text is one marker glyph.
+///
+/// Both halves matter. A heading may legitimately contain a link, and a
+/// heading may legitimately contain a `#` — `is_permalink` says yes only when
+/// the link points into this page *and* has nothing to say but the glyph.
+fn is_permalink(href: &str, el: ElementRef<'_>) -> bool {
+    href.starts_with('#') && {
+        let text = el.text().collect::<String>();
+        PERMALINK_MARKERS.contains(&text.trim())
+    }
+}
 
 fn is_headerlink(node: &Node) -> bool {
     match node {

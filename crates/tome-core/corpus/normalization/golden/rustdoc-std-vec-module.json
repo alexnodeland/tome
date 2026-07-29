@@ -9,17 +9,6 @@
         "id": "main-content"
       },
       {
-        "type": "link",
-        "href": "https://corpus.test/index.html",
-        "title": null,
-        "children": [
-          {
-            "type": "text",
-            "value": "std"
-          }
-        ]
-      },
-      {
         "type": "heading",
         "level": 1,
         "id": null,
@@ -44,10 +33,6 @@
             "value": "Source"
           }
         ]
-      },
-      {
-        "type": "text",
-        "value": " Expand description"
       },
       {
         "type": "paragraph",

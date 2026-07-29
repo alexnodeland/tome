@@ -16,6 +16,10 @@
           {
             "type": "anchor",
             "id": "path_path"
+          },
+          {
+            "type": "anchor",
+            "id": "path"
           }
         ]
       },
@@ -79,7 +83,7 @@
       {
         "type": "code_block",
         "language": "cjs",
-        "code": "const path = require('node:path');\nimport path from 'node:path';\njavascriptcopy"
+        "code": "const path = require('node:path');"
       },
       {
         "type": "heading",
@@ -93,6 +97,10 @@
           {
             "type": "anchor",
             "id": "path_windows_vs_posix"
+          },
+          {
+            "type": "anchor",
+            "id": "windows-vs-posix"
           }
         ]
       },
@@ -150,7 +158,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.basename('C:\\\\temp\\\\myfile.html');\n// Returns: 'C:\\\\temp\\\\myfile.html'\njscopy"
+        "code": "path.basename('C:\\\\temp\\\\myfile.html');\n// Returns: 'C:\\\\temp\\\\myfile.html'"
       },
       {
         "type": "paragraph",
@@ -164,7 +172,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.basename('C:\\\\temp\\\\myfile.html');\n// Returns: 'myfile.html'\njscopy"
+        "code": "path.basename('C:\\\\temp\\\\myfile.html');\n// Returns: 'myfile.html'"
       },
       {
         "type": "paragraph",
@@ -202,7 +210,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.win32.basename('C:\\\\temp\\\\myfile.html');\n// Returns: 'myfile.html'\njscopy"
+        "code": "path.win32.basename('C:\\\\temp\\\\myfile.html');\n// Returns: 'myfile.html'"
       },
       {
         "type": "paragraph",
@@ -240,7 +248,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.posix.basename('/tmp/myfile.html');\n// Returns: 'myfile.html'\njscopy"
+        "code": "path.posix.basename('/tmp/myfile.html');\n// Returns: 'myfile.html'"
       },
       {
         "type": "paragraph",
@@ -294,6 +302,10 @@
           {
             "type": "anchor",
             "id": "path_path_basename_path_suffix"
+          },
+          {
+            "type": "anchor",
+            "id": "pathbasenamepath-suffix"
           }
         ]
       },
@@ -484,7 +496,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.basename('/foo/bar/baz/asdf/quux.html');\n// Returns: 'quux.html'\n\npath.basename('/foo/bar/baz/asdf/quux.html', '.html');\n// Returns: 'quux'\njscopy"
+        "code": "path.basename('/foo/bar/baz/asdf/quux.html');\n// Returns: 'quux.html'\n\npath.basename('/foo/bar/baz/asdf/quux.html', '.html');\n// Returns: 'quux'"
       },
       {
         "type": "paragraph",
@@ -522,7 +534,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.win32.basename('C:\\\\foo.html', '.html');\n// Returns: 'foo'\n\npath.win32.basename('C:\\\\foo.HTML', '.html');\n// Returns: 'foo.HTML'\njscopy"
+        "code": "path.win32.basename('C:\\\\foo.html', '.html');\n// Returns: 'foo'\n\npath.win32.basename('C:\\\\foo.HTML', '.html');\n// Returns: 'foo.HTML'"
       },
       {
         "type": "paragraph",
@@ -576,6 +588,10 @@
           {
             "type": "anchor",
             "id": "path_path_delimiter"
+          },
+          {
+            "type": "anchor",
+            "id": "pathdelimiter"
           }
         ]
       },
@@ -661,7 +677,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "console.log(process.env.PATH);\n// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'\n\nprocess.env.PATH.split(path.delimiter);\n// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']\njscopy"
+        "code": "console.log(process.env.PATH);\n// Prints: '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin'\n\nprocess.env.PATH.split(path.delimiter);\n// Returns: ['/usr/bin', '/bin', '/usr/sbin', '/sbin', '/usr/local/bin']"
       },
       {
         "type": "paragraph",
@@ -675,7 +691,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "console.log(process.env.PATH);\n// Prints: 'C:\\Windows\\system32;C:\\Windows;C:\\Program Files\\node\\'\n\nprocess.env.PATH.split(path.delimiter);\n// Returns ['C:\\\\Windows\\\\system32', 'C:\\\\Windows', 'C:\\\\Program Files\\\\node\\\\']\njscopy"
+        "code": "console.log(process.env.PATH);\n// Prints: 'C:\\Windows\\system32;C:\\Windows;C:\\Program Files\\node\\'\n\nprocess.env.PATH.split(path.delimiter);\n// Returns ['C:\\\\Windows\\\\system32', 'C:\\\\Windows', 'C:\\\\Program Files\\\\node\\\\']"
       },
       {
         "type": "heading",
@@ -689,6 +705,10 @@
           {
             "type": "anchor",
             "id": "path_path_dirname_path"
+          },
+          {
+            "type": "anchor",
+            "id": "pathdirnamepath"
           }
         ]
       },
@@ -852,7 +872,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.dirname('/foo/bar/baz/asdf/quux');\n// Returns: '/foo/bar/baz/asdf'\njscopy"
+        "code": "path.dirname('/foo/bar/baz/asdf/quux');\n// Returns: '/foo/bar/baz/asdf'"
       },
       {
         "type": "paragraph",
@@ -898,6 +918,10 @@
           {
             "type": "anchor",
             "id": "path_path_extname_path"
+          },
+          {
+            "type": "anchor",
+            "id": "pathextnamepath"
           }
         ]
       },
@@ -1094,7 +1118,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.extname('index.html');\n// Returns: '.html'\n\npath.extname('index.coffee.md');\n// Returns: '.md'\n\npath.extname('index.');\n// Returns: '.'\n\npath.extname('index');\n// Returns: ''\n\npath.extname('.index');\n// Returns: ''\n\npath.extname('.index.md');\n// Returns: '.md'\njscopy"
+        "code": "path.extname('index.html');\n// Returns: '.html'\n\npath.extname('index.coffee.md');\n// Returns: '.md'\n\npath.extname('index.');\n// Returns: '.'\n\npath.extname('index');\n// Returns: ''\n\npath.extname('.index');\n// Returns: ''\n\npath.extname('.index.md');\n// Returns: '.md'"
       },
       {
         "type": "paragraph",
@@ -1140,6 +1164,10 @@
           {
             "type": "anchor",
             "id": "path_path_format_pathobject"
+          },
+          {
+            "type": "anchor",
+            "id": "pathformatpathobject"
           }
         ]
       },
@@ -1494,7 +1522,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "// If `dir`, `root` and `base` are provided,\n// `${dir}${path.sep}${base}`\n// will be returned. `root` is ignored.\npath.format({\n  root: '/ignored',\n  dir: '/home/user/dir',\n  base: 'file.txt',\n});\n// Returns: '/home/user/dir/file.txt'\n\n// `root` will be used if `dir` is not specified.\n// If only `root` is provided or `dir` is equal to `root` then the\n// platform separator will not be included. `ext` will be ignored.\npath.format({\n  root: '/',\n  base: 'file.txt',\n  ext: 'ignored',\n});\n// Returns: '/file.txt'\n\n// `name` + `ext` will be used if `base` is not specified.\npath.format({\n  root: '/',\n  name: 'file',\n  ext: '.txt',\n});\n// Returns: '/file.txt'\n\n// The dot will be added if it is not specified in `ext`.\npath.format({\n  root: '/',\n  name: 'file',\n  ext: 'txt',\n});\n// Returns: '/file.txt'\njscopy"
+        "code": "// If `dir`, `root` and `base` are provided,\n// `${dir}${path.sep}${base}`\n// will be returned. `root` is ignored.\npath.format({\n  root: '/ignored',\n  dir: '/home/user/dir',\n  base: 'file.txt',\n});\n// Returns: '/home/user/dir/file.txt'\n\n// `root` will be used if `dir` is not specified.\n// If only `root` is provided or `dir` is equal to `root` then the\n// platform separator will not be included. `ext` will be ignored.\npath.format({\n  root: '/',\n  base: 'file.txt',\n  ext: 'ignored',\n});\n// Returns: '/file.txt'\n\n// `name` + `ext` will be used if `base` is not specified.\npath.format({\n  root: '/',\n  name: 'file',\n  ext: '.txt',\n});\n// Returns: '/file.txt'\n\n// The dot will be added if it is not specified in `ext`.\npath.format({\n  root: '/',\n  name: 'file',\n  ext: 'txt',\n});\n// Returns: '/file.txt'"
       },
       {
         "type": "paragraph",
@@ -1508,7 +1536,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.format({\n  dir: 'C:\\\\path\\\\dir',\n  base: 'file.txt',\n});\n// Returns: 'C:\\\\path\\\\dir\\\\file.txt'\njscopy"
+        "code": "path.format({\n  dir: 'C:\\\\path\\\\dir',\n  base: 'file.txt',\n});\n// Returns: 'C:\\\\path\\\\dir\\\\file.txt'"
       },
       {
         "type": "heading",
@@ -1522,6 +1550,10 @@
           {
             "type": "anchor",
             "id": "path_path_matchesglob_path_pattern"
+          },
+          {
+            "type": "anchor",
+            "id": "pathmatchesglobpath-pattern"
           }
         ]
       },
@@ -1722,7 +1754,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.matchesGlob('/foo/bar', '/foo/*'); // true\npath.matchesGlob('/foo/bar*', 'foo/bird'); // false\njscopy"
+        "code": "path.matchesGlob('/foo/bar', '/foo/*'); // true\npath.matchesGlob('/foo/bar*', 'foo/bird'); // false"
       },
       {
         "type": "paragraph",
@@ -1776,6 +1808,10 @@
           {
             "type": "anchor",
             "id": "path_path_isabsolute_path"
+          },
+          {
+            "type": "anchor",
+            "id": "pathisabsolutepath"
           }
         ]
       },
@@ -1894,7 +1930,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.isAbsolute('/foo/bar');   // true\npath.isAbsolute('/baz/..');    // true\npath.isAbsolute('/baz/../..'); // true\npath.isAbsolute('qux/');       // false\npath.isAbsolute('.');          // false\njscopy"
+        "code": "path.isAbsolute('/foo/bar');   // true\npath.isAbsolute('/baz/..');    // true\npath.isAbsolute('/baz/../..'); // true\npath.isAbsolute('qux/');       // false\npath.isAbsolute('.');          // false"
       },
       {
         "type": "paragraph",
@@ -1908,7 +1944,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.isAbsolute('//server');    // true\npath.isAbsolute('\\\\\\\\server');  // true\npath.isAbsolute('C:/foo/..');   // true\npath.isAbsolute('C:\\\\foo\\\\..'); // true\npath.isAbsolute('bar\\\\baz');    // false\npath.isAbsolute('bar/baz');     // false\npath.isAbsolute('.');           // false\njscopy"
+        "code": "path.isAbsolute('//server');    // true\npath.isAbsolute('\\\\\\\\server');  // true\npath.isAbsolute('C:/foo/..');   // true\npath.isAbsolute('C:\\\\foo\\\\..'); // true\npath.isAbsolute('bar\\\\baz');    // false\npath.isAbsolute('bar/baz');     // false\npath.isAbsolute('.');           // false"
       },
       {
         "type": "paragraph",
@@ -1954,6 +1990,10 @@
           {
             "type": "anchor",
             "id": "path_path_join_paths"
+          },
+          {
+            "type": "anchor",
+            "id": "pathjoinpaths"
           }
         ]
       },
@@ -2067,7 +2107,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.join('/foo', 'bar', 'baz/asdf', 'quux', '..');\n// Returns: '/foo/bar/baz/asdf'\n\npath.join('foo', {}, 'bar');\n// Throws 'TypeError: Path must be a string. Received {}'\njscopy"
+        "code": "path.join('/foo', 'bar', 'baz/asdf', 'quux', '..');\n// Returns: '/foo/bar/baz/asdf'\n\npath.join('foo', {}, 'bar');\n// Throws 'TypeError: Path must be a string. Received {}'"
       },
       {
         "type": "paragraph",
@@ -2105,6 +2145,10 @@
           {
             "type": "anchor",
             "id": "path_path_normalize_path"
+          },
+          {
+            "type": "anchor",
+            "id": "pathnormalizepath"
           }
         ]
       },
@@ -2305,7 +2349,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.normalize('/foo/bar//baz/asdf/quux/..');\n// Returns: '/foo/bar/baz/asdf'\njscopy"
+        "code": "path.normalize('/foo/bar//baz/asdf/quux/..');\n// Returns: '/foo/bar/baz/asdf'"
       },
       {
         "type": "paragraph",
@@ -2319,7 +2363,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.normalize('C:\\\\temp\\\\\\\\foo\\\\bar\\\\..\\\\');\n// Returns: 'C:\\\\temp\\\\foo\\\\'\njscopy"
+        "code": "path.normalize('C:\\\\temp\\\\\\\\foo\\\\bar\\\\..\\\\');\n// Returns: 'C:\\\\temp\\\\foo\\\\'"
       },
       {
         "type": "paragraph",
@@ -2341,7 +2385,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.win32.normalize('C:////temp\\\\\\\\/\\\\/\\\\/foo/bar');\n// Returns: 'C:\\\\temp\\\\foo\\\\bar'\njscopy"
+        "code": "path.win32.normalize('C:////temp\\\\\\\\/\\\\/\\\\/foo/bar');\n// Returns: 'C:\\\\temp\\\\foo\\\\bar'"
       },
       {
         "type": "paragraph",
@@ -2387,6 +2431,10 @@
           {
             "type": "anchor",
             "id": "path_path_parse_path"
+          },
+          {
+            "type": "anchor",
+            "id": "pathparsepath"
           }
         ]
       },
@@ -2626,12 +2674,12 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.parse('/home/user/dir/file.txt');\n// Returns:\n// { root: '/',\n//   dir: '/home/user/dir',\n//   base: 'file.txt',\n//   ext: '.txt',\n//   name: 'file' }\njscopy"
+        "code": "path.parse('/home/user/dir/file.txt');\n// Returns:\n// { root: '/',\n//   dir: '/home/user/dir',\n//   base: 'file.txt',\n//   ext: '.txt',\n//   name: 'file' }"
       },
       {
         "type": "code_block",
         "language": "text",
-        "code": "┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n\"  /    home/user/dir / file  .txt \"\n└──────┴──────────────┴──────┴─────┘\n(All spaces in the \"\" line should be ignored. They are purely for formatting.)\ntextcopy"
+        "code": "┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n\"  /    home/user/dir / file  .txt \"\n└──────┴──────────────┴──────┴─────┘\n(All spaces in the \"\" line should be ignored. They are purely for formatting.)"
       },
       {
         "type": "paragraph",
@@ -2645,12 +2693,12 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.parse('C:\\\\path\\\\dir\\\\file.txt');\n// Returns:\n// { root: 'C:\\\\',\n//   dir: 'C:\\\\path\\\\dir',\n//   base: 'file.txt',\n//   ext: '.txt',\n//   name: 'file' }\njscopy"
+        "code": "path.parse('C:\\\\path\\\\dir\\\\file.txt');\n// Returns:\n// { root: 'C:\\\\',\n//   dir: 'C:\\\\path\\\\dir',\n//   base: 'file.txt',\n//   ext: '.txt',\n//   name: 'file' }"
       },
       {
         "type": "code_block",
         "language": "text",
-        "code": "┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n\" C:\\      path\\dir   \\ file  .txt \"\n└──────┴──────────────┴──────┴─────┘\n(All spaces in the \"\" line should be ignored. They are purely for formatting.)\ntextcopy"
+        "code": "┌─────────────────────┬────────────┐\n│          dir        │    base    │\n├──────┬              ├──────┬─────┤\n│ root │              │ name │ ext │\n\" C:\\      path\\dir   \\ file  .txt \"\n└──────┴──────────────┴──────┴─────┘\n(All spaces in the \"\" line should be ignored. They are purely for formatting.)"
       },
       {
         "type": "paragraph",
@@ -2696,6 +2744,10 @@
           {
             "type": "anchor",
             "id": "path_path_posix"
+          },
+          {
+            "type": "anchor",
+            "id": "pathposix"
           }
         ]
       },
@@ -2847,6 +2899,10 @@
           {
             "type": "anchor",
             "id": "path_path_relative_from_to"
+          },
+          {
+            "type": "anchor",
+            "id": "pathrelativefrom-to"
           }
         ]
       },
@@ -3068,7 +3124,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.relative('/data/orandea/test/aaa', '/data/orandea/impl/bbb');\n// Returns: '../../impl/bbb'\njscopy"
+        "code": "path.relative('/data/orandea/test/aaa', '/data/orandea/impl/bbb');\n// Returns: '../../impl/bbb'"
       },
       {
         "type": "paragraph",
@@ -3082,7 +3138,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.relative('C:\\\\orandea\\\\test\\\\aaa', 'C:\\\\orandea\\\\impl\\\\bbb');\n// Returns: '..\\\\..\\\\impl\\\\bbb'\njscopy"
+        "code": "path.relative('C:\\\\orandea\\\\test\\\\aaa', 'C:\\\\orandea\\\\impl\\\\bbb');\n// Returns: '..\\\\..\\\\impl\\\\bbb'"
       },
       {
         "type": "paragraph",
@@ -3136,6 +3192,10 @@
           {
             "type": "anchor",
             "id": "path_path_resolve_paths"
+          },
+          {
+            "type": "anchor",
+            "id": "pathresolvepaths"
           }
         ]
       },
@@ -3357,7 +3417,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "path.resolve('/foo/bar', './baz');\n// Returns: '/foo/bar/baz'\n\npath.resolve('/foo/bar', '/tmp/file/');\n// Returns: '/tmp/file'\n\npath.resolve('wwwroot', 'static_files/png/', '../gif/image.gif');\n// If the current working directory is /home/myself/node,\n// this returns '/home/myself/node/wwwroot/static_files/gif/image.gif'\njscopy"
+        "code": "path.resolve('/foo/bar', './baz');\n// Returns: '/foo/bar/baz'\n\npath.resolve('/foo/bar', '/tmp/file/');\n// Returns: '/tmp/file'\n\npath.resolve('wwwroot', 'static_files/png/', '../gif/image.gif');\n// If the current working directory is /home/myself/node,\n// this returns '/home/myself/node/wwwroot/static_files/gif/image.gif'"
       },
       {
         "type": "paragraph",
@@ -3395,6 +3455,10 @@
           {
             "type": "anchor",
             "id": "path_path_sep"
+          },
+          {
+            "type": "anchor",
+            "id": "pathsep"
           }
         ]
       },
@@ -3480,7 +3544,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "'foo/bar/baz'.split(path.sep);\n// Returns: ['foo', 'bar', 'baz']\njscopy"
+        "code": "'foo/bar/baz'.split(path.sep);\n// Returns: ['foo', 'bar', 'baz']"
       },
       {
         "type": "paragraph",
@@ -3494,7 +3558,7 @@
       {
         "type": "code_block",
         "language": "javascript",
-        "code": "'foo\\\\bar\\\\baz'.split(path.sep);\n// Returns: ['foo', 'bar', 'baz']\njscopy"
+        "code": "'foo\\\\bar\\\\baz'.split(path.sep);\n// Returns: ['foo', 'bar', 'baz']"
       },
       {
         "type": "paragraph",
@@ -3549,6 +3613,10 @@
           {
             "type": "anchor",
             "id": "path_path_tonamespacedpath_path"
+          },
+          {
+            "type": "anchor",
+            "id": "pathtonamespacedpathpath"
           }
         ]
       },
@@ -3682,6 +3750,10 @@
           {
             "type": "anchor",
             "id": "path_path_win32"
+          },
+          {
+            "type": "anchor",
+            "id": "pathwin32"
           }
         ]
       },

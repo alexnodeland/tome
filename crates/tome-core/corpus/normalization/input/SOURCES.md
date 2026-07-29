@@ -132,11 +132,35 @@ than merely reviewed.
 | `sphinx-api-reference.html` | `tome-testkit/fixtures/sphinx-example/api/reference.html` |
 | `sphinx-guide.html` | `tome-testkit/fixtures/sphinx-example/guide/index.html` |
 
+## What the corpus found
+
+Its first two runs turned up five content defects, none of which any test had
+caught, because a test written from the same misunderstanding as the code
+agrees with it:
+
+| Defect | Scale |
+|---|---|
+| Node's copy-button strip lives **inside** `<pre>`, so every code block ended in `jscopy` / `jsoncopy` | 37 code blocks |
+| Footnote back-links (`↩`) and rustdoc's per-method `§` rendered as stray glyphs mid-prose | 27 + 26 |
+| Breadcrumbs survived into the content (`std::fs`, `Documentation Tutorials …`) | go.dev, rustdoc |
+| kubernetes.io's "Was this page helpful?" and "Last modified …" footer | 1 page, ~108 lines |
+| Node permalink anchors were dropped **with their ids** — every `#osarch`-style deep link had nowhere to land | every Node API entry |
+
+The last one is the reason to look at removals sceptically: three of these
+fixes delete content, and one *restores* it.
+
 ## What the goldens are not
 
 They are a record of what the pipeline *currently* produces, not a statement
-that it is right. Some known imperfections are baked in and visible in the
-output — go.dev breadcrumbs and rustdoc's `1.26.0 · Source` chrome survive
-inside the content root, for instance. That is the point: they are recorded,
-so improving them shows up as a reviewable diff rather than as an
-unmeasurable "looks better".
+that it is right. Some artifacts are deliberately still in:
+
+- **rustdoc's `1.26.0 · Source`** after a heading. "Stable since 1.26.0" is
+  real API metadata, and "Source" is a real link with real text — dropping
+  them would be a judgement about usefulness, not about whether they are
+  content. Left in.
+- **go.dev's in-page "Table of Contents:"** on `/doc/comment`. It is written
+  as ordinary prose by the author, with no structural marker at all;
+  recognising it would mean matching on the words, which is a hack.
+
+Both are recorded here so that changing them later is a reviewable diff
+rather than an unmeasurable "looks better".
