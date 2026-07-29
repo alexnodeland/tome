@@ -402,6 +402,12 @@ fn search(paths: &Paths, query: &str, scope: Option<&str>, limit: usize, json: b
         .take(limit)
         .collect();
 
+    // What the search silently corrected, if anything (P2-009). Reported
+    // rather than kept quiet: a search that answers a different question than
+    // the one asked, without saying so, leaves the user believing their
+    // library contains something it does not.
+    let suggestions = engine.suggest(query)?;
+
     if json {
         println!(
             "{}",
@@ -411,10 +417,26 @@ fn search(paths: &Paths, query: &str, scope: Option<&str>, limit: usize, json: b
                     "path": hit.path,
                     "title": hit.title,
                     "score": hit.score,
-                })).collect::<Vec<_>>()
+                })).collect::<Vec<_>>(),
+                // Always present, even when empty, so `tome search --json | jq`
+                // needs no special case. The same rule `tome list --json`
+                // follows.
+                "suggestions": suggestions.iter().map(|s| serde_json::json!({
+                    "typed": s.typed,
+                    "meant": s.meant,
+                })).collect::<Vec<_>>(),
             })
         );
         return Ok(());
+    }
+
+    if !suggestions.is_empty() {
+        let corrections: Vec<String> = suggestions
+            .iter()
+            .map(|s| format!("{} → {}", s.typed, s.meant))
+            .collect();
+        println!("Did you mean: {}", corrections.join(", "));
+        println!();
     }
 
     if hits.is_empty() {

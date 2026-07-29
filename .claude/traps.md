@@ -211,6 +211,32 @@ a test written from the same misunderstanding as the code agrees with it. The go
   draft did not reproduce the defect at all, because a real concatenated book carries every
   chapter's *headings* too. **Assert the control case**: that with the mechanism disabled, the bad
   outcome happens. That is what caught both.
+- **`FuzzyTermQuery` is a constant-score query.** It is built on an `AutomatonWeight`, which
+  produces a `ConstScorer`, so *every* document it matches scores identically — BM25 is discarded
+  for that term, and none of `Ranking`'s tuning reaches it. P2-009's technical note sketches
+  exactly this and it does not survive contact with how tantivy scores. `search::fuzzy` corrects
+  the **query** against the term dictionary instead, so a correction is searched as an ordinary
+  term. "Did you mean?" then falls out for free, which a query relaxation cannot give you: a
+  `FuzzyTermQuery` never reveals which terms it matched.
+- **Typo correction is prefix-anchored and therefore blind to typos in the first three
+  characters.** `teh` will not find `the`. This is a deliberate cost — without a prefix, correcting
+  one term means reading the whole term dictionary — and it is pinned by a test so it fails there
+  rather than surprising someone. Removing the blind spot means taking `levenshtein-automata` and
+  `tantivy-fst` as direct dependencies pinned to whatever tantivy resolves, because `DfaWrapper` is
+  `pub(crate)`.
+- **Corrections are drawn from prose fields only, never `code`.** Identifier vocabularies have
+  dense near neighbours — `read_dir`/`read_din`, `parseInt`/`parseInto` — so a correction towards
+  one is likelier wrong than helpful.
+- **P2-009's distance schedule cannot reach every real typo, and that is the specification's call,
+  not a bug.** `modual` → `module` is 2 edits on a 6-character term (1 allowed) and `pth` → `path`
+  is 1 edit on a 3-character term (0 allowed). Both are in the eval corpus and both are expected to
+  fail. Widening the schedule buys false positives everywhere: at distance 1 on three-character
+  terms, `Vec` reaches `Vex`, `Vev`, `sec` and `hex`.
+- **Do not close the last of the relevance gate by choosing the parameter that crosses it.**
+  recall@3 sits at 0.8986 against a 0.90 gate — one query of 207 — and a neighbouring
+  configuration reaches 0.9034 while costing symbol accuracy. Picking it would be fitting the gate,
+  not passing it. The same goes for re-labelling queries to make the number rise: that destroys the
+  instrument, which is the one thing here that cannot be rebuilt in seconds.
 - **Stopwords are dropped from the query, never from the index**, so IDF is untouched and the
   policy can be changed or reverted with no reindex. Two refusals in `StopwordPolicy::apply` are
   load-bearing: a query containing a quote is returned untouched (a phrase with a hole matches

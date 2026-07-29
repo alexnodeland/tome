@@ -1075,6 +1075,22 @@ Examples:
   tome list --json | jq '.sources[] | select(.category == "Rust")'
 ```
 
+`tome search` corrects terms that appear nowhere in the index (P2-009) and **says so**, because a
+search that quietly answers a different question than the one asked is worse than one that reports
+what it did:
+
+```
+$ tome search "enviroment variables"
+Did you mean: enviroment → environment
+
+cargo                    Environment variables
+                         cargo/reference/environment-variables.html
+```
+
+Under `--json` the corrections are a `suggestions` array of `{typed, meant}` objects. It is
+**always present, even when empty**, so `tome search --json | jq` needs no empty-library special
+case — the same rule `tome list --json` follows.
+
 **Naming: `pull` fetches documentation; there is no `tome sync`.**
 
 `sync` is reserved for the *bookmark* sync engine and is not user-invoked. Earlier documents used

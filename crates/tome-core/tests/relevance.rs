@@ -49,38 +49,40 @@
 //! syntax. Fixing that moved symbol recall@1 from 0.7465 to 0.9474 on the old
 //! corpus.
 //!
-//! # What S2-4 changed, measured
+//! # What S2-4 and S2-5 changed, measured
 //!
 //! `sweep_ranking_parameters` below is the tool; [`Ranking::TUNED`] holds what
 //! it found. Against the untuned ranker, over the same 207 queries:
 //!
-//! | | before | after |
-//! |---|---|---|
-//! | MRR | 0.7489 | 0.8245 |
-//! | recall@1 | 0.6377 | 0.7585 |
-//! | recall@3 | 0.8357 | 0.8744 |
-//! | `natural` MRR | 0.2419 | 0.4596 |
-//! | `symbol` MRR | 0.8384 | 0.8792 |
+//! | | before S2-4 | after S2-4 | after S2-5 |
+//! |---|---|---|---|
+//! | MRR | 0.7489 | 0.8245 | 0.8351 |
+//! | recall@1 | 0.6377 | 0.7585 | 0.7585 |
+//! | recall@3 | 0.8357 | 0.8744 | 0.8986 |
+//! | `natural` MRR | 0.2419 | 0.4596 | 0.4273 |
+//! | `symbol` MRR | 0.8384 | 0.8792 | 0.8817 |
+//! | `misspelling` MRR | 0.3125 | 0.3500 | 0.6333 |
 //!
-//! 48 queries improved and 10 got worse, and every category improved. Five
-//! queries that previously found nothing at all within the top ten now rank.
+//! S2-4 was field boosts, a document-length penalty and query-time stopwords;
+//! S2-5 was typo tolerance. Turning typo tolerance on moved **only**
+//! `misspelling` queries, which is the behaviour wanted from it.
 //!
 //! # What is still weak
 //!
-//! **recall@3 is 0.8744 against a Stage 2 exit gate of 0.90**, and tuning is
-//! not going to close the remaining gap of roughly five queries: the sweep
-//! converged, and descending on recall@3 directly reached only 0.8792 while
-//! giving up MRR and symbol accuracy for it.
+//! **recall@3 is 0.8986 against a Stage 2 exit gate of 0.90 — one query short
+//! of 207.** A neighbouring configuration reaches 0.9034, and taking it would
+//! be fitting the gate rather than passing it; see [`Ranking::TUNED`].
 //!
-//! `misspelling` (0.2500 recall@1) is the largest single block of remaining
-//! failures and is *expected* to be until S2-5 adds fuzzy matching — it alone
-//! is 12 of the 207 queries, nine of which miss the top three.
+//! `natural` (0.4273 MRR) is now the weakest category. Two of its queries want
+//! a page that answers a "how do I …" question in prose, and the pages that
+//! do are the enormous single-page ones the length penalty exists to demote —
+//! so it is a genuine tension rather than a bug, and closing it probably needs
+//! passage-level retrieval rather than another boost.
 //!
-//! `natural` is no longer the worst category. The defect behind it — one
-//! enormous page (`go:doc/faq`, `cargo:cargo/print.html`) outranking every
-//! specific page because length made it match everything — is what
-//! `Ranking::length_penalty` addresses, since BM25's own `b` is a private
-//! constant in tantivy 0.26 and cannot be raised.
+//! Two `misspelling` queries are unreachable by design: `modual` -> `module`
+//! is 2 edits on a 6-character term and `pth` -> `path` is 1 edit on a
+//! 3-character term, and P2-009's schedule allows 1 and 0 respectively.
+//! Widening it is a specification change, not a tuning decision.
 
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 
@@ -503,12 +505,14 @@ struct Scoreboard {
     symbol_mrr: f64,
     symbol_recall_at_1: f64,
     natural_mrr: f64,
+    misspelling_mrr: f64,
 }
 
 fn evaluate(engine: &SearchEngine, queries: &[Query], ranking: &Ranking) -> Scoreboard {
     let mut all = Vec::with_capacity(queries.len());
     let mut symbol = Vec::new();
     let mut natural = Vec::new();
+    let mut misspelling = Vec::new();
 
     for query in queries {
         let rank = rank_of(engine, query, ranking);
@@ -516,6 +520,7 @@ fn evaluate(engine: &SearchEngine, queries: &[Query], ranking: &Ranking) -> Scor
         match query.kind.as_str() {
             "symbol" => symbol.push(rank),
             "natural" => natural.push(rank),
+            "misspelling" => misspelling.push(rank),
             _ => {}
         }
     }
@@ -544,6 +549,7 @@ fn evaluate(engine: &SearchEngine, queries: &[Query], ranking: &Ranking) -> Scor
         symbol_mrr: mrr(&symbol),
         symbol_recall_at_1: recall(&symbol, 1),
         natural_mrr: mrr(&natural),
+        misspelling_mrr: mrr(&misspelling),
     }
 }
 
@@ -551,7 +557,7 @@ fn evaluate(engine: &SearchEngine, queries: &[Query], ranking: &Ranking) -> Scor
 fn sweep_row(label: &str, ranking: &Ranking, board: &Scoreboard) -> String {
     format!(
         "  {label:<26} t={:<5.2} h={:<4.1} b={:<4.1} c={:<4.1} pivot={:<6} pen={:<4.2} sw={:<10} \
-         | MRR {:.4}  r@1 {:.4}  r@3 {:.4}  sym {:.4}  nat {:.4}",
+         fz={:<4.2}/{} | MRR {:.4}  r@1 {:.4}  r@3 {:.4}  sym {:.4}  nat {:.4}  ms {:.4}",
         ranking.title,
         ranking.headers,
         ranking.body,
@@ -559,11 +565,14 @@ fn sweep_row(label: &str, ranking: &Ranking, board: &Scoreboard) -> String {
         ranking.length_pivot,
         ranking.length_penalty,
         format!("{:?}", ranking.stopwords),
+        ranking.fuzzy,
+        ranking.fuzzy_max_distance,
         board.mrr,
         board.recall_at_1,
         board.recall_at_3,
         board.symbol_mrr,
         board.natural_mrr,
+        board.misspelling_mrr,
     )
 }
 
@@ -635,9 +644,215 @@ fn sweep_ranking_parameters() {
     println!("{}", sweep_row("before S2-4", &Ranking::UNTUNED, &untuned));
     let tuned = evaluate(&engine, &queries, &Ranking::TUNED);
     println!("{}", sweep_row("Ranking::TUNED", &Ranking::TUNED, &tuned));
+
+    // Coordinate descent is greedy and path-dependent: it reports the first
+    // local optimum it walks into, which is not necessarily near the shipped
+    // configuration. This asks the question that actually matters — is
+    // `TUNED` itself a local optimum, and what does each neighbour cost? —
+    // and it answers it in full columns rather than one objective, because
+    // the choice between two neighbours is a judgement about which category
+    // to favour.
+    println!("\n  ── one step from Ranking::TUNED ──");
+    for (name, neighbour) in [
+        (
+            "title 0.5",
+            Ranking {
+                title: 0.5,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "title 1.0",
+            Ranking {
+                title: 1.0,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "title 1.5",
+            Ranking {
+                title: 1.5,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "headers 1.5",
+            Ranking {
+                headers: 1.5,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "headers 3.0",
+            Ranking {
+                headers: 3.0,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "code 0.5",
+            Ranking {
+                code: 0.5,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "code 1.5",
+            Ranking {
+                code: 1.5,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "pivot 1000",
+            Ranking {
+                length_pivot: 1_000,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "pivot 4000",
+            Ranking {
+                length_pivot: 4_000,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "penalty 0.2",
+            Ranking {
+                length_penalty: 0.2,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "penalty 0.6",
+            Ranking {
+                length_penalty: 0.6,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "stopwords Questions",
+            Ranking {
+                stopwords: StopwordPolicy::Questions,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "stopwords None",
+            Ranking {
+                stopwords: StopwordPolicy::None,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "fuzzy off",
+            Ranking {
+                fuzzy: 0.0,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "fuzzy 0.4",
+            Ranking {
+                fuzzy: 0.4,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "fuzzy 1.0",
+            Ranking {
+                fuzzy: 1.0,
+                ..Ranking::TUNED
+            },
+        ),
+        (
+            "fuzzy distance 1",
+            Ranking {
+                fuzzy_max_distance: 1,
+                ..Ranking::TUNED
+            },
+        ),
+    ] {
+        let board = evaluate(&engine, &queries, &neighbour);
+        println!("{}", sweep_row(name, &neighbour, &board));
+    }
+
     println!(
         "\n  If an optimum differs from `Ranking::TUNED`, that is a decision to make, \
          not a diff to apply."
+    );
+}
+
+/// What typo tolerance costs, measured (P2-009 budgets 20 ms).
+///
+/// `cargo test -p tome-core --test relevance -- --ignored --nocapture cost`
+///
+/// Ignored for the same reason the sweep is: it is a measurement, and a
+/// wall-clock assertion in the gate would fail on a loaded machine and be
+/// suppressed within a week. **Run it in `--release`** — a debug build
+/// measures rustc's bounds checks, not the search.
+///
+/// The number that matters is the *correctly spelled* row. Every term in such
+/// a query is found in the term dictionary, so no scan happens at all, and
+/// that is the query nearly every user issues nearly every time. The
+/// misspelled row is what a typo costs on the rare occasion someone makes one.
+#[test]
+#[ignore = "a measurement, not a gate: wall-clock assertions fail on loaded machines"]
+fn fuzzy_cost() {
+    let dir = corpus_dir().join("relevance");
+    let corpus: Corpus = serde_yaml_ng::from_str(
+        &std::fs::read_to_string(dir.join("corpus.yaml")).expect("read corpus.yaml"),
+    )
+    .expect("parse corpus.yaml");
+    let documents = load_documents(&corpus.sources);
+    let index_dir = tempfile::tempdir().expect("tempdir");
+    let engine = build_index(index_dir.path(), &documents);
+
+    let off = Ranking {
+        fuzzy: 0.0,
+        ..Ranking::TUNED
+    };
+
+    println!("\nfuzzy cost — {} documents\n", documents.len());
+    println!(
+        "  {:<34} {:>12} {:>12} {:>10}",
+        "query", "exact", "tolerant", "overhead"
+    );
+
+    for (label, query) in [
+        ("correctly spelled", "environment variables"),
+        ("correctly spelled (symbol)", "Vec::with_capacity"),
+        ("one misspelling", "enviroment variables"),
+        ("two misspellings", "enviroment varaibles"),
+    ] {
+        // Warm the caches for both paths before either is timed, or the first
+        // measurement pays for the second's page faults.
+        for _ in 0..20 {
+            let _ = engine.search_with(query, 10, &off);
+            let _ = engine.search_with(query, 10, &Ranking::TUNED);
+        }
+
+        let time = |ranking: &Ranking| {
+            let start = std::time::Instant::now();
+            for _ in 0..100 {
+                engine.search_with(query, 10, ranking).expect("search");
+            }
+            start.elapsed() / 100
+        };
+
+        let exact = time(&off);
+        let tolerant = time(&Ranking::TUNED);
+        println!(
+            "  {label:<34} {:>10.3?} {:>10.3?} {:>10.3?}",
+            exact,
+            tolerant,
+            tolerant.saturating_sub(exact)
+        );
+    }
+    println!(
+        "\n  Corpus vocabulary, not page count, is what a correction scan reads — see \
+         SPIKE-003 finding 2. At 100k pages this needs re-measuring; that is S2-12's."
     );
 }
 
@@ -702,6 +917,17 @@ fn descend(
                 ][i];
             }),
             3,
+        ),
+        (
+            // Also a multiplicative pair: a boost with a zero distance cap has
+            // nothing to weight, and a distance cap with a zero boost weights
+            // it at nothing. Swept jointly for the same reason `length` is.
+            "fuzzy",
+            Box::new(|r: &mut Ranking, i: usize| {
+                r.fuzzy = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.5][i / 3];
+                r.fuzzy_max_distance = [0, 1, 2][i % 3];
+            }),
+            21,
         ),
     ];
 

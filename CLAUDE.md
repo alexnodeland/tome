@@ -22,12 +22,13 @@ scope), normalizes, sanitizes, and localizes it into the library, and the app re
 a sandboxed iframe with a library sidebar, a page outline, and back/forward.
 
 **Search works from the CLI.** `tome pull` indexes as it goes and only rewrites pages whose content
-hash changed (S2-2, S2-3), `tome search` queries it, and ranking is tuned against a measured eval
-set (S2-4). There is **no search UI in the app yet** (S2-7), and **Stage 2 does not pass its exit
-gate**: the relevance eval reads 0.87 recall@3 against a ≥ 0.90 target, with misspelled queries the
-remaining block — S2-5's fuzzy matching, not more tuning. **Sync, annotations, MCP, and the local
-HTTP API do not exist at all.** When asked whether something works, check rather than assume — much
-of this repo still describes intent rather than behaviour.
+hash changed (S2-2, S2-3), `tome search` queries it, ranking is tuned against a measured eval set
+(S2-4), and misspelled queries are corrected and told about (S2-5). There is **no search UI in the
+app yet** (S2-7), and **Stage 2 does not pass its exit gate**: the relevance eval reads 0.8986
+recall@3 against a ≥ 0.90 target — one query of 207. A neighbouring configuration crosses it and is
+deliberately not taken; see `Ranking::TUNED`. **Sync, annotations, MCP, and the local HTTP API do
+not exist at all.** When asked whether something works, check rather than assume — much of this
+repo still describes intent rather than behaviour.
 
 ## Where things are
 

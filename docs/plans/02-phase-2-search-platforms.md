@@ -525,46 +525,65 @@ interface SearchState {
 Enable fuzzy matching to handle typos and approximate queries.
 
 #### Acceptance Criteria
-- [ ] Edit distance 0 for terms ≤ 3 chars, 1 for 4–6, **2 for longer — 2 is the maximum**
-- [ ] Prefix matching for partial words
-- [ ] Fuzzy applied only to terms that produce no exact match, not to every term
-- [ ] Fuzzy results ranked strictly below exact matches
-- [ ] Configurable fuzzy threshold
-- [ ] "Did you mean?" suggestions
-- [ ] Multi-term queries: fuzzy is applied per-term and recombined, not to the whole query string
+- [x] Edit distance 0 for terms ≤ 3 chars, 1 for 4–6, **2 for longer — 2 is the maximum**
+- [x] Prefix matching for partial words — candidate search is prefix-anchored; see the limitation
+- [x] Fuzzy applied only to terms that produce no exact match, not to every term
+- [x] Fuzzy results ranked strictly below exact matches
+- [x] Configurable fuzzy threshold — `Ranking::fuzzy` (weight) and `Ranking::fuzzy_max_distance`
+- [x] "Did you mean?" suggestions — `SearchEngine::suggest`, surfaced by `tome search`
+- [x] Multi-term queries: fuzzy is applied per-term and recombined, not to the whole query string
 
 > The original criterion "edit distance of 2-3 for longer words" is not implementable: Tantivy's
 > Levenshtein automaton supports a maximum distance of 2. Distance 3 on a large index is also a
 > latency trap — the candidate set explodes.
 
 #### Technical Notes
-```rust
-use tantivy::query::{FuzzyTermQuery, Query};
-use tantivy::schema::Field;
-use tantivy::Term;
 
-/// `field` must be passed in — the original sample referenced an undefined `field`.
-/// Distance is capped at 2: Tantivy's Levenshtein automaton does not support more.
-pub fn build_fuzzy_query(field: Field, term: &str) -> Box<dyn Query> {
-    // Count characters, not bytes: `len()` on a UTF-8 string over-counts non-ASCII terms.
-    let distance: u8 = match term.chars().count() {
-        0..=3 => 0,
-        4..=6 => 1,
-        _ => 2,
-    };
+**Built without `FuzzyTermQuery`, deliberately** (S2-5, `tome-core/src/search/fuzzy.rs`). The
+sketch below was the plan; it does not survive contact with how Tantivy scores.
 
-    Box::new(FuzzyTermQuery::new_prefix(
-        Term::from_field_text(field, term),
-        distance,
-        true, // transpositions
-    ))
-}
-```
+`FuzzyTermQuery` is built on an `AutomatonWeight`, and an `AutomatonWeight` produces a
+**`ConstScorer`** — every document it matches gets an identical score. Dropping one into the query
+would hand every fuzzy hit the same score and discard BM25 for that term: the page whose *subject*
+is environment variables would rank level with one that mentions them in a footnote, and none of
+S2-4's ranking would reach it. It also cannot answer "did you mean?", because it never reveals
+which terms it matched.
+
+So the implementation corrects the **query** rather than relaxing the match. A term found nowhere
+in the index is looked up in the term dictionary, the nearest real term wins (ties broken by
+document frequency — the commoner word is the likelier intent), and the correction is searched as
+an ordinary term, scored and boosted like anything else. Three consequences:
+
+- "Did you mean?" is a by-product rather than a separate feature.
+- "Fuzzy ranks strictly below exact" is *structural*: corrections are only generated for terms that
+  match nothing, so no document exists that matched the typo exactly and could be displaced.
+- A wrong correction shows up in the relevance eval as a ranking change, instead of a flat bonus
+  smeared across hundreds of documents where nothing stands out.
+
+**The limitation:** candidates are found by scanning the term dictionary from a three-character
+prefix, so a typo *inside* that prefix is not corrected — `teh` will not find `the`. A Levenshtein
+automaton has no such blind spot, but `DfaWrapper` is `pub(crate)`, so reaching one means taking
+`levenshtein-automata` and `tantivy-fst` as direct dependencies pinned to whatever Tantivy
+resolves. The prefix is what makes this affordable: without it, correcting one term means reading
+the whole dictionary.
+
+**Two eval-corpus typos are out of reach of the specified schedule**, and are recorded rather than
+worked around: `modual` → `module` is a transposition *and* a substitution (2 edits on a
+6-character term, which allows 1), and `pth` → `path` is 1 edit on a 3-character term, which allows
+0. Widening the schedule is a change to this specification, not a tuning decision, and it buys
+false positives everywhere — at distance 1 on three-character terms, `Vec` reaches `Vex`, `Vev`,
+`sec` and `hex`.
 
 #### Success Metrics
-- "functoin" finds "function"
-- Fuzzy overhead < 20ms
-- False positives < 5%
+- ✅ "functoin" finds "function" — measured on the eval corpus's real misspellings: `misspelling`
+  recall@3 went **0.4167 → 0.7500** and MRR **0.3500 → 0.6333**, with nothing outside that category
+  moved by turning it on
+- ✅ Fuzzy overhead < 20 ms — measured at **~2 µs** for a correctly spelled query (no term misses,
+  so no scan happens) and **~65 µs per misspelled term**, on the 339-document corpus. Scan cost
+  tracks *vocabulary*, not page count (SPIKE-003 finding 2), so this needs re-measuring at 100k
+  pages — S2-12's. `fuzzy_cost` in `tests/relevance.rs` is the measurement
+- ✅ False positives < 5% — one query of 207 regressed when tolerance was enabled
+  (`ms-kubernets`, rank 1 → 3)
 
 ---
 

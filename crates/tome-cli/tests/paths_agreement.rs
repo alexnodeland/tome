@@ -178,3 +178,77 @@ fn pull_without_a_source_says_which_are_available() {
     // Names the directory, so the next step is obvious rather than guessed.
     assert!(stderr.contains("sources"), "{stderr}");
 }
+
+#[test]
+fn search_reports_the_typo_it_corrected() {
+    // End-to-end through the real binary, because the JSON shape is a
+    // contract: `tome search --json | jq '.suggestions'` must work, and must
+    // work on a query with no typo in it too. Building the index through
+    // `tome-core` here rather than crawling keeps the test offline.
+    use tome_core::model::{ContentHash, Node, Page, PagePath, SourceId};
+
+    let home = tempfile::tempdir().expect("tempdir");
+    let paths = Paths::under_root(home.path());
+    paths.ensure_created().expect("create library");
+
+    {
+        let engine = tome_core::search::SearchEngine::open(&paths).expect("open index");
+        let mut session = engine.session().expect("session");
+        session
+            .add_page(
+                &Page::new(
+                    SourceId::new("cargo").expect("source id"),
+                    PagePath::new("reference/environment-variables.html").expect("page path"),
+                    "Environment variables",
+                    ContentHash::new("0".repeat(64)).expect("hash"),
+                ),
+                "Rust",
+                &Node::Document {
+                    children: vec![Node::Paragraph {
+                        children: vec![Node::Text {
+                            value: "Cargo reads a number of environment variables, and each \
+                                    environment variable is documented here."
+                                .to_owned(),
+                        }],
+                    }],
+                },
+            )
+            .expect("add page");
+        session.commit().expect("commit");
+    }
+
+    let run = |query: &str| {
+        let out = Command::new(tome_bin())
+            .args(["search", query, "--json"])
+            .env("TOME_HOME", home.path())
+            .output()
+            .expect("`tome search` runs");
+        assert!(
+            out.status.success(),
+            "search failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let value: serde_json::Value = serde_json::from_slice(&out.stdout).expect("stdout is JSON");
+        value
+    };
+
+    let corrected = run("enviroment");
+    assert_eq!(
+        corrected["suggestions"],
+        serde_json::json!([{ "typed": "enviroment", "meant": "environment" }]),
+        "a misspelling should be reported, not silently corrected"
+    );
+    assert_eq!(
+        corrected["results"][0]["path"], "reference/environment-variables.html",
+        "and it should still find the page"
+    );
+
+    // Always present, never null: `jq '.suggestions[]'` must not need an
+    // empty-query special case.
+    let clean = run("environment");
+    assert_eq!(clean["suggestions"], serde_json::json!([]));
+    assert_eq!(
+        clean["results"][0]["path"],
+        "reference/environment-variables.html"
+    );
+}
