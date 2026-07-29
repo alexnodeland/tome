@@ -1,30 +1,36 @@
 # Continuation note — Tome
 
-**Written:** 2026-07-28. Updated the same day, through S1-15 — **the reader half is complete**.
-**Delete this file when Stage 1 lands.** It is in-flight task state, not documentation.
+**Written:** 2026-07-28. Rewritten 2026-07-29 — **Stage 1 is complete and Stage 2 has started.**
 
-> `reader-half.md` is gone: its work (S1-11..S1-15) is done. This is the one note again.
+> **CLAUDE.md still says "delete this file when Stage 1 lands", and Stage 1 has landed.** It was
+> kept and rewritten rather than deleted because the "Traps already hit" section below is the only
+> place several of these are written down. **Ask the owner** whether to fold that section into a
+> permanent document (`docs/` somewhere) and delete the rest, or keep this note running through
+> Stage 2. Do not delete it unilaterally.
 
 ---
 
 ## Where things stand, in one paragraph
 
-Stage 0 is complete. Both Stage 1 gate spikes ran for real (SPIKE-002 reader bridge, SPIKE-010
-legal posture). **All fifteen Stage 1 tickets are built and merged: S1-1 through S1-15.** The
-whole path works end to end — `tome pull` fetches a site through the crawler (robots, rate limit,
-SSRF), normalizes, sanitizes, localizes assets, relinks, and writes it to the library; the app
-lists sources, renders a page from the stored AST, and shows it in a sandboxed iframe with a
-library sidebar, a page outline, and back/forward. `crates/tome-core/tests/reader_offline.rs` is
-the exit gate at the HTML layer: pull from the fixture server, **shut the server down**, read from
-disk, render, and assert the HTML reaches for nothing.
+Stage 0 and **all fifteen Stage 1 tickets are built and merged**. Three gate spikes have run for
+real (SPIKE-002 reader bridge, SPIKE-010 legal posture, SPIKE-003 Tantivy scale). The whole
+ingestion-to-reading path works end to end: `tome pull` fetches a site through the crawler (robots,
+rate limit, SSRF), normalizes, sanitizes, localizes assets, relinks, and writes it to the library;
+the app lists sources, renders a page from the stored AST, and shows it in a sandboxed iframe with
+a library sidebar, a page outline, and back/forward. **Stage 2 (search) is now in progress: S2-2
+landed 2026-07-29.** Search exists as a library — index, schema, tokenizer — but **nothing is wired
+into the pipeline or the UI yet**, so the product still has no search a user can reach.
 
 ```
 main   ← everything below is merged; branch from here (newest first)
+  #40  S2-2 Tantivy integration + schema        ← Stage 2 starts here
+  #41  checkout v7  ·  #7 setup-node v7  ·  #6 gitleaks v3  ·  #5 upload-artifact v7
+  #39  SPIKE-003 Tantivy at 100k pages, measured
+  #38  dependency majors, batched (and two refused)
   #32  S1-15 navigation + history
   #31  S1-14 three-panel layout, library sidebar, outline
   #30  S1-13 reader: renderer + page store + pipeline + iframe bridge
-  #29  S1-12 typography, design tokens, contrast gate
-  #28  S1-11 syntax highlighting
+  #29  S1-12 typography, design tokens, contrast gate   ·   #28 S1-11 syntax highlighting
   #27  S1-10 asset localization + offline gate   ·   #26 S1-9 sanitizer
   #25  S1-8 normalization   ·  #24 S1-6 crawl  ·  #23 S1-5 SSRF  ·  #22 S1-7 parser
   #21  S1-4 HTTP client · #20 S1-2 DB · #19 S1-3 config · #16 S1-1 core types
@@ -47,7 +53,27 @@ in `~/Library/Application Support/Tome/sources/<id>.yaml` by hand until P1-022.
 
 ---
 
-## Stage 1's exit gate, and what is left of it
+## What to do next
+
+**S2-1 — the relevance eval set and harness (P2-019).** It is the next ticket and it is the one the
+rest of Stage 2 is measured by.
+
+The plan's Stage 2 table lists S2-1 first, but S2-2 landed first, deliberately: P2-019 depends on
+P2-001 because a relevance harness needs an index to score against. **The constraint that actually
+matters is S2-1 before *ranking* — S2-4, S2-5, S2-6 — not S2-1 before integration.**
+`docs/plans/18` now says this explicitly.
+
+P2-019 wants ≥ 200 queries across ≥ 5 fixture sources, each labelled with acceptable target pages,
+reporting MRR and recall@1/3/10 with per-query deltas, running offline against a fixed index, and
+adding a query must be a one-line change to a YAML file.
+
+**Field boosts in `search::schema::boost` are unmeasured placeholders and are labelled as such.**
+Do not tune them by intuition — that is precisely what S2-1 exists to prevent. One test pins their
+*direction* only.
+
+---
+
+## Stage 1's exit gate — met
 
 The gate (`docs/plans/18` § Stage 1): *the app renders `docs.python.org` with the network off,
 images included, anchors working, and the golden corpus committed.*
@@ -55,19 +81,20 @@ images included, anchors working, and the golden corpus committed.*
 | | State |
 |---|---|
 | Renders `docs.python.org` | **Done.** 167 pages pulled for real (17 tutorial + 150 library) and read in the app |
-| Images included | **Done.** 13 image references across the pulled sources, all resolving to content-addressed local files through the `tome://` protocol; 0 remote, 0 dangling |
-| Anchors working | **Done.** Outline links, scroll-spy, and `#fragment` navigation all exercised in the app |
+| Images included | **Done.** 13 image references, all resolving to content-addressed local files through `tome://`; 0 remote, 0 dangling |
+| Anchors working | **Done.** Outline links, scroll-spy, and `#fragment` navigation all exercised |
 | Golden corpus committed | **Done.** 26 real pages, six platforms, licences verified per source |
-| Network off | **Proven by test, not by pulling the plug.** `tests/reader_offline.rs` shuts the fixture server down and asserts the rendered HTML reaches for nothing; the same assertion run over the real pulled data finds zero remote references. Nobody has literally turned the wifi off and read for an hour |
+| Network off | **Proven by test, not by pulling the plug.** `tests/reader_offline.rs` shuts the fixture server down and asserts the rendered HTML reaches for nothing. Nobody has literally turned the wifi off and read for an hour |
 
-One caveat: **frame pacing under bridge traffic is still unmeasured**, exactly as SPIKE-002
-predicted — an occluded WKWebView suspends rAF entirely. Nothing in the reader gates on rAF for
-that reason (scroll reporting throttles on `performance.now()`), but the 60 Hz acceptance item
-needs eyes on a window.
+Two caveats that survive into Stage 2:
 
-**A full-site `docs.python.org` crawl is not wanted** (owner, 2026-07-29). The scoped pulls
-demonstrated the gate; the local demo libraries under `/tmp` have been removed. The Python pages
-in the golden corpus stay — those are test infrastructure, not a cached library.
+- **Frame pacing under bridge traffic is still unmeasured**, exactly as SPIKE-002 predicted — an
+  occluded WKWebView suspends rAF entirely. Nothing in the reader gates on rAF for that reason
+  (scroll reporting throttles on `performance.now()`), but the 60 Hz acceptance item needs eyes on
+  a window.
+- **A full-site `docs.python.org` crawl is not wanted** (owner, 2026-07-29). The scoped pulls
+  demonstrated the gate; the local demo libraries under `/tmp` were removed. The Python pages in
+  the golden corpus stay — those are test infrastructure, not a cached library.
 
 **Try it now:**
 
@@ -112,16 +139,20 @@ git checkout main && git pull
 **`scripts/check.sh` is the gate — CI cannot run.** The repo is private until release *and* GitHub
 Actions is blocked at the account level. The script runs exactly what `.github/workflows/ci.yml`
 runs. **If you change one, change the other in the same commit** — drift here is the failure mode
-this arrangement invites. It now also runs `scripts/check-contrast.mjs`.
+this arrangement invites.
+
+Note `npm audit` hits the live npmjs.org registry and **fails the gate when that endpoint is
+down**, which it was for a stretch on 2026-07-29 (503s). A failing "deps: npm advisories" step with
+a 503 in it is an outage, not a finding; re-run it.
 
 ## Read these, in order
 
-1. `docs/plans/18-implementation-plan.md` — the execution plan. Every Stage 1 row is ✅ with a note
-   on what landed and what was traded away.
+1. `docs/plans/18-implementation-plan.md` — the execution plan. Every Stage 1 row is ✅; S2-2 too.
 2. `docs/reviews/2026-07-28-plan-review.md` — what was wrong with the original plan and why.
 3. `CLAUDE.md` — the settled facts that are easy to regress.
 4. `docs/decisions/` — six ADRs. **Do not relitigate these.**
-5. `docs/spikes/002-reader-iframe-bridge.md` — the reader's whole design rests on its measurements.
+5. `docs/spikes/003-tantivy-scale.md` — Stage 2's whole design rests on its measurements.
+6. `docs/spikes/002-reader-iframe-bridge.md` — the reader's, on its.
 
 ---
 
@@ -175,6 +206,30 @@ Also settled, from the plan review — regressing any of these undoes real work:
 - **Highlighting is a render concern.** `CodeBlock` stays `{language, code}`; classes, not colours,
   so a theme swap needs no re-highlighting.
 
+## Search, as built (S2-2) — what a change here must not break
+
+- **`IndexSession::commit` reloads the reader synchronously, and must keep doing so.**
+  `ReloadPolicy::OnCommitWithDelay` reloads on a background thread *after a delay*, so a search
+  issued right after our own commit returns the pre-commit view. Every "the page I just indexed
+  cannot be found" symptom starts here, and it is timing-dependent — a test can pass while the
+  product is broken. The policy is still there for the cross-process case (CLI indexes while the
+  app is open); the explicit reload covers our own writes.
+- **A session must be dropped, not merely shadowed.** Tantivy holds a directory lock for the
+  writer's lifetime, and `let mut session = engine.session()?` over an existing binding keeps the
+  first alive to end of scope, so the second fails with `LockBusy`.
+- **Only `source_id`/`path`/`title` are STORED**, and that is what keeps the index at SPIKE-003's
+  measured 224 MB per 100k pages. Storing `body` would roughly double it to hold a second copy of
+  what `PageStore` already has. The consequence: snippets (P2-005) **cannot** use Tantivy's
+  `SnippetGenerator`, which needs a stored field — they must re-read from the store, which is
+  better anyway because the store has structured nodes.
+- **The code tokenizer is registered on the `Index`, not on a writer.** `QueryParser` resolves
+  tokenizers through the same manager; registering only on the write path analyses queries with
+  the default tokenizer and returns nothing for every code search, with no error attached.
+- **`extract.rs` has no catch-all match arm, on purpose.** `Node` is `#[non_exhaustive]`, but that
+  binds only *other* crates — inside `tome-core` the match must stay exhaustive so a new variant
+  fails the build and forces a decision about which field its text belongs in.
+- **Boosts are unmeasured placeholders.** See "What to do next".
+
 ---
 
 ## Traps already hit — don't rediscover these
@@ -194,18 +249,16 @@ agrees with it. The golden corpus (26 real pages, six platforms) is the standing
   footnote `↩`. And dropping one must **leave its `id` behind** — Node's
   `<a id="osarch" href="#osarch">#</a>` is the deep-link target for that API entry.
 - **A permalink marker is not always `¶`.** Node uses `#`, so every Node page was titled `OS#`.
+  `PERMALINK_MARKERS` is a list for that reason.
 - **Breadcrumbs and end-of-page furniture** survive into the content root (`std::fs`,
   "Was this page helpful?"). `hidden` and `aria-hidden` are the HTML's own signals and need no
   class list; the rest is a documented substring list, kept safe by the corpus.
-
 - **`split_whitespace().join(" ")` deletes boundary whitespace.** It was collapsing runs *and*
   trimming, so every space next to an inline element vanished: `the interactive <a>REPL</a>` →
   "the interactiveREPL", on every page of every source. Inline prose now uses
   `collapse_inline_ws`; blocks trim their own edges via `tidy_block_children`.
 - **The mirror image:** merging adjacent text fragments with an inserted space turned `a&amp;b`
   into "a & b". html5ever splits text around entities; each fragment carries its own whitespace.
-- **A permalink marker is not always `¶`.** Node uses `#`, so every Node page was titled `OS#`.
-  `PERMALINK_MARKERS` is a list for that reason.
 - **mdBook wraps whole headings in a self-link**, so they render as giant underlined links unless
   `unwrap_self_permalink` unwraps them. Sphinx puts the permalink beside the text; mdBook wraps
   the text in it.
@@ -225,14 +278,9 @@ agrees with it. The golden corpus (26 real pages, six platforms) is the standing
 - **A synthesised base URL breaks asset localization silently.** Normalization absolutises URLs
   against whatever base it is given; give it a fake one and every relative asset becomes an
   unfetchable scheme, the sanitizer rejects it, and images degrade to alt text with no error.
-  Caught only because the offline test counts rendered images — **an offline assertion passes
-  trivially when there is nothing left to leak.**
-- **The offline gate is about subresources, not links.** An `<a href>` to example.com is inert
-  until clicked; an `<img src>` fetches on render. Asserting "no https anywhere" fails on a page
-  that merely links out, which is correct behaviour.
-- **`"the string is absent"` is the wrong shape of assertion for escaping.** `!html.contains("onload=")`
-  fails on *correct* output, because the payload's text appears safely escaped inside a quoted
-  value. The right assertion is "no tag came from the input".
+- **`"the string is absent"` is the wrong shape of assertion for escaping.**
+  `!html.contains("onload=")` fails on *correct* output, because the payload's text appears safely
+  escaped inside a quoted value. The right assertion is "no tag came from the input".
 - **Scanning for `=` to check attribute quoting is wrong** the moment a value contains an `=`,
   which documentation routinely does. The properties use a real tag scanner.
 - **jsdom under this Vitest config exposes no `localStorage`.** `window.localStorage` is
@@ -249,6 +297,18 @@ agrees with it. The golden corpus (26 real pages, six platforms) is the standing
   path and is a *licence* decision, not a technical one.
 - **`bincode` 1.3.3 arrives with syntect** and carries an unmaintained advisory
   (RUSTSEC-2025-0141), listed individually in `deny.toml` with dated reasons.
+
+**Search (from S2-2)**
+
+- **`TopDocs` is a builder in tantivy 0.26.** Only `.order_by_score()` implements `Collector`, and
+  `with_limit` **panics on 0**, so a caller-supplied limit must be clamped.
+- **`MmapDirectory::open` returns its own error type**, not `TantivyError`.
+- **Tantivy enters at default features, unlike syntect.** SPIKE-003 measured it that way and the
+  adoption case is those numbers. `stemmer` in particular changes which documents match, so it is
+  a *relevance* decision belonging to S2-4 scored against S2-1 — not a feature-flag judgement.
+  `columnar-zstd-compression` pulls `zstd-sys` (C); that is not a new constraint, because
+  `rusqlite`'s `bundled` already compiles SQLite from C. **The syntect comment's "no C toolchain
+  assumptions" claim was already inaccurate when written.**
 
 **Test infrastructure (from S0-6/7/8)**
 
@@ -280,6 +340,8 @@ agrees with it. The golden corpus (26 real pages, six platforms) is the standing
 - **`no-undef` is off for TS and Svelte** — it cannot see DOM lib types and TypeScript already
   resolves every identifier.
 - **Prettier deliberately excludes markdown.** Don't "fix" this.
+- **`gh` needs the `workflow` scope** to merge a PR touching `.github/workflows/`. Without it the
+  merge fails with a GraphQL error naming the scope. `gh auth refresh -h github.com -s workflow`.
 
 **macOS / distribution**
 
@@ -295,18 +357,23 @@ agrees with it. The golden corpus (26 real pages, six platforms) is the standing
 - Graph is scoped to `aarch64-apple-darwin`, which excludes Tauri's Linux GTK backend.
 - Unmaintained advisories are listed **individually with reasons**, deliberately not
   `unmaintained = "warn"`, so a *new* one still fails the build. It has caught one already.
+- **Tantivy's tree added no new ignores** — it passed clean on first run.
 
 ---
 
 ## Open — needs the user, don't decide alone
 
+- **This file's fate.** See the note at the top.
 - **`two-face`** for TypeScript/TOML syntax highlighting — a licence decision.
 - **DEC-005** docset import priority · **DEC-006** `watch` fetch vs notify · **DEC-007** note
   format · **DEC-008** export targets. All non-blocking.
-- **PR #2** — the stale scaffolding branch, superseded. Left open; ask before closing.
-- **Dependabot #5–#13** — nine PRs, several dev-dep majors. Untouched; batching them through
-  `check.sh` is a chore worth doing deliberately.
-- **Going public + Actions billing.** Until then CI stays red-but-meaningless.
+- **PR #2** — the stale scaffolding branch from January, superseded by everything since. Still
+  open; ask before closing.
+- **PR #10 (TypeScript 7)** — deliberately not merged, twice now. `npm ci` fails outright:
+  `svelte-check@4.7.4` peers on `typescript@^5 || ^6`. It is a reminder, not a task. Re-check when
+  svelte-check and typescript-eslint support TS 7.
+- **Going public + Actions billing.** Until then CI stays red-but-meaningless: every run fails in
+  ~2 s without executing a step, so **PR checks carry no information**. Judge by `check.sh`.
 - **Suggested to them, no response yet:** backport the macOS 15 Gatekeeper caveats fix to
   `curio.rb` in their tap.
 
@@ -335,5 +402,6 @@ Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · ar
 `cargo-fuzz` and a nightly toolchain are **not** installed — which is why the `highlight` and
 `render` fuzz targets are mirrored as proptest properties that do run in the gate.
 
-~200 Rust tests + 66 Vitest tests + 9 fuzz targets; the normalization corpus is 26 real pages. `npm run tauri build --debug` produces
-`Tome.app`.
+369 Rust tests (workspace, counted 2026-07-29) + 66 Vitest tests + 9 fuzz targets; the
+normalization corpus is 26 real pages.
+`npm run tauri build --debug` produces `Tome.app`.
