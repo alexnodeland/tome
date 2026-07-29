@@ -219,6 +219,35 @@ describe('App', () => {
     expect(invoked).toContainEqual(['open_external', { url: 'https://example.com/x' }]);
   });
 
+  it('keeps the panels in the same container whether or not an error is showing', async () => {
+    // The shell used to be `grid-template-rows: auto auto 1fr`, which assigns
+    // tracks by child ORDER — and the error banner is conditional. With no
+    // error the three-panel layout landed in the second `auto` track and the
+    // `1fr` track sat empty, so the panels only filled the window when their
+    // content happened to be tall enough. A source with one short page left a
+    // dead band below them.
+    //
+    // jsdom has no layout engine, so this asserts the structure the fix rests
+    // on rather than the pixels: the panels live in their own region, and the
+    // error banner appearing does not move them.
+    const panelRegion = async () =>
+      (await screen.findByRole('complementary', { name: 'Library' })).closest('.body');
+
+    const first = render(App);
+    await screen.findByTitle('Documentation');
+    expect(await panelRegion()).not.toBeNull();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    first.unmount();
+
+    // Deleted, not set to null: the stub throws for an unregistered command,
+    // which is what an error from Rust looks like. A null response is a
+    // successful call that returned nothing.
+    delete mockResponses.read_page;
+    render(App);
+    await screen.findByRole('alert');
+    expect(await panelRegion()).not.toBeNull();
+  });
+
   it('titles the window bar with the page, not with the app name', async () => {
     render(App);
     expect(await screen.findByRole('heading', { level: 1, name: 'Widget' })).toBeInTheDocument();

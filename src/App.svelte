@@ -239,59 +239,75 @@
     <p class="error selectable" role="alert">{error}</p>
   {/if}
 
-  {#if loading}
-    <p class="notice" aria-live="polite">Loading…</p>
-  {:else if sources.length === 0}
-    <div class="notice">
-      <p>The library is empty.</p>
-      <p class="hint selectable">
-        Add a source configuration and run <code>tome pull &lt;source-id&gt;</code>.
-      </p>
-    </div>
-  {:else}
-    <Layout bind:this={layout}>
-      {#snippet left()}
-        <Library
-          {sources}
-          {pages}
-          {selectedSource}
-          selectedPage={page?.path ?? null}
-          onselectsource={(id) => selectSource(id)}
-          onselectpage={(path) => open(path)}
-        />
-      {/snippet}
+  <div class="body">
+    {#if loading}
+      <p class="notice" aria-live="polite">Loading…</p>
+    {:else if sources.length === 0}
+      <div class="notice">
+        <p>The library is empty.</p>
+        <p class="hint selectable">
+          Add a source configuration and run <code>tome pull &lt;source-id&gt;</code>.
+        </p>
+      </div>
+    {:else}
+      <Layout bind:this={layout}>
+        {#snippet left()}
+          <Library
+            {sources}
+            {pages}
+            {selectedSource}
+            selectedPage={page?.path ?? null}
+            onselectsource={(id) => selectSource(id)}
+            onselectpage={(path) => open(path)}
+          />
+        {/snippet}
 
-      {#snippet main()}
-        <Reader
-          bind:this={reader}
-          {page}
-          {fragment}
-          scrollTop={restoreScroll}
-          token={navigationToken}
-          onnavigate={navigate}
-          onscroll={readerScrolled}
-        />
-      {/snippet}
+        {#snippet main()}
+          <Reader
+            bind:this={reader}
+            {page}
+            {fragment}
+            scrollTop={restoreScroll}
+            token={navigationToken}
+            onnavigate={navigate}
+            onscroll={readerScrolled}
+          />
+        {/snippet}
 
-      {#snippet right()}
-        <Outline
-          outline={page?.outline ?? []}
-          activeId={activeHeading}
-          onselect={(id) => {
-            activeHeading = id;
-            reader?.scrollToHeading(id);
-          }}
-        />
-      {/snippet}
-    </Layout>
-  {/if}
+        {#snippet right()}
+          <Outline
+            outline={page?.outline ?? []}
+            activeId={activeHeading}
+            onselect={(id) => {
+              activeHeading = id;
+              reader?.scrollToHeading(id);
+            }}
+          />
+        {/snippet}
+      </Layout>
+    {/if}
+  </div>
 </div>
 
 <style>
+  /* Flex, not `grid-template-rows: auto auto 1fr`.
+     The grid version assigned tracks by child *order*, and the error banner
+     is conditional — so with no error the three-panel layout landed in the
+     second `auto` track and the `1fr` track sat empty. It only looked right
+     when the content happened to be tall enough to fill the window on its
+     own; a source with one short page left a dead band below the panels.
+     `.body` claims the remaining height explicitly, whatever precedes it. */
   .shell {
-    display: grid;
-    grid-template-rows: auto auto 1fr;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    min-height: 0;
+  }
+
+  .body {
+    flex: 1 1 auto;
+    /* Without this a tall child (the reader) sets the flex base size and
+       pushes the panel past the window instead of scrolling inside it. */
     min-height: 0;
   }
 
