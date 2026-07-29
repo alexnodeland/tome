@@ -9,9 +9,17 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
-    "baseUrl": ".",
-    "paths": { "$lib/*": ["src/lib/*"] }
+    // `vite/client` is what declares `*.css`, `*.svg`, and the rest of the
+    // asset modules. Because `types` is set explicitly, nothing is included
+    // by default -- TypeScript 6 turned the resulting
+    // "Cannot find module ... './app.css'" into an error rather than
+    // tolerating the side-effect import.
+    "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom"],
+    // No `baseUrl`: it is deprecated and stops functioning in TypeScript 7.
+    // With `moduleResolution: bundler`, `paths` resolve relative to this file,
+    // which is what was wanted anyway. Must still mirror `resolve.alias` in
+    // vite.config.ts -- TypeScript's `paths` only informs the type checker.
+    "paths": { "$lib/*": ["./src/lib/*"] }
   },
   "include": ["src/**/*.ts", "src/**/*.svelte", "vite.config.ts"]
 }

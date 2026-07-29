@@ -11,6 +11,7 @@
   while typing" rule load-bearing rather than theoretical.
 -->
 <script lang="ts">
+  import { SvelteSet } from 'svelte/reactivity';
   import type { PageSummary, SourceSummary } from '$lib/tauri';
 
   interface Props {
@@ -27,7 +28,10 @@
     $props();
 
   let filter = $state('');
-  let collapsed = $state(new Set<string>());
+  // `SvelteSet`, not `Set`: a plain Set has to be copied and reassigned on
+  // every change for Svelte to notice, which is a copy of the whole set per
+  // click and easy to get wrong. This one is reactive in place.
+  const collapsed = new SvelteSet<string>();
 
   const needle = $derived(filter.trim().toLowerCase());
 
@@ -46,8 +50,15 @@
    * Category → sources. A `Map` rather than an object literal: category names
    * come from source configurations, and an object would let one named
    * `__proto__` or `constructor` do something surprising.
+   *
+   * A plain `Map` rather than `SvelteMap`, which is what
+   * `svelte/prefer-svelte-reactivity` asks for: this one is a throwaway local
+   * inside a `$derived.by`, rebuilt from scratch every time the derivation
+   * runs. Nothing observes a mutation of it, so reactive-collection overhead
+   * would buy nothing.
    */
   const grouped = $derived.by(() => {
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity -- see above
     const groups = new Map<string, SourceSummary[]>();
     for (const source of visibleSources) {
       const category = source.category.trim() || 'Uncategorized';
@@ -73,12 +84,8 @@
   );
 
   function toggleCategory(category: string): void {
-    // Reassigned, not mutated: Svelte 5 tracks the binding, and a `Set`
-    // mutated in place does not re-render.
-    const next = new Set(collapsed);
-    if (next.has(category)) next.delete(category);
-    else next.add(category);
-    collapsed = next;
+    if (collapsed.has(category)) collapsed.delete(category);
+    else collapsed.add(category);
   }
 
   /**
