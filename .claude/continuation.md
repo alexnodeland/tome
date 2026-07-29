@@ -47,19 +47,26 @@ in `~/Library/Application Support/Tome/sources/<id>.yaml` by hand until P1-022.
 
 ---
 
-## What remains before Stage 1 can be called done
+## Stage 1's exit gate, and what is left of it
 
-Two things, both deliberate deferrals rather than oversights.
+The gate (`docs/plans/18` § Stage 1): *the app renders `docs.python.org` with the network off,
+images included, anchors working, and the golden corpus committed.*
 
-1. **The golden corpus is 3 fixtures, not ≥20 real sites** (S1-8's remaining acceptance). The
-   owner's standing decision was to defer it *until the reader renders* and then validate real
-   pages **visually**, not as JSON diffs. The reader renders now, so this is unblocked.
-   `corpus/normalization/input/SOURCES.md` records the licence gate; the cleared sites (Python
-   PSF-2.0, Go/K8s CC-BY, Rust/Node MIT/Apache) are in SPIKE-010.
-2. **`docs.python.org` has not actually been pulled.** The exit gate names it. Everything is in
-   place — it is one `tome pull` — but it is a real crawl of a third-party site (thousands of
-   pages at ≤4 req/s, so tens of minutes) and was left for the owner to trigger.
-3. **Frame pacing under bridge traffic is still unmeasured**, exactly as SPIKE-002 predicted: an
+| | State |
+|---|---|
+| Renders `docs.python.org` | **Done.** 167 pages pulled for real (17 tutorial + 150 library) and read in the app |
+| Images included | **Done.** 13 image references across the pulled sources, all resolving to content-addressed local files through the `tome://` protocol; 0 remote, 0 dangling |
+| Anchors working | **Done.** Outline links, scroll-spy, and `#fragment` navigation all exercised in the app |
+| Golden corpus committed | **Done.** 26 real pages, six platforms, licences verified per source |
+| Network off | **Proven by test, not by pulling the plug.** `tests/reader_offline.rs` shuts the fixture server down and asserts the rendered HTML reaches for nothing; the same assertion run over the real pulled data finds zero remote references. Nobody has literally turned the wifi off and read for an hour |
+
+Two honest caveats:
+
+1. **The `docs.python.org` pulls were scoped** (`include_patterns` + `max_pages: 150`), not a
+   full-site crawl. The pipeline reports `hit_page_cap` when it stops early, so nothing pretends
+   otherwise — but "the whole of docs.python.org" is thousands of pages at ≤ 4 req/s, and that
+   is the owner's call to make on a volunteer-run site, not a demo's.
+2. **Frame pacing under bridge traffic is still unmeasured**, exactly as SPIKE-002 predicted: an
    occluded WKWebView suspends rAF entirely. Nothing in the reader gates on rAF for that reason
    (scroll reporting throttles on `performance.now()`), but the 60 Hz acceptance item needs eyes
    on a window.
@@ -67,28 +74,34 @@ Two things, both deliberate deferrals rather than oversights.
 **Try it now:**
 
 ```bash
-# Serve the repo's own Sphinx fixture, pull it, and open the app against it.
-(cd crates/tome-testkit/fixtures/sphinx-example && python3 -m http.server 8731 &)
 mkdir -p /tmp/tome-demo/state/sources
-cat > /tmp/tome-demo/state/sources/demo.yaml <<'YAML'
+cat > /tmp/tome-demo/state/sources/python-tutorial.yaml <<'YAML'
 schema_version: 1
-name: Widget Docs
-category: Demo
+name: Python Tutorial
+category: Python
 source:
   type: generic
-  url: http://127.0.0.1:8731/
+  url: https://docs.python.org/3/tutorial/
   generic:
-    entry_points: ['/index.html']
+    entry_points: ['index.html']
+    max_pages: 40
+    include_patterns: ['^/3/tutorial/']
 fetch:
-  allow_insecure: true
-  rate_limit_rps: 4
+  rate_limit_rps: 2
 YAML
-TOME_HOME=/tmp/tome-demo ./target/debug/tome pull demo
-TOME_HOME=/tmp/tome-demo ./target/debug/bundle/macos/Tome.app/Contents/MacOS/tome-app
+TOME_HOME=/tmp/tome-demo ./target/debug/tome pull python-tutorial   # ~10s, 17 pages
+open -n -a target/debug/bundle/macos/Tome.app --env TOME_HOME=/tmp/tome-demo
 ```
 
-(`allow_insecure` is for loopback http — the SSRF filter blocks it by default, and an owned host
-is exactly the exception the flag exists for.)
+**Use `open -n -a`, not the binary directly.** Running
+`target/debug/bundle/macos/Tome.app/Contents/MacOS/tome-app` from a shell gives a degenerate
+91×100 window — the process is not registered as a GUI app. (And note `target/debug/Tome` is the
+*CLI*: on a case-insensitive volume it is the same path as `target/debug/tome`.)
+
+For a fully offline demo, serve the repo's own fixture instead — `(cd
+crates/tome-testkit/fixtures/sphinx-example && python3 -m http.server 8731 &)`, point the config
+at `http://127.0.0.1:8731/`, and set `fetch.allow_insecure: true`, which is what the SSRF filter's
+owned-host exception is for.
 
 ## First thing to run
 
@@ -170,7 +183,28 @@ Also settled, from the plan review — regressing any of these undoes real work:
 
 Each of these cost real time. They are fixed; this is so a future change doesn't reintroduce them.
 
-**The reader (new, from S1-11..S1-15)**
+**Content fidelity (found by pulling real sites, not by tests)**
+
+- **`split_whitespace().join(" ")` deletes boundary whitespace.** It was collapsing runs *and*
+  trimming, so every space next to an inline element vanished: `the interactive <a>REPL</a>` →
+  "the interactiveREPL", on every page of every source. Inline prose now uses
+  `collapse_inline_ws`; blocks trim their own edges via `tidy_block_children`.
+- **The mirror image:** merging adjacent text fragments with an inserted space turned `a&amp;b`
+  into "a & b". html5ever splits text around entities; each fragment carries its own whitespace.
+- **A permalink marker is not always `¶`.** Node uses `#`, so every Node page was titled `OS#`.
+  `PERMALINK_MARKERS` is a list for that reason.
+- **mdBook wraps whole headings in a self-link**, so they render as giant underlined links unless
+  `unwrap_self_permalink` unwraps them. Sphinx puts the permalink beside the text; mdBook wraps
+  the text in it.
+- **Alphabetical page order is not document order.** The crawler already visits pages in
+  navigation order; `pages.ordinal` records it. Sorting by path opened the Cargo Book on its
+  changelog.
+- **An offline assertion passes trivially when there is nothing left to leak.** The
+  no-remote-`src` check was green while *every* image was silently degrading to alt text. The
+  test now counts rendered images.
+- **The offline gate is about subresources, not links.** An `<a href>` is inert until clicked.
+
+**The reader (from S1-11..S1-15)**
 
 - **A synthesised base URL breaks asset localization silently.** Normalization absolutises URLs
   against whatever base it is given; give it a fake one and every relative asset becomes an
@@ -250,9 +284,8 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 
 ## Open — needs the user, don't decide alone
 
-- **Golden corpus expansion** — unblocked now that the reader renders. Owner's call on when.
-- **Pulling `docs.python.org`** — the exit gate names it; it is one command and a real
-  third-party crawl.
+- **A full `docs.python.org` crawl** — the scoped pulls prove the gate; a whole-site crawl is
+  thousands of requests to a volunteer-run site and is the owner's call.
 - **`two-face`** for TypeScript/TOML syntax highlighting — a licence decision.
 - **DEC-005** docset import priority · **DEC-006** `watch` fetch vs notify · **DEC-007** note
   format · **DEC-008** export targets. All non-blocking.
@@ -268,7 +301,8 @@ Each of these cost real time. They are fixed; this is so a future change doesn't
 - **Refute-panel is the standing method for security-critical tickets** — run the Workflow
   automatically (no re-ask); majority-refute gates the merge. Durable opt-in.
 - **Keep merging green PRs ticket-by-ticket**, as long as the gate is green.
-- **Real golden-corpus expansion was deferred until the reader renders.** It renders.
+- **Real golden-corpus expansion was deferred until the reader renders.** It renders; the corpus
+  is 26 real pages across six platforms as of 2026-07-29.
 
 ## Working with this user
 
@@ -287,5 +321,5 @@ Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · ar
 `cargo-fuzz` and a nightly toolchain are **not** installed — which is why the `highlight` and
 `render` fuzz targets are mirrored as proptest properties that do run in the gate.
 
-~190 Rust tests + 66 Vitest tests + 9 fuzz targets. `npm run tauri build --debug` produces
+~200 Rust tests + 66 Vitest tests + 9 fuzz targets; the normalization corpus is 26 real pages. `npm run tauri build --debug` produces
 `Tome.app`.
