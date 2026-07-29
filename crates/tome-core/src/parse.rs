@@ -83,6 +83,9 @@ pub fn parse_page(html: &str, base: &Url, content_selector: Option<&str>) -> Par
             walk(child, &mut children, &mut content_links);
         }
     }
+    // The content root is a block: whitespace at its edges is the source's
+    // own indentation.
+    let children = tidy_block_children(children);
 
     // Links for crawl discovery come from the WHOLE document, not just the
     // content root: a documentation site advertises its pages through the
@@ -158,14 +161,23 @@ fn walk(
 ) {
     match node.value() {
         scraper::node::Node::Text(text) => {
-            let value = collapse_ws(&text.text);
+            let value = collapse_inline_ws(&text.text);
             if !value.is_empty() {
                 // Merge with a preceding text node: html5ever splits text
                 // around entities, and downstream (anchoring!) wants prose,
                 // not confetti.
                 if let Some(Node::Text { value: previous }) = out.last_mut() {
-                    previous.push(' ');
+                    // Concatenated, NOT joined with a space. The old version
+                    // pushed one unconditionally, which turned `a&amp;b`
+                    // into "a & b" — the mirror image of the bug that
+                    // deleted spaces elsewhere. Each fragment now carries
+                    // its own boundary whitespace.
                     previous.push_str(&value);
+                    // Two fragments that each ended and began with a space
+                    // would otherwise leave a double.
+                    if previous.ends_with("  ") {
+                        previous.truncate(previous.len() - 1);
+                    }
                 } else {
                     out.push(Node::Text { value });
                 }
@@ -182,12 +194,20 @@ fn walk(
     }
 }
 
+/// Children of an **inline** element: boundary whitespace is part of the
+/// surrounding flow and is kept.
 fn children_to_nodes(element: ElementRef<'_>, links: &mut Vec<String>) -> Vec<Node> {
     let mut out = Vec::new();
     for child in element.children() {
         walk(child, &mut out, links);
     }
     out
+}
+
+/// Children of a **block** element: the whitespace at each end is
+/// indentation in the source, not content.
+fn block_children(element: ElementRef<'_>, links: &mut Vec<String>) -> Vec<Node> {
+    tidy_block_children(children_to_nodes(element, links))
 }
 
 fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: &mut Vec<String>) {
@@ -198,10 +218,12 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
             // Sphinx puts a pilcrow permalink inside every heading
             // (`a.headerlink`); it is chrome, and stripping it here keeps
             // heading text usable as titles and TOC labels.
-            let children = children_to_nodes(el, links)
-                .into_iter()
-                .filter(|n| !is_headerlink(n))
-                .collect();
+            let children = unwrap_self_permalink(tidy_block_children(
+                children_to_nodes(el, links)
+                    .into_iter()
+                    .filter(|n| !is_headerlink(n))
+                    .collect(),
+            ));
             #[allow(clippy::unwrap_used)] // name is one of the six literals above
             let level = name.strip_prefix('h').unwrap().parse::<u8>().unwrap_or(6);
             out.push(Node::Heading {
@@ -212,7 +234,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
         }
 
         "p" => out.push(Node::Paragraph {
-            children: children_to_nodes(el, links),
+            children: block_children(el, links),
         }),
 
         "pre" => {
@@ -271,7 +293,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
                 .filter_map(ElementRef::wrap)
                 .filter(|c| c.value().name() == "li")
                 .map(|li| ListItem {
-                    children: children_to_nodes(li, links),
+                    children: block_children(li, links),
                 })
                 .collect();
             out.push(Node::List {
@@ -286,7 +308,7 @@ fn element_to_nodes(name: &str, el: ElementRef<'_>, out: &mut Vec<Node>, links: 
         "table" => out.push(table(el, links)),
 
         "blockquote" => out.push(Node::Blockquote {
-            children: children_to_nodes(el, links),
+            children: block_children(el, links),
         }),
 
         "img" => {
@@ -343,10 +365,12 @@ fn definition_list(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
         match child.value().name() {
             "dt" => {
                 // Strip the same headerlink chrome headings carry.
-                let term = children_to_nodes(child, links)
-                    .into_iter()
-                    .filter(|n| !is_headerlink(n))
-                    .collect();
+                let term = unwrap_self_permalink(tidy_block_children(
+                    children_to_nodes(child, links)
+                        .into_iter()
+                        .filter(|n| !is_headerlink(n))
+                        .collect(),
+                ));
                 items.push(Definition {
                     id: attr(child, "id"),
                     term,
@@ -354,7 +378,7 @@ fn definition_list(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
                 });
             }
             "dd" => {
-                let definition = children_to_nodes(child, links);
+                let definition = block_children(child, links);
                 match items.last_mut() {
                     // A <dd> may follow several <dt>s; it belongs to the
                     // last one. A <dd> with NO preceding <dt> (malformed)
@@ -383,7 +407,7 @@ fn table(el: ElementRef<'_>, links: &mut Vec<String>) -> Node {
             .filter_map(ElementRef::wrap)
             .filter(|c| matches!(c.value().name(), "td" | "th"))
             .map(|cell| TableCell {
-                children: children_to_nodes(cell, links),
+                children: block_children(cell, links),
             })
             .collect();
         let is_header_row = headers.is_empty()
@@ -443,7 +467,7 @@ fn admonition(el: ElementRef<'_>, links: &mut Vec<String>) -> (String, Option<St
         }
         walk(child, &mut children, links);
     }
-    (kind, title, children)
+    (kind, title, tidy_block_children(children))
 }
 
 // ---------------------------------------------------------------------------
@@ -489,6 +513,31 @@ fn is_headerlink(node: &Node) -> bool {
     }
 }
 
+/// Unwrap a heading whose entire content is a link to itself.
+///
+/// mdBook renders every heading as
+/// `<h1 id="x"><a class="header" href="#x">Title</a></h1>`, so the whole
+/// heading is one permalink. Left alone it renders as a giant underlined
+/// link — every heading on doc.rust-lang.org/cargo looked like that until
+/// this existed.
+///
+/// This is the same family as the Sphinx pilcrow that [`is_headerlink`]
+/// already strips; the difference is only that Sphinx puts the permalink
+/// *beside* the text and mdBook wraps the text *in* it. The test is
+/// deliberately narrow — one child, a fragment href — so that a heading
+/// which genuinely links somewhere ("See <a href='other.html'>the guide</a>")
+/// keeps its link.
+fn unwrap_self_permalink(children: Vec<Node>) -> Vec<Node> {
+    match children.as_slice() {
+        [Node::Link {
+            href,
+            children: inner,
+            ..
+        }] if href.starts_with('#') => inner.clone(),
+        _ => children,
+    }
+}
+
 fn first_heading_text(children: &[Node]) -> Option<String> {
     children.iter().find_map(|n| match n {
         Node::Heading { level: 1, .. } => {
@@ -517,6 +566,131 @@ fn resolve_links(hrefs: Vec<String>, base: &Url) -> Vec<Url> {
 /// Collapse runs of whitespace to single spaces and trim. The AST stores
 /// prose, not indentation — EXCEPT inside `<pre>`, which never routes
 /// through here.
+///
+/// For *titles and labels*. Inline prose must use [`collapse_inline_ws`],
+/// which keeps the boundary spaces this one throws away.
 fn collapse_ws(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+/// Collapse runs of whitespace to single spaces **without trimming the
+/// ends**.
+///
+/// This exists because [`collapse_ws`] silently deleted every space that sat
+/// next to an inline element. HTML collapses a *run* of whitespace to one
+/// space; it never removes the space between two inline siblings. So
+/// `the interactive <a>REPL</a>.` came out as "the interactiveREPL." — on
+/// every page, in every source, wherever prose met a link, an `<em>`, or a
+/// piece of inline code. It is the kind of defect that is invisible in a
+/// unit test written from the same misunderstanding and obvious the moment a
+/// real page is on screen.
+///
+/// A whitespace-only node collapses to a single space rather than to
+/// nothing, because that is exactly the separator in `<a>x</a> <em>y</em>`.
+/// Block edges are trimmed separately, by [`trim_block_edges`].
+fn collapse_inline_ws(text: &str) -> String {
+    let collapsed = collapse_ws(text);
+    if collapsed.is_empty() {
+        return if text.is_empty() {
+            String::new()
+        } else {
+            " ".to_owned()
+        };
+    }
+    let leading = text.starts_with(char::is_whitespace);
+    let trailing = text.ends_with(char::is_whitespace);
+    let mut out = String::with_capacity(collapsed.len() + 2);
+    if leading {
+        out.push(' ');
+    }
+    out.push_str(&collapsed);
+    if trailing {
+        out.push(' ');
+    }
+    out
+}
+
+/// Tidy the whitespace in a **block's** children.
+///
+/// Two things, and both are about telling content apart from source layout:
+///
+/// 1. **The two ends are trimmed.** `<p>  hello  </p>` is "hello". Applied
+///    only to blocks — doing it inside an inline element would delete a
+///    space belonging to the surrounding flow, turning `a<em> b</em>c` into
+///    "abc".
+/// 2. **A whitespace-only node survives only between two inline siblings
+///    that carry text.** The newline-and-indent between `</h1>` and `<dl>`
+///    is layout and goes; the single space in `<a>x</a> <em>y</em>` is the
+///    only thing separating two words and stays.
+///
+/// The golden corpus caught the second half: the first version of this kept
+/// every interior space, and the normalized output grew a stray `" "` node
+/// between every pair of block elements.
+fn tidy_block_children(children: Vec<Node>) -> Vec<Node> {
+    let mut children = merge_adjacent_text(children);
+    if let Some(Node::Text { value }) = children.first_mut() {
+        let trimmed = value.trim_start().to_owned();
+        *value = trimmed;
+    }
+    if let Some(Node::Text { value }) = children.last_mut() {
+        let trimmed = value.trim_end().to_owned();
+        *value = trimmed;
+    }
+
+    let keep: Vec<bool> = children
+        .iter()
+        .enumerate()
+        .map(|(index, node)| match node {
+            Node::Text { value } if value.is_empty() => false,
+            Node::Text { value } if value.trim().is_empty() => {
+                let before = index.checked_sub(1).and_then(|i| children.get(i));
+                let after = children.get(index + 1);
+                before.is_some_and(separates_words) && after.is_some_and(separates_words)
+            }
+            _ => true,
+        })
+        .collect();
+
+    let mut keep = keep.into_iter();
+    children.retain(|_| keep.next().unwrap_or(true));
+    children
+}
+
+/// Fold runs of adjacent text nodes into one.
+///
+/// `walk` already merges text as it goes, but a later filter can leave two
+/// text nodes touching — removing a Sphinx pilcrow permalink from the middle
+/// of a `<dt>` does exactly that. The trailing-edge trim then lands on the
+/// wrong node, which is why a signature came out as `resize(size) ` with a
+/// space before the permalink that was no longer there.
+fn merge_adjacent_text(children: Vec<Node>) -> Vec<Node> {
+    let mut out: Vec<Node> = Vec::with_capacity(children.len());
+    for node in children {
+        match (out.last_mut(), &node) {
+            (Some(Node::Text { value: previous }), Node::Text { value }) => {
+                previous.push_str(value);
+                while previous.contains("  ") {
+                    *previous = previous.replace("  ", " ");
+                }
+            }
+            _ => out.push(node),
+        }
+    }
+    out
+}
+
+/// Whether a space next to this node is holding two words apart.
+///
+/// Inline nodes that render text. `Anchor` is inline but empty, so a space
+/// beside one is layout, not a separator; every block is layout too.
+fn separates_words(node: &Node) -> bool {
+    matches!(
+        node,
+        Node::Text { .. }
+            | Node::Emphasis { .. }
+            | Node::Strong { .. }
+            | Node::InlineCode { .. }
+            | Node::Link { .. }
+            | Node::Image { .. }
+    )
 }

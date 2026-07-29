@@ -58,7 +58,7 @@
         "children": [
           {
             "type": "text",
-            "value": "See the"
+            "value": "See the "
           },
           {
             "type": "link",
@@ -73,7 +73,7 @@
           },
           {
             "type": "text",
-            "value": "for release notes."
+            "value": " for release notes."
           }
         ]
       }
