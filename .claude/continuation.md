@@ -1,6 +1,6 @@
-# Continuation — picking up at S2-9 (detection corpus)
+# Continuation — Stage 2 is complete; Stage 3 is next
 
-**Written:** 2026-07-29, after S2-8 landed. **Rewrite or delete this file when S2-9 lands.**
+**Written:** 2026-07-29, after S2-12 landed. **Rewrite or delete this file when Stage 3 starts.**
 
 In-flight state only: what is done, what is decided, what to do next. It deliberately carries **no**
 durable knowledge — mistakes and invariants live in [`.claude/traps.md`](traps.md), which does not go
@@ -8,134 +8,99 @@ stale. Do not let this file grow a "traps" section; an earlier one was deleted f
 
 ---
 
-## Where Stage 2 is
+## Stage 2 is done
 
-| | Ticket | State |
+| | Ticket | Landed as |
 |---|---|---|
 | S2-1 ✅ | Relevance eval set + harness | 207 queries, 339 documents, 6 sources |
-| S2-2 ✅ | Tantivy integration + schema | |
-| S2-3 ✅ | Incremental indexing | `tome pull` indexes; `tome search` queries |
+| S2-2 ✅ | Tantivy integration + schema | `search/schema.rs`, `tokenizer.rs`, `extract.rs` |
+| S2-3 ✅ | Incremental indexing | `pipeline::index_source`, wired into `pull` |
 | S2-4 ✅ | Ranking + boosts | `search/ranking.rs`, tuned by measured sweep |
 | S2-5 ✅ | Fuzzy matching | `search/fuzzy.rs` — query correction, not `FuzzyTermQuery` |
-| S2-6 ✅ | Symbol-aware search | `search/symbols.rs` — from headings, not code blocks; `@symbol` |
-| S2-7 ✅ | Search UI | `SearchModal.svelte` + `src-tauri/src/search.rs` + `search/snippet.rs` |
+| S2-6 ✅ | Symbol-aware search | `search/symbols.rs` — from headings, not code blocks |
+| S2-7 ✅ | Search UI | `SearchModal.svelte`, `src-tauri/src/search.rs`, `search/snippet.rs` |
 | S2-8 ✅ | In-page search (⌘F) | `FindBar.svelte` + find in `public/reader-frame.js` |
-| **S2-9** | **Detection corpus + harness** | **next** — the gate S2-10 is scored against |
-| S2-10..12 | platform detection, scrapers, benchmarks | |
+| S2-9 ✅ | Detection corpus + harness | 128 homepages, confusion matrix |
+| S2-10 ✅ | Platform detection | `detect.rs` — 0.9922 accuracy, zero confident errors |
+| S2-11 ✅ | Scrapers + man pages | `scrape.rs` profiles, `man.rs` |
+| S2-12 ✅ | Benchmarks | `tests/search_bench.rs` |
 
-**Search works from the CLI and in the app.** ⌘K opens the modal; ⌘F finds within the open page.
+**The exit gate is met.** Relevance **0.9082 recall@3** over 339 documents (target ≥ 0.90), search
+**P95 158 µs** (budget 100 ms).
 
-## The relevance gate, honestly
+Read the first number as *met*, not comfortable: it is 188 queries of 207, and one query either way
+moves it across the line. The second has ~600× headroom.
 
-Stage 2's relevance gate is **≥ 0.90 recall@3 over ≥ 150 documents**. Current:
+## What Stage 2 did not build
 
-```
-  MRR         0.8374
-  recall@1    0.7585
-  recall@3    0.9082      ← gate wants 0.90. Met, not comfortably met.
-  recall@10   0.9662
+Not omissions to discover later — each is marked `[~]` in its ticket with the reason:
 
-  by kind          n   recall@1  recall@3       MRR
-  acronym          9     0.5556    1.0000    0.7593
-  cross-source    18     0.5000    0.7778    0.6750
-  misspelling     12     0.5000    0.7500    0.6389
-  natural         16     0.3750    0.5000    0.4633    ← weakest
-  phrase          78     0.8974    0.9872    0.9395
-  symbol          74     0.8243    0.9595    0.8919
-```
+- **A visible relevance score** and **grouping by source** in the results list. A BM25 score is not
+  a percentage; grouping fights the single cross-source ranking S2-4/5/6 exist to produce.
+- **Category scope** and a **scope-change shortcut** — Appendix C allocates no chord, and
+  allocating one ad hoc is how the shortcut table drifted into four contradictory copies before.
+- **`search-index.js`, `SUMMARY.md` and `book.toml` parsing.** None of them is served; only the
+  rendered HTML is.
+- **Memory measurement in the benchmark.** SPIKE-003 measured peak RSS at 100 000 pages with a
+  purpose-built harness; a figure taken at 339 pages is a number without a meaning.
+- **A committed timing baseline.** A cross-machine wall-clock baseline fails on a slower laptop
+  while hiding real regressions. The benchmark gates on an absolute threshold instead.
+- **GitBook fixtures.** It is a hosted product with no redistributable public instances; the
+  confusion matrix prints an empty row rather than a score.
 
-**The relevance number is met; Stage 2 is not done.** The exit gate also requires the search *UI*
-and the P2-018 benchmark (< 100 ms on the benchmark corpus), and neither exists. S2-7..S2-12 remain.
+## What is weakest in what *was* built
 
-**Do not close future gaps by picking the parameter that crosses a threshold.** During S2-5 a
-neighbour reached 0.9034 and was rejected for exactly that reason; S2-6 then cleared the gate with a
-configuration that won on a different objective and dominated on every column. Re-labelling queries
-to raise the number is worse — it destroys the one instrument here that cannot be rebuilt in
-seconds. Differences of one or two queries are inside the noise.
-
----
-
-## What S2-9 should do
-
-The **detection corpus and harness** (P2-020): labelled fixtures of real documentation pages, and a
-test that scores platform detection against them. It is to S2-10 exactly what S2-1's relevance eval
-was to S2-4/5/6 — the thing that makes the next ticket measurable instead of an opinion.
-
-**Build it before S2-10, not after.** That ordering was not negotiable for search and is not here.
-Every measured finding in Stage 2 so far came from a harness that existed before the code it
-scored: the query-parser defect, the code-block symbol defect, the "all declarations" regression.
-Each was invisible to inspection and obvious to the corpus.
-
-Two lessons from S2-1 that transfer directly:
-
-- **A corpus too small cannot discriminate.** At 26 documents, removing an entire indexed field
-  moved MRR by 0.0036 and tripped nothing; the metrics compressed near the top because there was
-  rarely a strong wrong answer to beat. Size the detection corpus so a *wrong* detector visibly
-  fails it, and prove that by perturbing a working one.
-- **Only pages whose licence permits alteration and redistribution may be committed** (the
-  SPIKE-010 gate), each recorded in a `SOURCES.md`. `corpus/relevance/pages/SOURCES.md` is the
-  pattern.
-
-S2-11's four scrapers are the canonical fan-out — four parallel implementations, one interface, all
-scored against this corpus — so the corpus is on the critical path for the largest remaining chunk
-of Stage 2.
-
-### The tuning target, still standing
-### The tuning target, still standing
-### The tuning target, still standing
-### The tuning target, still standing
-
-**Owner decision (2026-07-29): optimise symbol lookup first.** It is what an agent asks for over
-MCP, and exposing the library to coding agents is the PRD's differentiator. Do not trade symbol
-recall for misspelling recall.
-
-### What is weakest now
-
-`natural` (0.4633 MRR), and it is a genuine tension rather than a bug: the pages that answer a
-"how do I …" question in prose are the enormous single-page ones (`go:doc/faq`,
-`cargo:cargo/print.html`) that the length penalty exists to demote. Closing it probably needs
-passage-level retrieval, not another boost. Not S2-7's.
-
-`cross-source` (0.6750) is second and is partly a labelling artefact: a query three platforms answer
-equally well has three right answers, and the labels name a subset.
+- **`natural` queries** (0.4633 MRR) are the weakest search category, and it is a genuine tension:
+  the pages that answer "how do I …" in prose are the enormous single-page ones the length penalty
+  exists to demote. Closing it probably needs passage-level retrieval, not another boost.
+- **Two `misspelling` queries are unreachable** under P2-009's distance schedule (`modual` →
+  `module`, `pth` → `path`). Widening it is a specification change, not a tuning decision.
+- **The Sphinx and mdBook scraping profiles are unmeasured** — nothing in the 26-page golden corpus
+  exercises them. They encode real markup, but "kept" is not "verified".
+- **One detection fixture is unclassifiable** from a homepage (`docs.djangoproject.com`, Sphinx with
+  no Sphinx marker anywhere). It falls back to `Generic` at low confidence, which is correct, and
+  caps achievable accuracy at 127/128.
 
 ---
 
-## How to work on this
+## Stage 3
+
+Read [`docs/plans/18-implementation-plan.md`](../docs/plans/18-implementation-plan.md) for the
+stage's own entry gate, ticket list and ordering — it is the execution plan and it owns that.
+
+Two things from this stage that should carry into the next:
+
+**Build the harness before the thing it scores.** Every measured finding in Stage 2 came out of
+that order and none was visible to inspection: the query-parser defect that killed twelve symbol
+queries, the code-block symbol extraction that found `main`/`buf`/`foo`, the all-declarations
+ranking regression, and three of my own corpus labels being wrong. Each looked fine in review.
+
+**Do not close a gate by picking the parameter that crosses it.** During S2-5 a configuration
+reached 0.9034 against the 0.90 target and was rejected because it was chosen for crossing;
+S2-6 then cleared it at 0.9082 with a configuration that won on a different objective and dominated
+its predecessor on every column. Re-labelling corpus entries to raise a number is worse still — it
+destroys the one instrument here that cannot be rebuilt in seconds.
+
+## How to run the gates
 
 ```bash
-cargo test -p tome-core --test relevance -- --nocapture                      # the gate + report
-TOME_RELEVANCE_DUMP=1 cargo test -p tome-core --test relevance -- --nocapture   # top-5 for poor queries
-cargo test -p tome-core --test relevance --release -- --ignored --nocapture sweep   # tune
-cargo test -p tome-core --test relevance --release -- --ignored --nocapture fuzzy_cost  # latency
-cargo test -p tome-core --test relevance --release -- --ignored --nocapture symbol_extraction  # symbols
-TOME_UPDATE_BASELINE=1 cargo test -p tome-core --test relevance              # accept a change
-git diff -- crates/tome-core/corpus/relevance/baseline.json
+./scripts/check.sh                      # everything, including the app bundle
+./scripts/check.sh --fast               # everything except the bundle
+
+cargo test -p tome-core --test relevance -- --nocapture          # search quality
+cargo test -p tome-core --test detection -- --nocapture          # platform detection
+cargo test -p tome-core --test search_bench --release -- --nocapture   # latency
+
+# tuning and measurement tools, all #[ignore]d
+cargo test -p tome-core --test relevance --release -- --ignored --nocapture sweep
+cargo test -p tome-core --test relevance --release -- --ignored --nocapture fuzzy_cost
+cargo test -p tome-core --test relevance --release -- --ignored --nocapture symbol_extraction
+cargo test -p tome-core --test search_bench --release -- --ignored --nocapture
 ```
 
-Update mode **fails the run it changes anything in**, on purpose. The passing run is the one after
-the diff has been read.
-
-**The per-query movement report is the signal; the aggregate is not.** Read which queries moved.
-
-The sweep is `#[ignore]`d and is **not a gate** — it optimises against the eval set, so of course it
-improves on it. The number that means something is what `relevance_does_not_regress` reports
-afterwards against the committed baseline.
-
-Coordinate descent is greedy and path-dependent, so the sweep also prints a **one-step
-neighbourhood of `Ranking::TUNED`** in full columns. That is the table to read when choosing
-between two configurations, because the choice is usually a judgement about which category to
-favour rather than a single number going up.
-
----
-
-## Decisions made 2026-07-29, not yet implemented
-
-**Pruning: prune only after a clean crawl.** `tome pull` never removes pages that vanished upstream.
-The agreed policy — delete pages not seen this run **only when the crawl completed without errors
-and without hitting the page cap** — is recorded on `Database::delete_page`. Needs a test that a
-capped or errored crawl deletes nothing. Not S2-5's work; it is a destructive path and that guard is
-the whole point.
+Update modes — `TOME_UPDATE_GOLDEN`, `TOME_UPDATE_BASELINE`,
+`TOME_UPDATE_DETECTION_BASELINE` — all **fail the run they change anything in**, on purpose. The
+passing run is the one after the diff has been read.
 
 ## Still open — do not decide alone
 
@@ -149,10 +114,13 @@ the whole point.
   without executing a step. **Judge by `./scripts/check.sh`**, never by a PR's checks.
 - **Playwright E2E.** `main` has none; the frontend is Vitest-only. A real gap, but Stage 4
   hardening's, against the app as it exists.
+- **Pruning after a clean crawl.** Agreed 2026-07-29, recorded on `Database::delete_page`, still
+  unimplemented. Needs a test that a capped or errored crawl deletes nothing.
+- **`tome add` (P1-022) does not exist**, so platform detection has no user-facing consumer yet.
 
 ## Environment
 
 Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · arm64.
-`cargo-deny` installed; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the gate says so).
-459 workspace Rust tests + 136 Vitest. `npm audit` hits the live registry and fails the gate when
-npmjs.org is down — that is an outage, not a finding.
+`cargo-deny` and `mandoc` present; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the gate
+says so). 506 workspace Rust tests + 136 Vitest. `npm audit` hits the live registry and fails the
+gate when npmjs.org is down — that is an outage, not a finding.

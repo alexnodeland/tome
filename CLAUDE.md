@@ -5,8 +5,8 @@
 > silently. Almost none of them fail loudly — that is why they are written down. Add to it when a
 > defect turns out to have been non-obvious; delete an entry when it stops being true.
 >
-> **[`.claude/continuation.md`](.claude/continuation.md) is the current in-flight state** — where
-> Stage 2 stands and what the next ticket should do. It is deliberately volatile and is rewritten
+> **[`.claude/continuation.md`](.claude/continuation.md) is the current in-flight state** — what
+> has landed and what the next ticket should do. It is deliberately volatile and is rewritten
 > or deleted as tickets land. The two files must not merge: durable knowledge goes in `traps.md`,
 > status goes in the continuation note, and an earlier continuation note was deleted for blurring
 > that line.
@@ -16,22 +16,25 @@
 Tome is a macOS documentation reader: ingest any documentation site, read it offline with good
 typography, search across everything, and expose the library to coding agents over MCP.
 
-**Stage 1 is built; Stage 2 has started; Stage 3 onwards is still specification.** Ingestion and
-the reader work end to end: `tome pull` fetches a documentation site (robots, rate limit, SSRF,
-scope), normalizes, sanitizes, and localizes it into the library, and the app renders it offline in
-a sandboxed iframe with a library sidebar, a page outline, and back/forward.
+**Stages 1 and 2 are built; Stage 3 onwards is still specification.** Ingestion and the reader work
+end to end: `tome pull` fetches a documentation site (robots, rate limit, SSRF, scope), normalizes,
+sanitizes, and localizes it into the library, and the app renders it offline in a sandboxed iframe
+with a library sidebar, a page outline, and back/forward.
 
-**Search works from the CLI.** `tome pull` indexes as it goes and only rewrites pages whose content
-hash changed (S2-2, S2-3), `tome search` queries it, ranking is tuned against a measured eval set
-(S2-4), misspelled queries are corrected and told about (S2-5), and `@symbol` searches declared
-symbols only (S2-6). The relevance eval **clears its 0.90 recall@3 gate at 0.9082** — 188 queries
-of 207, which is met rather than comfortably met. **Search works in the app too**: ⌘K opens a
-modal with snippets, scoping, history and full keyboard control (S2-7), and ⌘F finds within the
-open page (S2-8). **Stage 2 is not finished**: S2-9..12 (detection corpus, platform detection, the
-four scrapers, the P2-018 benchmark) do not exist, and the Stage 2 exit gate wants that benchmark. **Sync, annotations, MCP,
-and the local HTTP API do not exist at all.**
-When asked whether something works, check rather than assume — much of this repo still describes
-intent rather than behaviour.
+**Search works from the CLI and in the app.** `tome pull` indexes as it goes and only rewrites
+pages whose content hash changed; `tome search` queries it; ⌘K opens a search modal with snippets,
+scoping and history; ⌘F finds within the open page. Ranking, typo tolerance and symbol search are
+all tuned against measured corpora. **Man pages are a first-class source** — `mandoc` renders them
+and cross-references link only to pages you have installed. Platform detection classifies a site
+from its homepage.
+
+**Stage 2's exit gate is met** (2026-07-29): relevance **0.9082 recall@3** over 339 documents
+against a ≥ 0.90 target, and search **P95 158 µs** against a 100 ms budget. The relevance half is
+met by one query of 207 — read it as *met*, not as comfortable.
+
+**Sync, annotations, MCP, and the local HTTP API do not exist at all**, and neither does `tome add`
+(P1-022). When asked whether something works, check rather than assume — much of this repo still
+describes intent rather than behaviour.
 
 ## Where things are
 
