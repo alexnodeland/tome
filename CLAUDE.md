@@ -96,14 +96,18 @@ reader iframe displays. Two contracts thread through it and are easy to break si
   content-addressed path, the renderer re-checks that at emission, and the frame's CSP allows only
   the `tome:` protocol. `tests/reader_offline.rs` shuts the fixture server down and asserts it.
 
-**`./scripts/check.sh` is the gate.** It runs exactly what `.github/workflows/ci.yml` runs.
-Change one, change the other.
+**CI works** (first fully green run 2026-07-30, after the repository went public). All five jobs
+pass: Lint, Test Rust, Test frontend, Security audit, Build app — the last of which stages the CLI
+sidecar and runs `scripts/verify-bundle.sh` on a clean runner.
 
-The repository went **public on 2026-07-30** and Actions now dispatches — but every run is refused
-at the runner with *"recent account payments have failed or your spending limit needs to be
-increased"*. That is a billing hold on the account, not a workflow defect, and it applies to the
-free public-repo minutes too. **No workflow in this repository has ever executed a step.** Until
-that clears, a red check still carries no information; judge by `check.sh`.
+**`./scripts/check.sh` runs exactly what `ci.yml` runs. Change one, change the other** — that rule
+now has teeth, because both actually execute.
+
+Its first three real runs found three defects local checks could not: a secret scan reading a
+shallow clone and reporting "no leaks found" after scanning **zero bytes**, an advisory check that
+was skipping the three that worked, and a wall-clock gate with no headroom. All recorded in
+`traps.md`. **`pages.yml` still fails** — it builds, but the deploy needs Settings → Pages → Source
+set to *GitHub Actions*.
 
 ## Rules for editing these documents
 

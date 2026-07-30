@@ -66,7 +66,8 @@ can check is worse than no number.
 `.github/workflows/pages.yml`, which also publishes `registry/` so the registry
 is served from Pages as the PRD specifies.
 
-> **It has never run.** The repository is public and Actions dispatches, but
-> every run is refused at the runner by a billing hold on the account. The
-> workflow is what will publish the site the day that clears; until then, build
-> locally. Pages also needs Settings → Pages → Source set to **GitHub Actions**.
+> **It builds in CI and does not deploy yet.** The `Build` job passes — the site
+> is generated and the token check runs — and `Deploy` fails with
+> `Failed to create deployment (status: 404) … Ensure GitHub Pages has been
+> enabled`. That is one setting: **Settings → Pages → Source = GitHub Actions**.
+> Until then, build locally.

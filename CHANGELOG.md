@@ -34,6 +34,29 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Fixed — 2026-07-30 — CI's first three real runs
+
+Actions started working. `ci.yml` had never executed a step since it was written, and it took three
+fixes to go green — all of them things `scripts/check.sh` structurally cannot catch:
+
+- **The secret scan was scanning nothing.** `actions/checkout` is shallow by default; gitleaks
+  scans the range `<sha>^..<sha>`, so git failed and it logged `scanned ~0 bytes (0)` followed by
+  `no leaks found in partial scan`. It failed the job only because it propagated git's error —
+  **had it exited 0, the repository would have had a permanently green secret scan that had never
+  read a line of code.** Fixed with `fetch-depth: 0`; the SARIF confirms zero real findings.
+- **`rustsec/audit-check` was gating the checks that work.** It is not target-scoped, so it failed
+  on `unmaintained` advisories for Tauri's Linux GTK bindings — never compiled into a macOS build
+  — while reporting zero vulnerabilities, and it ran first, so cargo-deny, `npm audit` and the
+  secret scan were all skipped. Removed from `ci.yml` and `check.sh` together.
+- **A wall-clock gate with no headroom.** The indexing-cost assertion was `< 10 ms` per page; a
+  shared runner measured 12.2 ms against ~1 ms locally. Raised to 50 ms, still an order of
+  magnitude below the ~500 ms a politely-fetched page costs.
+
+All five jobs now pass, including **Build app**, which stages the CLI sidecar and runs
+`scripts/verify-bundle.sh` on a runner that has never built Tome.
+
+`pages.yml` builds and does not deploy: Pages needs enabling in Settings.
+
 ### Changed — 2026-07-30 — the tap bumps itself, so the release needs no token
 
 - **`alexnodeland/homebrew-tap` exists** and already carried three casks. Tome's is proposed in

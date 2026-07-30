@@ -669,13 +669,12 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   cargo-deny, `npm audit` and the secret scan were skipped: the redundant check was gating the
   ones that work. Removed from `ci.yml` and `check.sh` both. One advisory check, and it is the
   one that reads `deny.toml`.
-- **CI has never executed a step, and the reason changed on 2026-07-30.** It used to be that the
-  repository was private and Actions was blocked. It is now public and Actions *dispatches* — and
-  every run is refused at the runner with "recent account payments have failed or your spending
-  limit needs to be increased". That is a billing hold on the account and it applies to free
-  public-repo minutes too, so a red PR check still means nothing. Judge by `./scripts/check.sh`.
-  **When it clears, expect first-run failures**: no workflow here has ever been executed, so
-  `ci.yml` is unverified code.
+- **CI went from "never executed a step" to fully green on 2026-07-30**, and found three defects
+  on the way. A red PR check now means something; it did not before, and much of this file was
+  written during the period when it did not. `pages.yml` is the exception — it builds and its
+  deploy 404s until Pages is enabled in Settings.
+  **The general lesson: a workflow that has never run is unverified code**, and three of the five
+  jobs here needed a fix before they passed once.
 - **TypeScript 7 is not adoptable** while `svelte-check` peers on `typescript@^5 || ^6` — `npm ci`
   fails outright, not merely with warnings. Re-check when svelte-check and typescript-eslint
   support it.
