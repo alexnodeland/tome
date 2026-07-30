@@ -34,6 +34,22 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Changed — 2026-07-30 — the tap bumps itself, so the release needs no token
+
+- **`alexnodeland/homebrew-tap` exists** and already carried three casks. Tome's is proposed in
+  [homebrew-tap#1](https://github.com/alexnodeland/homebrew-tap/pull/1), which also pins the other
+  three to real releases — they were all `version :latest` / `sha256 :no_check`, and that tap's
+  README claimed they "update via `brew upgrade --cask`", which **`brew upgrade` does not do for
+  `:latest` casks without `--greedy`**.
+- **The release workflow no longer touches the tap.** The tap bumps its own casks on a schedule by
+  reading this repository's latest release, so a release here needs **no cross-repository token**
+  at all — no `HOMEBREW_TAP_TOKEN` to create, hold or rotate. Publishing the release is the whole
+  handoff.
+- **CI still has never executed a step**, and the reason changed. The repository is public now and
+  Actions dispatches; every run is refused at the runner with "recent account payments have failed
+  or your spending limit needs to be increased", which applies to free public-repo minutes too.
+  Documented wherever the old "Actions is blocked at the account level" wording appeared.
+
 ### Added — 2026-07-30 — user documentation for what now exists (S4-10)
 
 - **A troubleshooting page** — `site/pages/help.html`. Worth having only because S4-3 gave it

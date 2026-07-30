@@ -426,18 +426,25 @@ the app shows, and `--zap` leaves nothing behind.
 > |---|---|
 > | The DMG exists and carries the app *and* the CLI from one build | ✅ verified by mounting it and by `scripts/verify-bundle.sh` |
 > | The cask is written, linted by `brew style`, and its zap list is checked against `tome status` | ✅ |
-> | The release workflow builds, verifies, publishes and mirrors on a tag | ✅ written, **never run** |
+> | The release workflow builds, verifies and publishes on a tag | ✅ written, **never run** |
+> | The tap exists, carries the cask, and bumps itself from the release | ✅ proposed in homebrew-tap#1 |
 > | `tome status` reports the same paths the app shows | ✅ tested from both sides since S0 |
 > | `--zap` leaves nothing behind | ✅ list verified against the running binary; `tome config forget-token` covers the Keychain, which `zap` cannot |
-> | `brew install --cask alexnodeland/tap/tome` works | ❌ **the tap repository does not exist and no tag has been cut** |
+> | `brew install --cask alexnodeland/tap/tome` works | ❌ **no tag has been cut, and Actions is refused for failed payment** |
 >
-> Three things stand between here and the gate, and **none of them is code**:
+> Two things stand between here and the gate, and **neither is code** (updated 2026-07-30):
 >
-> 1. `alexnodeland/homebrew-tap` has to exist.
-> 2. GitHub Actions has to be unblocked at the account level, or the release cut by hand — every
+> 1. **The account's Actions billing hold has to clear**, or the release be cut by hand — every
 >    step of the workflow is a script in `scripts/` precisely so the manual path and the automated
->    one cannot diverge.
-> 3. A tag has to be pushed.
+>    one cannot diverge. The repository is public now and Actions dispatches, but every run is
+>    refused at the runner for failed payment, free public minutes included.
+> 2. **A tag has to be pushed.**
+>
+> `alexnodeland/homebrew-tap` **does exist** and already carries three casks. Tome's is proposed in
+> [homebrew-tap#1](https://github.com/alexnodeland/homebrew-tap/pull/1), which also pins the other
+> three to real releases and adds the scheduled bumper that keeps all four current. Because the tap
+> bumps itself from this repository's latest release, **the release workflow needs no
+> cross-repository token** — publishing the release is the whole handoff.
 >
 > **And then it has to be verified on a machine that has never built Tome**, which is the part the
 > stage's own note insists on: "a DMG missing the CLI, a `zap` list that leaves data behind, or an

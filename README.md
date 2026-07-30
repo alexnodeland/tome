@@ -68,10 +68,12 @@ has been staged — `./scripts/build-cli-sidecar.sh`, which `check.sh` and `taur
 for you. That coupling is deliberate: the cask symlinks `Tome.app/Contents/MacOS/tome` onto
 `PATH`, so an app built without the CLI would install cleanly and break every integration.
 
-> **CI carries no information.** The repository is private and GitHub Actions is blocked at the
-> account level, so every run fails in seconds without executing a step. Judge by
-> [`scripts/check.sh`](scripts/check.sh), never by a pull request's checks. It runs exactly what
-> [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs — change one, change the other.
+> **CI has still never executed a step.** The repository is public and Actions dispatches, but
+> every run is refused at the runner with *"recent account payments have failed or your spending
+> limit needs to be increased"* — a billing hold on the account, which applies to free public-repo
+> minutes too. Judge by [`scripts/check.sh`](scripts/check.sh), never by a pull request's checks.
+> It runs exactly what [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs — change one,
+> change the other.
 
 ---
 

@@ -109,9 +109,16 @@ passing run is the one after the diff has been read.
 - **PR #10 (TypeScript 7)** — left open deliberately as a reminder. `npm ci` fails outright:
   `svelte-check@4.7.4` peers on `typescript@^5 || ^6`. Re-check when svelte-check and
   typescript-eslint support TS 7.
-- **Going public + Actions billing.** Until then CI carries no information: every run fails in ~2 s
-  without executing a step. **Judge by `./scripts/check.sh`**, never by a PR's checks. This also
-  blocks the release workflow, the Pages deploy, and the registry's scheduled verification.
+- **Actions billing.** The repository went public on 2026-07-30 and Actions now dispatches, but
+  every run is refused at the runner: *"recent account payments have failed or your spending limit
+  needs to be increased"*. Free public-repo minutes are blocked by it too. **No workflow here has
+  ever executed a step**, so `ci.yml`, `pages.yml` and `release.yml` are all unverified code and
+  should be expected to fail on their first real run. **Judge by `./scripts/check.sh`** until then.
+  This also blocks the Pages deploy and the registry's scheduled verification.
+- **The tap now owns cask bumping.** `alexnodeland/homebrew-tap` reads this repository's latest
+  release on a schedule, so a release here needs no credential for that repository —
+  `.github/workflows/release.yml` deliberately does not touch it. Opened as
+  [homebrew-tap#1](https://github.com/alexnodeland/homebrew-tap/pull/1).
 - **The 500 ms startup target.** Missed, measured, and left in place rather than moved to match the
   measurement. Accepting ~600 ms or faking it with an early window is the owner's call.
 

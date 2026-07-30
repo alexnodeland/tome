@@ -650,9 +650,13 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   re-run it.
 - **`gh` needs the `workflow` scope** to merge a PR touching `.github/workflows/`; without it the
   merge fails with a GraphQL error naming the scope. `gh auth refresh -h github.com -s workflow`.
-- **CI carries no information while Actions is blocked at the account level.** Every run fails in
-  ~2 seconds without executing a step, so a red PR check means nothing. Judge by
-  `./scripts/check.sh`.
+- **CI has never executed a step, and the reason changed on 2026-07-30.** It used to be that the
+  repository was private and Actions was blocked. It is now public and Actions *dispatches* — and
+  every run is refused at the runner with "recent account payments have failed or your spending
+  limit needs to be increased". That is a billing hold on the account and it applies to free
+  public-repo minutes too, so a red PR check still means nothing. Judge by `./scripts/check.sh`.
+  **When it clears, expect first-run failures**: no workflow here has ever been executed, so
+  `ci.yml` is unverified code.
 - **TypeScript 7 is not adoptable** while `svelte-check` peers on `typescript@^5 || ^6` — `npm ci`
   fails outright, not merely with warnings. Re-check when svelte-check and typescript-eslint
   support it.

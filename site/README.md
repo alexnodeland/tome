@@ -66,7 +66,7 @@ can check is worse than no number.
 `.github/workflows/pages.yml`, which also publishes `registry/` so the registry
 is served from Pages as the PRD specifies.
 
-> **It has never run.** GitHub Actions is blocked at the account level and the
-> repository is private, so every workflow fails in seconds without executing a
-> step. The workflow is what will publish the site the day that changes; until
-> then, build locally.
+> **It has never run.** The repository is public and Actions dispatches, but
+> every run is refused at the runner by a billing hold on the account. The
+> workflow is what will publish the site the day that clears; until then, build
+> locally. Pages also needs Settings → Pages → Source set to **GitHub Actions**.
