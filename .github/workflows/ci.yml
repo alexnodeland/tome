@@ -89,12 +89,19 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Rust advisories
-        uses: rustsec/audit-check@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Licences, bans, sources
+      # `rustsec/audit-check` was here and has been removed. It reads
+      # `Cargo.lock` with no target scoping, so on 2026-07-30 — CI's first
+      # real run — it failed the build on `unmaintained` advisories for
+      # Tauri's Linux GTK bindings (`atk`, `atk-sys`, …), which are never
+      # compiled into a macOS build. It reported **zero vulnerabilities**.
+      #
+      # Worse, it failed *first*, so cargo-deny, `npm audit` and the secret
+      # scan were all skipped: the redundant check was gating the ones that
+      # work. cargo-deny reads the same RustSec database, is scoped to
+      # `aarch64-apple-darwin` in `deny.toml`, and lists its ignores
+      # individually with dated reasons so a NEW unmaintained advisory still
+      # fails. One advisory check, and it is the better one.
+      - name: Advisories, licences, bans, sources
         uses: EmbarkStudios/cargo-deny-action@v2
 
       - run: npm ci
