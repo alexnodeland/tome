@@ -53,6 +53,10 @@ export default [
         fetch: 'readonly',
         URL: 'readonly',
         setTimeout: 'readonly',
+        // The DMG background generator writes a PNG by hand, which is byte
+        // work; `Buffer` is Node's tool for that and pulling in a PNG library
+        // to avoid naming it here would be the worse trade.
+        Buffer: 'readonly',
       },
     },
   },

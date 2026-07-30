@@ -899,14 +899,28 @@ spctl --assess --verbose "$APP_PATH"
 #### Description
 Create a professional DMG installer for distribution.
 
+> **Built by S4-9/S4-8, 2026-07-30, with two corrections.** There is no `appdmg` and no
+> `create-dmg`: Tauri's own bundler produces the DMG from `bundle.macOS.dmg` in
+> `tauri.conf.json`, so the layout is configuration rather than a second tool with a second
+> config file to drift. And the DMG is **not signed** — ADR-0006 defers the Apple Developer
+> Program, which also deletes the `notarytool` and `stapler` steps sketched below.
+>
+> The one thing this ticket did not anticipate: **the DMG has to contain the CLI**, because
+> the cask symlinks it out of the bundle. See S4-9.
+
 #### Acceptance Criteria
-- [ ] DMG with custom background
-- [ ] Drag-to-Applications layout
-- [ ] Correct volume icon
-- [ ] License agreement (optional)
-- [ ] Compressed DMG
-- [ ] Signed DMG
-- [ ] Automated build
+- [x] DMG with custom background — `scripts/make-dmg-background.mjs`, generated from
+      `public/tokens.css` so the installer cannot drift from the app's palette
+- [x] Drag-to-Applications layout — `appPosition` / `applicationFolderPosition`, verified by
+      mounting the built DMG and listing the volume
+- [x] Correct volume icon — `.VolumeIcon.icns`, from the bundle icon set
+- [~] License agreement — skipped. MIT OR Apache-2.0 needs no click-through, and a licence panel
+      is one more thing between a user and the app
+- [x] Compressed DMG — the bundler's default (UDZO)
+- [~] Signed DMG — **deferred by ADR-0006.** `spctl` rejects the result; that is expected and the
+      cask's caveats carry the fix
+- [x] Automated build — `.github/workflows/release.yml`, on tag
+- [x] **The DMG ships `Tome.app/Contents/MacOS/tome`** — asserted by `scripts/verify-bundle.sh`
 
 #### Technical Notes
 ```bash
@@ -966,14 +980,26 @@ Make Tome installable via Homebrew.
 > project clears the thresholds. Nothing about the user experience changes materially.
 
 #### Acceptance Criteria
-- [ ] Own tap repository created (`homebrew-tap`) with the cask
-- [ ] SHA256 verification against the released DMG
-- [ ] Zap stanza that matches the **actual** data locations (see PRD § File System Layout) — the
-      original zap listed `~/.tome`, `~/Library/Application Support/Tome`, and
-      `~/Library/Caches/com.example.tome`, a set no version of the app ever used simultaneously
-- [ ] Caveats explaining first run and the CLI
-- [ ] `livecheck` for upgrade detection
-- [ ] Release automation updates the tap on tag
+- [x] Cask authored at `packaging/homebrew/Casks/tome.rb`, this repository's source of truth,
+      mirrored into the tap by the release workflow. **The tap repository itself must exist
+      before the first tag** — that is the owner's, not a build step
+- [x] SHA256 verification against the released DMG — real `version` and `sha256`, rewritten from
+      the tag and the built artifact. Deliberately not `:latest` / `:no_check`: Tome is unsigned,
+      so the checksum is the only integrity check a user gets
+- [x] Zap stanza that matches the **actual** data locations. Every path was observed on a machine
+      that had run Tome, and `scripts/verify-bundle.sh` re-derives the two that matter from
+      `tome status --json`, so the list cannot rot when a path moves. The iCloud container is
+      absent on purpose: sync does not exist, so no version has ever created it
+- [x] Caveats explaining first run and the CLI — leading with `xattr -dr com.apple.quarantine`,
+      because macOS 15 removed the Control-click bypass
+- [x] `livecheck` for upgrade detection
+- [x] Release automation updates the tap on tag — and warns rather than failing a
+      already-published release when `HOMEBREW_TAP_TOKEN` is absent
+- [x] **`brew style` actually runs** — `scripts/check-cask.sh` stages a throwaway tap, because
+      Homebrew refuses to lint a cask outside one. The CHANGELOG claimed this for two stages
+      while the file it named did not exist
+- [x] **`tome config forget-token`** — `--zap` removes files, and the Keychain is not a file, so
+      without this the one secret Tome creates survives the uninstall
 - [ ] Submission to homebrew-cask tracked as a **post-launch** follow-up, gated on notability
 
 #### Technical Notes

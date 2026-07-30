@@ -1511,12 +1511,12 @@ impl McpTool for LookupSymbolTool {
 Define and document the Claude Code plugin integration.
 
 #### Acceptance Criteria
-- [x] Plugin manifest specification — `dist/claude-plugin/.claude-plugin/plugin.json`, and
+- [x] Plugin manifest specification — `packaging/claude-plugin/.claude-plugin/plugin.json`, and
       **the format below was wrong**: see the correction
 - [x] Slash commands defined — `/tome:add`, `/tome:search`, `/tome:list`, `/tome:pull`,
       `/tome:remove`, as markdown files under `commands/`
 - [x] MCP tool integration documented — bundled via `.mcp.json`, no user config needed
-- [x] Installation instructions (`dist/claude-plugin/README.md`)
+- [x] Installation instructions (`packaging/claude-plugin/README.md`)
 - [x] Example workflows documented
 - [x] Error handling guidelines — a table mapping each tool error to what it means, because
       the tools' errors are written to be relayed rather than worked around
@@ -1533,7 +1533,7 @@ Define and document the Claude Code plugin integration.
 > format and passes `claude plugin validate`.
 
 ```
-dist/claude-plugin/
+packaging/claude-plugin/
 ├── .claude-plugin/plugin.json   # name (required), version, description, author, …
 ├── .mcp.json                    # { "mcpServers": { "tome": { "command": "tome", "args": ["mcp"] } } }
 ├── commands/{add,search,list,pull,remove}.md

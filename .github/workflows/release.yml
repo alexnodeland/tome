@@ -1,0 +1,157 @@
+name: Release
+
+# Tag-driven. `git tag v0.1.0 && git push --tags` builds the DMG, publishes a
+# release, and mirrors the cask to alexnodeland/homebrew-tap.
+#
+# There is NO signing and NO notarization (ADR-0006). That removes the single
+# most sensitive secret a release pipeline would hold, and is why this workflow
+# is short. It also means Gatekeeper blocks first launch; the cask's caveats
+# carry the fix, and this workflow's release notes repeat it.
+#
+# > This workflow has never run. GitHub Actions is blocked at the account level
+# > and the repository is private, so it fails in seconds without executing a
+# > step. Until that changes, cut a release by hand with the same commands --
+# > they are deliberately all in scripts/, not inlined here, so that the manual
+# > path and the automated one cannot diverge.
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (no leading v)'
+        required: true
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Resolve the version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Stamp the version
+        # Cargo.toml is the source of truth; tauri.conf.json has no version key
+        # and inherits it, so CFBundleShortVersionString and `tome --version`
+        # cannot disagree.
+        run: ./scripts/set-version.sh "${{ steps.version.outputs.value }}"
+
+      - name: Build the DMG
+        # TOME_CLI_TARGET has to match --target, or the sidecar is staged under
+        # the host triple and the bundler does not find it. The CLI goes INSIDE
+        # the app (S4-9) so that `brew install --cask tome` delivers both from
+        # one build.
+        env:
+          TOME_CLI_TARGET: aarch64-apple-darwin
+        run: npm run tauri build -- --target aarch64-apple-darwin --bundles app,dmg
+
+      - name: Verify the bundle
+        # The checks that every unit test passes and a broken release still
+        # fails: CLI present, same architectures, same build, same version,
+        # correct library paths, zap list complete.
+        run: ./scripts/verify-bundle.sh target/aarch64-apple-darwin/release/bundle/macos/Tome.app
+
+      - name: Name the artifact
+        id: dmg
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.value }}"
+          src=$(find target/aarch64-apple-darwin/release/bundle/dmg -name '*.dmg' | head -1)
+          test -n "$src"
+          # The cask's `url` interpolates the version into this exact name.
+          dest="Tome-${version}.dmg"
+          mv "$src" "$dest"
+          echo "path=$dest" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(shasum -a 256 "$dest" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Update the cask
+        run: |
+          set -euo pipefail
+          cask=packaging/homebrew/Casks/tome.rb
+          # Anchored to the exact lines scripts/verify-bundle.sh asserts still
+          # exist, so a reformat of the cask fails the build rather than
+          # publishing a cask pinned to 0.0.0.
+          sed -i '' -E 's|^  version ".*"$|  version "${{ steps.version.outputs.value }}"|' "$cask"
+          sed -i '' -E 's|^  sha256 ".*"$|  sha256 "${{ steps.dmg.outputs.sha256 }}"|' "$cask"
+          grep -q '${{ steps.version.outputs.value }}' "$cask"
+          grep -q '${{ steps.dmg.outputs.sha256 }}' "$cask"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.value }}"
+          gh release create "v${version}" "${{ steps.dmg.outputs.path }}" \
+            --title "Tome ${version}" \
+            --generate-notes \
+            --notes "
+          Install:
+
+              brew install --cask alexnodeland/tap/tome
+
+          Tome is **not signed by Apple** ([ADR-0006](https://github.com/alexnodeland/tome/blob/main/docs/decisions/0006-unsigned-distribution.md)), so macOS blocks the first launch. To allow it:
+
+              xattr -dr com.apple.quarantine /Applications/Tome.app
+
+          The \`tome\` CLI is installed alongside the app and shares its library.
+
+          SHA256: \`${{ steps.dmg.outputs.sha256 }}\`
+          "
+
+      - name: Mirror the cask to the tap
+        # A separate token: GITHUB_TOKEN cannot write to another repository.
+        # If HOMEBREW_TAP_TOKEN is not configured the release still publishes
+        # and this step says what is left to do by hand, rather than failing a
+        # release that already succeeded.
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.value }}"
+          if [ -z "${TAP_TOKEN:-}" ]; then
+            echo "::warning::HOMEBREW_TAP_TOKEN is not set — copy packaging/homebrew/Casks/tome.rb into alexnodeland/homebrew-tap by hand"
+            exit 0
+          fi
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/alexnodeland/homebrew-tap.git" tap
+          mkdir -p tap/Casks
+          cp packaging/homebrew/Casks/tome.rb tap/Casks/tome.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/tome.rb
+          git commit -m "tome ${version}"
+          git push

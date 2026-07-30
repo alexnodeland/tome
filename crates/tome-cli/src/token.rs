@@ -80,6 +80,42 @@ pub(crate) fn rotate(paths: &Paths) -> Result<String> {
     Ok(token)
 }
 
+/// Delete the token from wherever it lives (`tome config forget-token`).
+///
+/// This exists because of uninstall. `brew uninstall --zap` removes files, and
+/// the Keychain is not a file — so without this the one secret Tome creates is
+/// the one thing an uninstall cannot remove. Returns whether there was
+/// anything to delete, so the caller can say so rather than claiming a
+/// deletion that did not happen.
+pub(crate) fn forget(paths: &Paths) -> Result<bool> {
+    if use_file_store() {
+        return forget_file(paths);
+    }
+    let out = std::process::Command::new(SECURITY)
+        .args([
+            "delete-generic-password",
+            "-a",
+            KEYCHAIN_ACCOUNT,
+            "-s",
+            KEYCHAIN_SERVICE,
+        ])
+        .output()
+        .context("running /usr/bin/security")?;
+    // Exit 44 is "not found", which is success for a command whose job is to
+    // leave nothing behind. Any other failure is real and must not be
+    // reported as a clean uninstall.
+    if out.status.success() {
+        return Ok(true);
+    }
+    if out.status.code() == Some(44) {
+        return Ok(false);
+    }
+    anyhow::bail!(
+        "could not remove the token from the Keychain: {}",
+        String::from_utf8_lossy(&out.stderr).trim()
+    )
+}
+
 /// 256 bits from the system CSPRNG, hex-encoded.
 ///
 /// Read straight from `/dev/urandom`: no `rand` dependency for one read, and
@@ -103,13 +139,37 @@ fn token_file(paths: &Paths) -> std::path::PathBuf {
     paths.state_root().join("api-token")
 }
 
+// The file store is split out from each dispatcher so that tests can exercise
+// it directly. The alternative -- setting TOME_HOME from a test -- mutates
+// process-global state that every other test in this binary reads, and these
+// run in parallel.
+fn read_file(paths: &Paths) -> Result<Option<String>> {
+    match std::fs::read_to_string(token_file(paths)) {
+        Ok(token) => Ok(Some(token.trim().to_owned()).filter(|t| !t.is_empty())),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e).context("reading the API token file"),
+    }
+}
+
+fn write_file(paths: &Paths, token: &str) -> Result<()> {
+    paths.ensure_created()?;
+    let file = token_file(paths);
+    std::fs::write(&file, token).context("writing the API token file")?;
+    tome_core::paths::restrict_file(&file)?;
+    Ok(())
+}
+
+fn forget_file(paths: &Paths) -> Result<bool> {
+    match std::fs::remove_file(token_file(paths)) {
+        Ok(()) => Ok(true),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(e) => Err(e).context("removing the API token file"),
+    }
+}
+
 fn read(paths: &Paths) -> Result<Option<String>> {
     if use_file_store() {
-        return match std::fs::read_to_string(token_file(paths)) {
-            Ok(token) => Ok(Some(token.trim().to_owned()).filter(|t| !t.is_empty())),
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-            Err(e) => Err(e).context("reading the API token file"),
-        };
+        return read_file(paths);
     }
     let out = std::process::Command::new(SECURITY)
         .args([
@@ -132,11 +192,7 @@ fn read(paths: &Paths) -> Result<Option<String>> {
 
 fn write(paths: &Paths, token: &str) -> Result<()> {
     if use_file_store() {
-        paths.ensure_created()?;
-        let file = token_file(paths);
-        std::fs::write(&file, token).context("writing the API token file")?;
-        tome_core::paths::restrict_file(&file)?;
-        return Ok(());
+        return write_file(paths, token);
     }
     // `-U` updates in place on rotation. The token goes through an argument
     // vector, never a shell.
@@ -174,6 +230,27 @@ mod tests {
         assert!(!validator.validate("correct-horsf"));
         assert!(!validator.validate("correct-hors"));
         assert!(!validator.validate(""));
+    }
+
+    #[test]
+    fn forgetting_is_idempotent_and_says_which_it_was() {
+        // The file store directly, never the Keychain and never TOME_HOME —
+        // see the comment on `read_file`. The second call is the one that
+        // matters: an uninstall runs this on machines that never started the
+        // server, and it must report "nothing to do" rather than fail.
+        let home = tempfile::tempdir().expect("tempdir");
+        let paths = Paths::under_root(home.path());
+
+        write_file(&paths, "deadbeef").expect("store a token");
+        assert!(
+            forget_file(&paths).expect("forget"),
+            "there was one to delete"
+        );
+        assert!(
+            !forget_file(&paths).expect("forget"),
+            "and now there is not"
+        );
+        assert!(read_file(&paths).expect("read").is_none());
     }
 
     #[test]

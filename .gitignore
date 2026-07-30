@@ -6,15 +6,11 @@
 
 # Node
 node_modules/
-# `dist/*`, not `dist/` — git cannot re-include anything inside an excluded
-# *directory*, so the negations below would silently do nothing. `dist/` is
-# Vite's build output, but CLAUDE.md designates `dist/homebrew/` as the cask's
-# source of truth and the Claude Code plugin ships from here too; without
-# these two lines those files are untracked, which is how a release ships
-# without the thing it was supposed to mirror.
-dist/*
-!dist/homebrew/
-!dist/claude-plugin/
+# Vite's output, and nothing else. The cask and the Claude Code plugin used to
+# live under `dist/` behind gitignore negations; `npm run build` empties its
+# own output directory, so every frontend build deleted them. They are
+# authored source, not build output, and they now live in `packaging/`.
+dist/
 .svelte-kit/
 *.tsbuildinfo
 npm-debug.log*
@@ -22,6 +18,10 @@ yarn-error.log*
 
 # Build output
 /src-tauri/gen/
+# The CLI sidecar staged for `bundle.externalBin` (S4-9). Build output, copied
+# from target/ by scripts/build-cli-sidecar.sh. Committing it is how a bundle
+# ends up shipping a `tome` from an older tree than the app beside it.
+/src-tauri/binaries/
 *.app
 *.dmg
 *.zip

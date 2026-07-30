@@ -21,7 +21,7 @@ Then, from this repository:
 Or point Claude Code at a checkout directly:
 
 ```
-claude plugin validate dist/claude-plugin   # optional, checks the manifest
+claude plugin validate packaging/claude-plugin   # optional, checks the manifest
 ```
 
 Verify with `/tome:list`. If the MCP tools do not appear, `tome` is not on
