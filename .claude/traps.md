@@ -395,6 +395,77 @@ a test written from the same misunderstanding as the code agrees with it. The go
   selectivity its author gave it, and a benchmark over generated pages measures the generator's
   idea of a document.
 
+## Invariants — agent access
+
+- **`tome mcp` speaks the legacy `2025-11-25` handshake on purpose, not out of date.** MCP's
+  current revision (2026-07-28) abolished the `initialize` handshake for per-request versioning,
+  but Claude Code 2.1.220 — released *after* it — still opens with `initialize` and, per the
+  spec's own compatibility matrix, has **no fall-forward** against a modern-only server. Adding
+  the modern era later is additive (a dual-era server is explicitly permitted); replacing the
+  legacy one is not. Measured in [`docs/spikes/008-mcp-protocol.md`](../docs/spikes/008-mcp-protocol.md).
+- **`initialize` must echo the client's requested protocol version whenever we support it.**
+  Answering with our own newest instead is a **silent drop**: the client sends nothing further,
+  writes no error, and the tools simply never appear. There is no diagnostic anywhere. Measured.
+- **A notification is never answered.** `notifications/initialized` arrives in every session, and
+  replying to it is itself a protocol violation. The `id`-is-absent check in the serve loop is
+  what enforces it.
+- **The MCP tools are read-only, and that is a security boundary.** The documentation Tome
+  ingests is untrusted text that agents read, so a prompt injection in a scraped page must not
+  reach a write. `tome_bookmark` is absent rather than opt-in because no bookmark model exists
+  yet; whoever adds the first write-capable tool owes the opt-in gate P4-013 specifies.
+- **Loopback is not a trust boundary, so the API has no loopback bypass.** Every process on the
+  machine and every page in the user's browser can originate a loopback request. The bearer token
+  is required on every route but `GET /api/v1/status`; the token is compared through hashed,
+  branch-free digests; and the server keeps only the hash after startup.
+- **The API's middleware order is load-bearing**: host/origin guard → rate limit → CORS → auth.
+  The guard first, so a rebound request never reaches the limiter. The limiter before auth, so
+  token brute-force burns the same budget. **CORS before auth, because a browser preflight
+  carries no `Authorization` header** — putting auth first 401s every preflight and the
+  allowlist silently stops working. Axum applies layers innermost-first, so the `.layer()` calls
+  read in reverse.
+- **A non-allowlisted `Origin` is refused, not merely denied CORS headers.** Header absence hides
+  the *response*; refusal also stops the request having effects, which is what `mode: 'no-cors'`
+  is for. Confirmed in a real browser: a hostile page cannot read the API even holding a valid
+  token, and its opaque request is refused 403 server-side.
+
+## Traps — agent access
+
+- **A tool result that is too large is not a transport error.** 500 KB survives the JSON-RPC
+  frame; the client then diverts it to a file and hands the model a *filename*. The page is not
+  in the answer and nothing failed loudly. That is why `tome_get_page` has a byte budget, and why
+  truncation cuts at a **block boundary** — half a code fence renders the rest of the
+  conversation as code.
+- **A heading's anchor id is not always on the heading.** Sphinx puts it on a sectioning wrapper,
+  which normalization reduces to a standalone `Node::Anchor` *before* a heading whose own `id` is
+  `None`. Code that reads only `Heading.id` reports "this page has no section anchors at all" for
+  every Sphinx page — which is most of them. Both shapes must resolve.
+- **`claude plugin validate` is the only authority on plugin format.** P4-017 specified a
+  `slash_commands:` YAML manifest with `handler:` fields; no such format exists. A real plugin is
+  a directory with JSON at `.claude-plugin/plugin.json`, markdown commands under `commands/`, and
+  standard MCP config in `.mcp.json`. Same class of error as the Unix-socket MCP transport.
+- **A plugin's own MCP tools are scoped `mcp__plugin_<plugin>_<server>__<tool>`.** An
+  `allowed-tools` entry written against the bare tool name silently never matches.
+- **A Claude Code session has no terminal**, so every plugin command that mutates must pass
+  `--yes` — and for `tome remove` that makes the assistant's own confirmation the only one there
+  is.
+- **`dist/` is gitignored, so `dist/homebrew/` and `dist/claude-plugin/` need explicit
+  negations — and `dist/` must be spelled `dist/*` for them to work at all.** Git cannot
+  re-include a file whose parent *directory* is excluded, so the negations are silently inert
+  under `dist/`. CLAUDE.md has designated `dist/homebrew/` the cask's source of truth since
+  before it existed; without this the release would ship without the thing it was meant to
+  mirror.
+- **A health check that edits the config it is checking is checking nothing.** The registry
+  verifier's first version `sed`-ed `max_pages` into a copy — which verifies a file no user runs,
+  and silently failed to cap rustdoc/mdbook/readthedocs sources at all, because those types carry
+  no `max_pages:` line for a `sed` to find. A two-minute check became a full crawl of the Cargo
+  Book. `tome pull --max-pages` is a *runtime* override for this reason.
+- **Check `robots.txt` before choosing a registry URL, and let the fetch tell you.** The
+  verification job's first run rejected `nodejs.org/docs/latest/api/`: that site disallows
+  `/docs/` and explicitly allows `/api/`, so the obvious URL was the forbidden one and the
+  correct one was a path segment away. No review would have caught it.
+- **macOS ships bash 3.2**, which has no `mapfile`. A script using it dies with a bare "command
+  not found" partway through, after printing a banner that suggests it was working.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

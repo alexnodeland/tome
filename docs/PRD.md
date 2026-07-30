@@ -600,6 +600,16 @@ sources:
 - **It degrades gracefully.** The registry is a convenience; every source can still be added by
   hand, and Tome works fully offline once fetched.
 
+**Built by S3-8**, in [`registry/`](../registry/README.md): four sources so far, all verified
+2026-07-30. Its own README owns the contribution and verification procedure; the offline checks
+(`cargo test -p tome-core --test registry`) run in the gate, and the live check
+(`scripts/verify-registry.sh`) deliberately does not — a gate that fails when someone else's
+website is down teaches everyone to ignore the gate.
+
+The verification job earned its place on its first run: `nodejs.org/docs/` is `Disallow`ed by
+that site's `robots.txt` while `nodejs.org/api/` is explicitly `Allow`ed, so the obvious URL was
+the forbidden one. No review would have caught that; a fetch did.
+
 **Target for v1.0: 30 verified sources** covering the languages and frameworks in the top of the
 Stack Overflow survey. That is a realistic weekend of work per ten sources once the generic scraper
 is solid, and it converts the onboarding screen from "here's a YAML schema" to "pick the docs you
@@ -1048,13 +1058,13 @@ tome [command] [options]
 
 Commands:
   add <url>            Add documentation source (interactive; --yes, --name, --category, --insecure)
-  pull [source]        Fetch/update documentation content   (--all, --force, --parallel)
+  pull [source]        Fetch/update documentation content   (--all, --all --due, --max-pages)
   list                 List all sources                     (--category)
   search <query>       Search documentation
   remove <source>      Remove a source                      (--yes)
-  config [source]      View/edit configuration
+  config [source]      View/edit configuration      (rotate-token replaces the API bearer token)
   registry             Browse/install from the source registry
-  serve                Start local API server
+  serve                Start local API server       (--port, --bind, --allow-origin; off unless run)
   mcp                  Start MCP server (stdio by default; --http for Streamable HTTP)
   status               Show sync and index status               (--show-token)
   export               Export bookmarks/annotations
@@ -1124,6 +1134,17 @@ The `[type]` suffix is the kind of symbol the page documents — `function`, `ty
 Under `--json`, `results` entries carry `symbol_kind` (`null` for prose pages) and corrections are a
 `suggestions` array of `{typed, meant}` objects. Both keys are **always present, even when empty**,
 so `tome search --json | jq` needs no special case — the same rule `tome list --json` follows.
+
+`--max-pages` caps a crawl at runtime, overriding whatever the config says (it only ever
+tightens). It is for health checks — `scripts/verify-registry.sh` asks "does this scraper still
+find anything", not "fetch the site" — and it is a *runtime* override so the config file a check
+reads stays byte-identical to the one users get.
+
+`tome pull --all` fetches every configured source, because someone typing that has asked for
+exactly that. `tome pull --all --due` fetches only the sources their `sync.strategy` says are
+due (P4-018) and **names what it skipped and why** — `manual`, `pinned`, not-yet-elapsed — so
+"did nothing" is distinguishable from "is broken". A `watch` source is never fetched
+automatically while DEC-006 is open.
 
 **Naming: `pull` fetches documentation; there is no `tome sync`.**
 
@@ -1469,6 +1490,7 @@ Response:
     }
   ],
   "total_hits": 42,      // total matching documents, NOT results.len()
+  "total_capped": false,  // true when total_hits saturated its 1000-document counting ceiling
   "returned": 10,
   "query_time_ms": 12
 }
@@ -1501,9 +1523,14 @@ Response:
 ```http
 GET    /api/v1/sources
 GET    /api/v1/sources/{id}
-POST   /api/v1/sources          # Body: YAML or JSON config. URL passes the SSRF filter first.
+POST   /api/v1/sources?id={id}  # Body: YAML config (JSON parses too — YAML is a superset).
+                                # The id is a query parameter because the config file's name IS
+                                # the source's identity. URL passes the SSRF filter first: a
+                                # literal-IP URL is judged immediately; a hostname is judged at
+                                # fetch time by the pinned resolver, the only judgement that
+                                # survives DNS rebinding. 201, or 409 if the id exists.
 DELETE /api/v1/sources/{id}
-POST   /api/v1/sources/{id}/sync
+POST   /api/v1/sources/{id}/sync   # 202; the pull runs in the background. 409 while running.
 ```
 
 #### Pages

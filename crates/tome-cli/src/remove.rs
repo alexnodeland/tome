@@ -54,6 +54,38 @@ pub(crate) fn remove(paths: &Paths, name: &str, yes: bool, json: bool) -> Result
         }
     }
 
+    delete_source_data(paths, id, config_path)?;
+
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "removed": id.as_str(),
+                // `null` when there was no database to count from — distinct
+                // from 0, which would claim the source was empty.
+                "pages": pages,
+            })
+        );
+    } else {
+        match pages {
+            Some(pages) => println!("Removed {} ({pages} pages).", id.as_str()),
+            None => println!("Removed {}.", id.as_str()),
+        }
+    }
+    Ok(())
+}
+
+/// Delete a source from all four places, config file last. Shared with the
+/// HTTP API's `DELETE /sources/{id}` — one deletion order, not two.
+///
+/// Returns the page count the database held, when it could be read.
+pub(crate) fn delete_source_data(
+    paths: &Paths,
+    id: &SourceId,
+    config_path: &std::path::Path,
+) -> Result<Option<u32>> {
+    let pages = page_count(paths, id);
+
     // 1. Search index. An unreadable index must not block removal — the
     //    index is seconds to rebuild, and the next pull's `open_or_rebuild`
     //    will — but silently skipping it would leave ghost results, so the
@@ -89,23 +121,7 @@ pub(crate) fn remove(paths: &Paths, name: &str, yes: bool, json: bool) -> Result
     std::fs::remove_file(config_path)
         .with_context(|| format!("removing {}", config_path.display()))?;
 
-    if json {
-        println!(
-            "{}",
-            serde_json::json!({
-                "removed": id.as_str(),
-                // `null` when there was no database to count from — distinct
-                // from 0, which would claim the source was empty.
-                "pages": pages,
-            })
-        );
-    } else {
-        match pages {
-            Some(pages) => println!("Removed {} ({pages} pages).", id.as_str()),
-            None => println!("Removed {}.", id.as_str()),
-        }
-    }
-    Ok(())
+    Ok(pages)
 }
 
 /// How many pages the database holds for this source, if it can say.

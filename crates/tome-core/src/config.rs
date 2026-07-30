@@ -49,6 +49,26 @@ pub struct SourceConfig {
     pub accent_color: Option<String>,
     pub attribution: Attribution,
     pub sync: SyncConfig,
+    /// A runtime cap on pages crawled, overriding whatever the spec's own
+    /// limits are. **Not part of the YAML schema** — the parser always leaves
+    /// it `None`; only a caller sets it.
+    ///
+    /// It exists for health checks (`scripts/verify-registry.sh` asks "does
+    /// this scraper still find anything?", not "fetch the site"), and it is a
+    /// runtime override precisely so the config file the check reads stays
+    /// byte-identical to the one users get. A check that edits the file
+    /// verifies something nobody runs.
+    ///
+    /// It applies to *every* source type. The generic scraper's own
+    /// `max_pages` is a user-facing setting; this is not.
+    pub max_pages_override: Option<u32>,
+}
+
+impl SourceConfig {
+    /// Cap the crawl at `pages`, whatever the config says.
+    pub fn cap_pages(&mut self, pages: u32) {
+        self.max_pages_override = Some(pages);
+    }
 }
 
 /// The per-type half of a config. An enum rather than optional fields so the
@@ -440,6 +460,9 @@ fn validate(id: SourceId, raw: RawConfig, file: &Path) -> Result<SourceConfig> {
         accent_color,
         attribution,
         sync,
+        // Never set by the parser: it is a runtime override, not a schema
+        // field. See the field's documentation.
+        max_pages_override: None,
     })
 }
 

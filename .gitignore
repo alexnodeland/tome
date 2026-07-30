@@ -6,7 +6,15 @@
 
 # Node
 node_modules/
-dist/
+# `dist/*`, not `dist/` — git cannot re-include anything inside an excluded
+# *directory*, so the negations below would silently do nothing. `dist/` is
+# Vite's build output, but CLAUDE.md designates `dist/homebrew/` as the cask's
+# source of truth and the Claude Code plugin ships from here too; without
+# these two lines those files are untracked, which is how a release ships
+# without the thing it was supposed to mirror.
+dist/*
+!dist/homebrew/
+!dist/claude-plugin/
 .svelte-kit/
 *.tsbuildinfo
 npm-debug.log*
@@ -71,3 +79,6 @@ lcov*.info
 !src-tauri/icons/
 !src-tauri/icons/*.png
 !src-tauri/icons/*.icns
+
+# Playwright MCP scratch output (browser verification runs)
+.playwright-mcp/

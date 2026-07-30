@@ -30,6 +30,7 @@ pub mod sanitize;
 pub mod scrape;
 pub mod search;
 pub mod store;
+pub mod sync;
 
 pub use error::{Error, Result};
 pub use paths::Paths;

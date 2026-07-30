@@ -1,0 +1,13 @@
+{
+  "name": "tome",
+  "displayName": "Tome",
+  "description": "Read your offline documentation library from Claude Code: search, open pages, look up symbols.",
+  "version": "0.0.0",
+  "author": {
+    "name": "Alex Nodeland",
+    "url": "https://github.com/alexnodeland"
+  },
+  "homepage": "https://github.com/alexnodeland/tome",
+  "repository": "https://github.com/alexnodeland/tome",
+  "keywords": ["documentation", "search", "offline", "docs"]
+}

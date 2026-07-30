@@ -100,6 +100,14 @@ impl<'a> Crawler<'a> {
                 return None
             }
         };
+        // A runtime cap only ever tightens: `--max-pages 25` on a source
+        // configured for 5 000 must stop at 25, and one configured for 10
+        // must still stop at 10.
+        let max_pages = match config.max_pages_override {
+            Some(cap) => max_pages.min(cap),
+            None => max_pages,
+        };
+
         Some(Self {
             fetcher,
             config,
