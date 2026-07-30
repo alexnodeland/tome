@@ -16,7 +16,7 @@
 Tome is a macOS documentation reader: ingest any documentation site, read it offline with good
 typography, search across everything, and expose the library to coding agents over MCP.
 
-**Stages 1, 2 and 3 are built; Stage 4 onwards is still specification.** Ingestion and the reader
+**Stages 1 through 4 are built; only Stage 5 (sync) remains, and it is deferred.** Ingestion and the reader
 work end to end: `tome pull` fetches a documentation site (robots, rate limit, SSRF, scope),
 normalizes, sanitizes, and localizes it into the library, and the app renders it offline in a
 sandboxed iframe with a library sidebar, a page outline, and back/forward.
@@ -40,6 +40,17 @@ off by default, bearer token on every route including loopback. There is a
 [Claude Code plugin](packaging/claude-plugin/) and a [source registry](registry/README.md) with a
 live verification job.
 
+**Stage 4 is built and its exit gate is NOT met** (2026-07-30). Every ticket is done: the DMG
+carries the app *and* the CLI from one build, the cask is written and linted, onboarding installs a
+source in a click, `⌘,` opens Preferences, there is a menu bar item and an optional global
+shortcut, and `tome debug` diagnoses and repairs. What is missing is not code —
+`alexnodeland/homebrew-tap` does not exist, Actions is blocked, and no tag has been cut. **Nobody
+has ever installed Tome**; it has been built, mounted and inspected.
+
+**Startup misses its budget** — 625 ms median against 500 ms — and **10 ms of that is Tome's own
+code**. The rest is Tauri and WKWebView creation. The target is left unmet rather than moved to
+match the measurement.
+
 **Sync and annotations do not exist at all.** When asked whether something works, check rather
 than assume — parts of this repo still describe intent rather than behaviour.
 
@@ -62,6 +73,8 @@ than assume — parts of this repo still describe intent rather than behaviour.
 | `packaging/homebrew/Casks/tome.rb` | Cask source of truth, mirrored to `alexnodeland/homebrew-tap` on release. Linted by `scripts/check-cask.sh` |
 | `packaging/claude-plugin/` | The Claude Code plugin: manifest, commands, bundled MCP config |
 | `scripts/verify-bundle.sh` | The only check that looks at the artifact a user installs: that `Tome.app` ships the CLI, from the same build, with the same version, resolving the same library, and that the cask's zap list covers what it writes |
+| `scripts/measure-startup.sh` | Startup and idle memory, with a stated definition of what it measures. **Not in `check.sh`** — it moves with whatever else the machine is doing |
+| `site/` | The user documentation, including [troubleshooting](site/pages/help.html). Built by `node site/build.mjs`, which `check.sh` runs |
 | `docs/reviews/` | Point-in-time critical reviews of the plan |
 | `docs/spikes/` | Results of spikes that have actually run, raw output included. `docs/plans/07` defines the spikes; this directory is where their answers live |
 | `docs/decisions/` | Open decisions (DEC-*) and accepted ADRs |
@@ -128,7 +141,13 @@ These are settled, and earlier drafts had them wrong. Do not regress them.
 - **Annotations anchor by quote + prefix/suffix**, never bare character offsets.
 - **`robots.txt` is obeyed by default** and is not overridable for registry-shipped configurations.
 - **There is no telemetry of any kind**, including opt-in. Any metric expressed as a percentage of
-  users is therefore unmeasurable — do not add one.
+  users is therefore unmeasurable — do not add one. `tome debug report` is the only path from a
+  broken machine to a maintainer, and the person runs it.
+- **Logs go to `~/Library/Application Support/Tome/logs/`**, daily, kept seven days, created on the
+  first event so a read-only command still creates nothing. They carry no reading history.
+- **`pull` prunes pages the site no longer has, but only after a *clean* crawl** — not capped, no
+  ambiguous errors, and at least one page found. A 404 is evidence a page is gone; a 5xx is
+  evidence of nothing.
 - **`tome pull` fetches documentation. There is no `tome sync`** (bookmark sync is automatic).
 - **The reader is one sandboxed `<iframe>` with `sandbox="allow-scripts"` and nothing else.**
   `allow-same-origin` would hand page content the app's origin and with it the IPC layer. Its CSP

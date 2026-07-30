@@ -2,9 +2,9 @@
   <div class="annotated">
     <h1>Documentation you own, on the shelf, offline.</h1>
     <aside class="note">
-      <span class="measure">Stages 1–3</span>
-      ingestion, reader, search and agent access all built ·
-      <strong>not released</strong> — you build it yourself
+      <span class="measure">Stages 1–4</span>
+      ingestion, reader, search, agent access and the release pipeline all built ·
+      <strong>no tag cut yet</strong>
     </aside>
   </div>
   <p class="lede">
@@ -156,8 +156,8 @@ assert!(vec.capacity() &gt;= 10);</code></pre>
 <div class="prose">
   <h2>Where it stands</h2>
   <p class="lede">
-    Ingestion, reading, search and agent access all work. There is no release yet — you build it
-    yourself.
+    Everything works except being installable. The DMG builds and the cask is written; no tag has
+    been cut.
   </p>
 
   <div class="status">
@@ -170,6 +170,8 @@ assert!(vec.capacity() &gt;= 10);</code></pre>
         <li>Man pages and platform detection</li>
         <li>CLI, MCP server, local HTTP API</li>
         <li>A Claude Code plugin and a source registry</li>
+        <li>First-run onboarding, preferences, a menu bar item</li>
+        <li>A DMG carrying the app and the CLI from one build</li>
       </ul>
     </div>
     <div>
@@ -177,18 +179,19 @@ assert!(vec.capacity() &gt;= 10);</code></pre>
       <ul class="status-missing">
         <li>Bookmarks and annotations</li>
         <li>Cross-device sync (designed, deferred)</li>
-        <li>A signed or notarized build</li>
-        <li>Anything you can <code>brew install</code></li>
+        <li>A signed or notarized build (deferred)</li>
+        <li>A published release — the pipeline exists, no tag</li>
       </ul>
     </div>
   </div>
 
   <div class="callout">
     <p>
-      <strong>Not released.</strong> There is no DMG, no Homebrew tap, and no signing — the Apple
-      Developer Program is deferred, so when there is a build it will ship unsigned and Gatekeeper
-      will need one <code>xattr</code> command on first launch. Today, building it yourself is the
-      only way to run it.
+      <strong>Not published.</strong> <code>npm run tauri build</code> produces a DMG whose
+      <code>Tome.app</code> contains the <code>tome</code> CLI, and a script verifies the two are
+      one build. What is missing is a tag and the tap repository. Signing is deferred, so the
+      release will ship unsigned and Gatekeeper needs one <code>xattr</code> command on first
+      launch. Until a tag is cut, building it yourself is the way.
     </p>
   </div>
 </div>

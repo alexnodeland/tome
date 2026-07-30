@@ -85,6 +85,19 @@
     Indexing happens as it goes, and only pages whose content hash changed are rewritten. The report
     names what went wrong — failed pages, un-localized assets, whether the page cap was hit.
   </p>
+  <div class="annotated">
+    <p>
+      A pull also removes pages the site no longer has, and says how many. That happens
+      <strong>only</strong> when the crawl finished cleanly: no page cap, no ambiguous errors, and
+      at least one page found. Any doubt at all and nothing is deleted — the next clean run catches
+      up.
+    </p>
+    <aside class="note">
+      <span class="measure">404 ≠ error</span>
+      a page that is gone is the evidence pruning runs on · a 5xx or a timeout is a page that could
+      not be read, which is evidence of nothing
+    </aside>
+  </div>
 
   <h3><code>tome list</code></h3>
   <p>
@@ -216,4 +229,54 @@
     Replace the API token. A running server keeps its startup token until restarted, and the command
     says so.
   </p>
+
+  <h3><code>tome config forget-token</code></h3>
+  <p>
+    Delete the API token from the Keychain. This exists because of uninstall:
+    <code>brew uninstall --zap</code> removes files, and the Keychain is not a file, so without it
+    the one secret Tome creates outlives the uninstall. Idempotent — on a machine that never ran the
+    server it says there was nothing to remove.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>Diagnostics</h2>
+
+  <p>
+    <code>tome debug</code> is hidden from the top-level help. Nothing here belongs to an ordinary
+    day, and a <code>debug</code> command in the main list invites people to reach for it before the
+    command that would have worked. <a href="/help/">Troubleshooting</a> is the walkthrough.
+  </p>
+
+  <h3><code>tome debug check</code></h3>
+  <p>
+    Reports; <strong>never</strong> repairs — a check that fixes things cannot be run twice to see
+    whether the fix worked. Library writable, database opens, every source configuration parses,
+    index opens, and the index and the database agree on every source&rsquo;s page count. Exits
+    non-zero when something is wrong. An empty library is healthy, not a fault.
+  </p>
+
+  <h3><code>tome debug rebuild-index</code></h3>
+  <p>
+    Discards the search index and rebuilds it from the pages already on disk. No network. The
+    database, the configurations and the cached content are untouched.
+  </p>
+
+  <h3><code>tome debug report</code></h3>
+  <p>
+    A redacted diagnostic bundle on stdout, to paste into an issue. No page paths, no search
+    queries, no note text, <code>$HOME</code> rewritten to <code>~</code>. There is no telemetry and
+    there will not be, so this is the only path from a broken machine to something a maintainer can
+    read.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr>
+          <td><code>--lines &lt;n&gt;</code></td>
+          <td>How many log lines to include. Default 50.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

@@ -1180,16 +1180,25 @@ brew install --cask tome
 #### Description
 Create comprehensive user documentation.
 
+> **Done across PR #58 and S4-10, 2026-07-30.** The documentation is the site in
+> [`site/`](../../site/README.md), not a markdown file: it is generated from the same design
+> tokens as the app, and the catalogue page is generated from `registry/index.yaml`, so a source
+> added to the registry appears in the docs with no second edit and the two cannot disagree.
+
 #### Acceptance Criteria
-- [ ] Getting started guide
-- [ ] Adding documentation sources
-- [ ] Search usage
-- [ ] Bookmarks and annotations
-- [ ] Sync setup
-- [ ] CLI reference
-- [ ] Keyboard shortcuts
-- [ ] Troubleshooting guide
-- [ ] FAQ
+- [x] Getting started — installing, or building; adding a source; reading; keeping it current
+- [x] Adding documentation sources — the catalogue, `tome add`, and the YAML for doing it by hand
+- [x] Search usage — `⌘K`, `⌘F`, `@symbol`, `--scope`, and what a correction means
+- [~] Bookmarks and annotations — **they do not exist.** Documenting them would be fiction
+- [~] Sync setup — **there is no sync.** Same
+- [x] CLI reference — every command, including `debug` and `config forget-token`
+- [x] Keyboard shortcuts — in the guide, and in the app itself (`⌘,` → Keyboard), listing **only
+      what is bound** rather than PRD Appendix C's full plan
+- [x] Troubleshooting — [`site/pages/help.html`](../../site/pages/help.html). Worth having only
+      because S4-3 gave it commands to recommend: `debug check`, `debug rebuild-index`,
+      `debug report`
+- [x] FAQ — folded into troubleshooting as "things that are not bugs", which is the half of an FAQ
+      that earns its place
 
 #### Technical Notes
 ```markdown
@@ -1270,15 +1279,23 @@ existed and had already drifted apart.
 #### Description
 Create a marketing landing page for Tome.
 
+> **Done by PR #58, updated at S4-10.** It is the same site as P5-013 rather than a separate
+> marketing page — one thing to keep true instead of two, and the landing page's whole argument is
+> that every number on it links to the harness that produced it.
+
 #### Acceptance Criteria
-- [ ] Clear value proposition
-- [ ] Feature highlights
-- [ ] Screenshots/demo video
-- [ ] Download buttons
-- [ ] Documentation link
-- [ ] GitHub link
-- [ ] Mobile responsive
-- [ ] Fast loading
+- [x] Clear value proposition
+- [x] Feature highlights, each carrying its measurement and a link to where it was measured
+- [~] Screenshots / demo video — **not built.** A screenshot is a claim nobody can check and it
+      goes stale on the next UI change, which is the opposite of what the rest of the page does.
+      Worth revisiting once there is a release to show
+- [x] Download instructions — with the `xattr` step, because a download button that leads to a
+      Gatekeeper dialog is worse than no button
+- [x] Documentation link — it *is* the documentation
+- [x] GitHub link
+- [x] Mobile responsive — relative units, `overflow-x: auto` on wide content
+- [x] Fast loading — no framework, no fonts, no scripts. The whole site is HTML plus two
+      stylesheets it shares with the app
 
 #### Technical Notes
 ```html

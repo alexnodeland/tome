@@ -1,31 +1,54 @@
 <div class="prose">
   <h1>Getting started</h1>
   <p class="lede">
-    Build it, add a documentation source, read it offline. Ten minutes, most of which is the first
-    crawl being polite.
+    Install it, pick something to read, read it offline. Most of the ten minutes is the first crawl
+    being polite.
   </p>
 
   <div class="callout">
     <p>
-      <strong>There is no release yet.</strong> No DMG, no Homebrew tap. Everything below assumes
-      you built from source, which is currently the only way to run Tome.
+      <strong>Nothing has been released yet.</strong> The DMG builds, the cask is written and the
+      release runs on a tag — but no tag has been cut and the tap repository does not exist. Until
+      one does, build it yourself: <a href="#build">below</a>.
     </p>
   </div>
 </div>
 
 <div class="prose">
-  <h2>Build it</h2>
+  <h2>Install</h2>
+
+  <pre><code><span class="prompt">$</span> brew install --cask alexnodeland/tap/tome
+<span class="prompt">$</span> xattr -dr com.apple.quarantine /Applications/Tome.app</code></pre>
+
+  <div class="annotated">
+    <p>
+      The second line is not optional. Tome is <strong>not signed by Apple</strong> — the Developer
+      Program is deferred — so Gatekeeper refuses the first launch. macOS 15 removed the
+      Control-click then Open bypass, so the command is the way rather than a shortcut for it.
+    </p>
+    <aside class="note">
+      <span class="measure">once</span>
+      per install · the cask&rsquo;s caveats print the same command
+    </aside>
+  </div>
+
+  <p>
+    The <code>tome</code> command line tool is installed with the app, out of the same bundle. That
+    is deliberate: one build delivers both, which is what makes them resolve the same library.
+  </p>
+
+  <h2 id="build">Or build it</h2>
   <p>You need Rust, Node, and macOS on Apple Silicon.</p>
 
   <pre><code><span class="prompt">$</span> git clone https://github.com/alexnodeland/tome
 <span class="prompt">$</span> cd tome
 <span class="prompt">$</span> npm install
-<span class="prompt">$</span> cargo build --release -p tome-cli
-<span class="prompt">$</span> npm run tauri dev</code></pre>
+<span class="prompt">$</span> npm run tauri build          <span class="prompt"># the app, with the CLI inside it</span></code></pre>
 
   <p>
-    Put the CLI on your <code>PATH</code> — <code>target/release/tome</code>. The app and the CLI
-    must be the same build, because that is what makes them resolve the same library.
+    The CLI is bundled as a sidecar, so <code>cargo build -p tome-app</code> fails until it has been
+    staged — <code>./scripts/build-cli-sidecar.sh</code>, which the build runs for you. The coupling
+    is on purpose: an app built without the CLI installs cleanly and breaks every integration.
   </p>
 
   <div class="annotated">
@@ -51,6 +74,16 @@ Tome 0.0.0 (com.alexnodeland.tome)
 
 <div class="prose">
   <h2>Add a source</h2>
+
+  <p>
+    On a first launch the app offers a catalogue and installs one in a click. The catalogue ships
+    <em>inside</em> the app, so it renders with no network — installing is the part that needs one,
+    and it fetches from the documentation&rsquo;s own site. Each entry shows when the configuration
+    was last verified against the live site; a stale date is the only warning you get that a scraper
+    has rotted.
+  </p>
+
+  <p>From the terminal, any URL at all:</p>
 
   <pre><code><span class="prompt">$</span> tome add https://docs.python.org/3/</code></pre>
 
@@ -165,16 +198,36 @@ sync:
           <td>Search everything, with snippets and source scoping</td>
         </tr>
         <tr>
-          <td><kbd>⌘F</kbd></td>
-          <td>Find within the open page</td>
+          <td><kbd>⌘F</kbd> · <kbd>⌘G</kbd> · <kbd>⇧⌘G</kbd></td>
+          <td>Find within the open page, next match, previous match</td>
         </tr>
         <tr>
           <td><kbd>⌘[</kbd> / <kbd>⌘]</kbd></td>
           <td>Back and forward</td>
         </tr>
+        <tr>
+          <td><kbd>⌘1</kbd> · <kbd>⌘2</kbd> · <kbd>⌘\</kbd></td>
+          <td>Library sidebar, outline sidebar, both</td>
+        </tr>
+        <tr>
+          <td><kbd>⌘=</kbd> · <kbd>⌘-</kbd> · <kbd>⌘0</kbd></td>
+          <td>Text size, up, down, reset</td>
+        </tr>
+        <tr>
+          <td><kbd>⌘,</kbd></td>
+          <td>Preferences — theme, text size, column width, where the library lives</td>
+        </tr>
       </tbody>
     </table>
   </div>
+
+  <p>
+    Tome also puts an item in the menu bar. Clicking it raises the window and opens search, and it
+    stays there whether or not the app is in the Dock — you can turn the Dock icon off in
+    Preferences without losing the way back in. There is a system-wide shortcut too,
+    <kbd>⌘⇧D</kbd>, <strong>off by default</strong>: a hotkey claimed at first launch is one taken
+    from whatever you had bound to it.
+  </p>
 
   <p>Or from the terminal:</p>
 
@@ -229,5 +282,6 @@ sync:
     <li><a href="/agents/">Give your coding agent access</a> over MCP.</li>
     <li><a href="/cli/">The full command reference.</a></li>
     <li><a href="/catalogue/">Ready-made sources</a> from the registry.</li>
+    <li><a href="/help/">When something is wrong.</a></li>
   </ul>
 </div>
