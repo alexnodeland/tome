@@ -26,6 +26,7 @@ pub mod normalize;
 pub mod parse;
 pub mod paths;
 pub mod pipeline;
+pub mod registry;
 pub mod render;
 pub mod sanitize;
 pub mod scrape;

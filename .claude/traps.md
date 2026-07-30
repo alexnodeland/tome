@@ -501,6 +501,38 @@ a test written from the same misunderstanding as the code agrees with it. The go
   the database ahead of the index; search then misses pages that are on disk, silently. That
   comparison is the one check in `debug check` with no other symptom.
 
+## Traps — onboarding and preferences
+
+- **`ReaderFrame.settings` existed from S1-13 with no caller.** The frame has an opaque origin
+  and cannot inherit the shell's cascade, so a preference applied only to `document` changes the
+  chrome and leaves the page alone. `src/lib/appearance.ts` is the one place preferences become
+  attributes and it is applied to both; a second mapping would drift invisibly.
+- **A default is the *absence* of an attribute, never a value.** `data-theme="system"` would need
+  a CSS rule duplicating the `prefers-color-scheme` query that already handles it, and
+  `data-text-size="default"` one duplicating the root font size. Both are duplication that
+  drifts, and a test asserts the attributes are `null`.
+- **Appearance preferences are named steps, not free numbers.** `tokens.css` rescales the entire
+  system off the root font size, so an arbitrary px value lets someone pick 13px and shrink the
+  UI chrome along with the prose. `enumPreference` also rejects a stored value outside its set —
+  otherwise a hand-edited store sets an attribute no rule matches, leaving the default theme with
+  a preference that reads as changed, which looks like a broken theme rather than a rejected one.
+- **"The library is empty" is not "this is a first run".** Someone who removes their last source
+  has not become a first-time user. Onboarding is gated on a *dismissed* flag as well as on the
+  source count.
+- **The registry ships in the bundle, not over the network.** P5-006 requires onboarding to work
+  offline, and a catalogue that must be downloaded before it can say "you are offline" cannot.
+  `bundle.resources` in `tauri.conf.json` and `RESOURCE_DIR` in `onboarding.rs` must agree, which
+  is why a failure there reports the resolved path rather than returning an empty list.
+- **A pull is minutes of blocking work.** `install_registry_source` runs it on
+  `spawn_blocking`; on the async runtime's worker it would stall every other command. The
+  progress event carries the source id, because a second install can start before the first ends.
+- **The crawl phase has no denominator.** The crawler does not know how many pages a site has
+  until it has found them, and an invented total makes a progress bar that goes backwards.
+- **The shortcuts panel lists only what is bound.** PRD Appendix C is the canonical list and
+  covers features that do not exist; showing ⌘D for "bookmark page" teaches the user something
+  false and they find out by pressing it. `src/lib/shortcuts.ts` is the implemented subset, and a
+  test asserts ⌘D is absent from it.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

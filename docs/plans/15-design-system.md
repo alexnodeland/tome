@@ -195,7 +195,22 @@ html { font-size: 17px; }
 :root[data-text-size="small"]  { font-size: 15px; }
 :root[data-text-size="large"]  { font-size: 19px; }
 :root[data-text-size="xlarge"] { font-size: 21px; }
+
+/* Reader measure preference (P5-007). In `ch`, so the column stays a count
+   of characters as the text size changes. */
+:root[data-measure="narrow"] { --measure: 60ch; }
+:root[data-measure="wide"]   { --measure: 85ch; }
 ```
+
+**The preference attributes are the whole contract.** Everything a user can change about
+appearance is one attribute on `<html>` — `data-theme`, `data-text-size`, `data-measure`,
+`data-line-numbers` — and CSS does the rest. That is what makes a theme switch free on a page
+with two hundred highlighted code blocks, and it is why highlighting emits classes rather than
+colours. `src/lib/appearance.ts` is the one place preferences become attributes, and it applies
+the same set to the app shell and to the reader frame; a second mapping would produce one theme
+in the chrome and another in the page. A default is expressed by *removing* the attribute, never
+by a `"system"` or `"default"` value — those would each need a CSS rule duplicating the default
+that is already there.
 
 **Minimum size floor.** Nothing renders below 11px. `--text-xs` at 10.9px is already at the edge of
 legibility, and it is used for `.caption`, which is also the lowest-contrast token — the two
