@@ -3,11 +3,20 @@
 All notable changes to this project are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-This project will follow [Semantic Versioning](https://semver.org/) once it has releases.
+This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18-implementation-plan.md).
+## [0.1.0] — 2026-07-30
+
+**The first release.** Ingestion, the reader, search, agent access over MCP, and a local HTTP API
+all work; the app ships with the `tome` CLI inside it so the two resolve one library.
+
+**Not** in this release: bookmarks, annotations, and cross-device sync — designed, deferred, and
+absent rather than stubbed. Tome is **unsigned**, so macOS blocks the first launch; the cask's
+caveats carry the `xattr` command.
+
+Everything below happened before this tag and is kept in the order it was written.
 
 ### Added — 2026-07-30 — the release pipeline (S4-8, S4-9)
 

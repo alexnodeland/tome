@@ -4515,7 +4515,7 @@ dependencies = [
 
 [[package]]
 name = "tome-app"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -4531,7 +4531,7 @@ dependencies = [
 
 [[package]]
 name = "tome-cli"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -4550,7 +4550,7 @@ dependencies = [
 
 [[package]]
 name = "tome-core"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "chrono",
  "directories",
@@ -4575,7 +4575,7 @@ dependencies = [
 
 [[package]]
 name = "tome-testkit"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "similar",
  "tempfile",
