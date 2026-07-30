@@ -298,8 +298,32 @@ fn truncate_at_block(text: &str, budget: usize, body: &Node) -> String {
     if text.len() <= budget {
         return text.to_owned();
     }
-    let cut = text[..budget].rfind("\n\n").unwrap_or(0);
-    let kept = &text[..cut];
+
+    // `text[..budget]` panics when the budget lands inside a multi-byte
+    // character, and documentation is full of em dashes and curly quotes.
+    // This was written once in `fetch::robots`, caught there, and written
+    // again here; `tome_core::text` exists so there is one implementation to
+    // reach for. Found by S4-1.
+    let window = tome_core::text::truncate_at_char_boundary(text, budget);
+
+    // Prefer a paragraph break, then a line break, then the character
+    // boundary itself. The old code used `.unwrap_or(0)` for the first, so a
+    // page with no blank line in its first 48 KiB — one long table, one long
+    // code block — returned the truncation notice and **no content at all**,
+    // reporting "showing 0 of N KiB" as though that were a result.
+    let cut = window
+        .rfind("\n\n")
+        .or_else(|| window.rfind('\n'))
+        .unwrap_or(window.len());
+    let kept = &window[..cut];
+
+    // A cut inside a code fence turns the rest of the conversation into code.
+    // Counting is enough: fences nest no deeper than one.
+    let closing = if kept.matches("```").count() % 2 == 1 {
+        "\n```"
+    } else {
+        ""
+    };
     let sections = section_list(body);
     let guidance = if sections.is_empty() {
         "This page has no section anchors; the rest is not reachable through this tool.".to_owned()
@@ -307,7 +331,7 @@ fn truncate_at_block(text: &str, budget: usize, body: &Node) -> String {
         format!("Call tome_get_page again with `section` set to one of:\n{sections}")
     };
     format!(
-        "{kept}\n\n[truncated: showing {} of {} KiB. {guidance}]",
+        "{kept}{closing}\n\n[truncated: showing {} of {} KiB. {guidance}]",
         cut / 1024,
         text.len() / 1024,
     )
@@ -845,5 +869,46 @@ mod tests {
     fn short_output_is_untouched() {
         let text = "short page";
         assert_eq!(truncate_at_block(text, 1000, &document()), text);
+    }
+
+    // --- truncation (S4-1: three defects, all silent) ----------------------
+
+    #[test]
+    fn a_multibyte_character_on_the_budget_boundary_does_not_panic() {
+        // `text[..budget]` panics when the budget lands inside a character,
+        // and documentation is full of em dashes, curly quotes and accented
+        // names — so for a long enough page the odds are close to even.
+        let budget = 64;
+        let mut text = "x".repeat(budget - 1);
+        text.push('—'); // three bytes, straddling the boundary
+        text.push_str(&"y".repeat(100));
+        let out = truncate_at_block(&text, budget, &Node::Document { children: vec![] });
+        assert!(out.contains("truncated"), "{out}");
+    }
+
+    #[test]
+    fn a_page_with_no_paragraph_break_still_returns_content() {
+        // One long table, or one long code block. The old code cut at 0 and
+        // returned the notice alone, reporting "showing 0 of N KiB" as though
+        // that were a result.
+        let text = format!("| a | b |\n{}", "| 1 | 2 |\n".repeat(200));
+        let out = truncate_at_block(&text, 256, &Node::Document { children: vec![] });
+        assert!(
+            out.lines().next().is_some_and(|line| line.contains('|')),
+            "the reply must carry page content: {out}"
+        );
+    }
+
+    #[test]
+    fn a_cut_inside_a_code_fence_closes_it() {
+        // Otherwise the truncation notice — and everything the model says
+        // afterwards — is inside a code block.
+        let text = format!("```rust\n{}\n```\n", "let x = 1;\n".repeat(200));
+        let out = truncate_at_block(&text, 256, &Node::Document { children: vec![] });
+        assert_eq!(
+            out.matches("```").count() % 2,
+            0,
+            "unbalanced fences in: {out}"
+        );
     }
 }

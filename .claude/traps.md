@@ -584,6 +584,34 @@ a test written from the same misunderstanding as the code agrees with it. The go
 - **`${arr[-1]}` is bash 4.** macOS ships 3.2. Same family as `mapfile`; use
   `${arr[${#arr[@]}-1]}`.
 
+## Traps — pruning, and byte offsets
+
+- **`&s[..n]` panics when `n` lands inside a multi-byte character**, and documentation is full of
+  em dashes and curly quotes. This was written in `fetch::robots`, caught, fixed with a comment
+  explaining the trap — and then written again three files away in the MCP page budget, where it
+  crashed on any page over 48 KiB whose 49152nd byte was mid-character.
+  `tome_core::text::truncate_at_char_boundary` exists so there is one implementation to reach
+  for. A private helper with a good comment did not prevent the second one.
+- **A truncation that finds no break point must not return nothing.** The MCP budget cut at the
+  last `\n\n` and fell back to offset 0, so a page whose first 48 KiB is one long table returned
+  the truncation notice and no content, reporting "showing 0 of N KiB" as though that were a
+  result. Fall back to `\n`, then to the boundary itself.
+- **Close a code fence you cut inside**, or the truncation notice and everything after it renders
+  as code.
+- **A 404 is evidence, not an error, when deciding what to prune.** The first version of the
+  pruning guard refused to delete anything if the crawl reported *any* error — and a page removed
+  upstream reports 404, so the one case pruning exists for was the case that disabled it. 404 and
+  410 mean gone; 5xx, timeouts and dropped connections mean unknown. Classify on the **typed**
+  error, before it is flattened to a string for the user.
+- **Never prune on a crawl that produced zero pages.** A moved site, a 404 entry point or a
+  captive portal is a crawl that completes cleanly, reports no ambiguous errors, and finds
+  nothing — and without that one guard it empties the library.
+- **Prune the stored file before the database row.** The other order leaves a row pointing at
+  nothing, which is what `Error::PageStore` exists to report; a file with no row is unreferenced
+  bytes in a disposable cache.
+- **Assets are content-addressed and shared.** Deleting a pruned page's assets blanks images on
+  every other page that used them. Pruning takes the page file and the row, and nothing else.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

@@ -177,6 +177,9 @@ export interface InstallReport {
    *  40 pages of an expected 200 looks like success from the count alone. */
   page_errors: number;
   capped: boolean;
+  /** Pages deleted because the site no longer has them. Always 0 on a first
+   *  install; present anyway so the shape does not change on a re-pull. */
+  pruned: number;
 }
 
 /** Progress while a source installs, pushed from Rust over the event bus. */
