@@ -80,10 +80,17 @@ fi
 #
 #    Skipped rather than failed when the sidecar is absent, because the release
 #    workflow verifies a downloaded artifact with no build tree beside it.
+#    Only when the bundle is INSIDE this build tree. Verifying an *installed*
+#    app on a machine that also has a checkout would otherwise compare a
+#    CI-built binary against a locally-staged sidecar and report a difference
+#    that is entirely correct and entirely uninteresting — which is what it
+#    did the first time it was pointed at /Applications/Tome.app.
 uuid_of() { dwarfdump --uuid "$1" 2>/dev/null | awk '{print $2}' | head -1; }
 TRIPLE="$(rustc -vV | sed -n 's/^host: //p' 2>/dev/null)"
 STAGED="src-tauri/binaries/tome-${TRIPLE}"
-if [[ -n "$TRIPLE" && -f "$STAGED" ]]; then
+if [[ "$APP" != target/* && "$APP" != "$PWD"/target/* ]]; then
+  printf '  — same-build check skipped (%s is not in this build tree)\n' "$APP"
+elif [[ -n "$TRIPLE" && -f "$STAGED" ]]; then
   BUNDLED_UUID="$(uuid_of "$CLI")"
   STAGED_UUID="$(uuid_of "$STAGED")"
   if [[ -n "$BUNDLED_UUID" && "$BUNDLED_UUID" == "$STAGED_UUID" ]]; then
