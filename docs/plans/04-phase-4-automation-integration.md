@@ -778,18 +778,26 @@ components:
 Build the HTTP server using Axum framework.
 
 #### Acceptance Criteria
-- [ ] Axum server setup
-- [ ] **Server does not start unless explicitly enabled** (preference or `tome serve`)
-- [ ] Configurable port (default 7431); clear error if the port is in use
-- [ ] Binds `127.0.0.1` only; any other bind address requires an explicit flag and logs a warning
-- [ ] **Bearer token required on every route except `GET /api/v1/status`** — including loopback
-- [ ] **No CORS headers by default.** Allowlist opt-in only; `*` is rejected at config load
-- [ ] `Host` and `Origin` validated (DNS-rebinding defence)
-- [ ] All routes under `/api/v1/`
-- [ ] Uniform JSON error envelope (see PRD Appendix B)
-- [ ] Per-token rate limiting
-- [ ] Request logging that never records query strings or page paths (they are user content)
-- [ ] Graceful shutdown
+- [x] Axum server setup (S3-5, `tome-cli/src/serve.rs`)
+- [x] **Server does not start unless explicitly enabled** — it exists only behind `tome serve`
+- [x] Configurable port (default 7431; `--port 0` picks an ephemeral one, printed to stderr);
+      bind failure names the likely cause
+- [x] Binds `127.0.0.1` only; `--bind` elsewhere logs a warning that the token is now all that
+      stands between the network and the library
+- [x] **Bearer token required on every route except `GET /api/v1/status`** — including loopback,
+      no bypass, no opt-out
+- [x] **No CORS headers by default.** Allowlist opt-in via `--allow-origin` (repeatable); `*` is
+      rejected before the listener exists. An allowlisted origin is echoed exactly, never `*`
+- [x] `Host` and `Origin` validated (DNS-rebinding defence) — and a request carrying a
+      non-allowlisted `Origin` is refused outright, not merely denied CORS headers: header
+      absence only hides the response, refusal also stops side effects
+- [x] All routes under `/api/v1/`
+- [x] Uniform JSON error envelope (see PRD Appendix B) — asserted on every error path in test
+- [x] Per-token rate limiting — one fixed window (there is one token), placed **before** auth so
+      token brute-force burns the same budget as everything else; tested with 150 wrong-token
+      requests
+- [x] Request logging that never records query strings or page paths (they are user content)
+- [x] Graceful shutdown (ctrl-c)
 
 #### Technical Notes
 ```rust
@@ -891,14 +899,19 @@ async fn shutdown_signal() {
 Implement the core API endpoints for search and sources.
 
 #### Acceptance Criteria
-- [ ] GET /api/search - search with filters
-- [ ] GET /api/sources - list all sources
-- [ ] POST /api/sources - add source (YAML/JSON body)
-- [ ] GET /api/sources/:id - get source details
-- [ ] DELETE /api/sources/:id - remove source
-- [ ] POST /api/sources/:id/sync - trigger sync
-- [ ] Proper status codes
-- [ ] Validation errors with details
+- [x] GET /api/v1/search — q/scope/limit; `total_hits` counts matching documents (capped at
+      1000, flagged by `total_capped`), never the page size; snippets from the store (the index
+      stores no bodies)
+- [x] GET /api/v1/sources — list all sources
+- [x] POST /api/v1/sources?id=… — body is the YAML config (JSON parses for free: YAML is a
+      superset, so there is one parser and no content sniffing); the id is a query parameter
+      because the file name IS the identity everywhere else in Tome
+- [x] GET /api/v1/sources/{id} — source details
+- [x] DELETE /api/v1/sources/{id} — same four-place cleanup as `tome remove`, shared code
+- [x] POST /api/v1/sources/{id}/sync — 202, pull runs in the background, 409 while one is
+      already running for that source
+- [x] Proper status codes — including 409 on duplicate id and 413 on oversized config
+- [x] Validation errors with details — the config parser's own message, which names the field
 
 #### Technical Notes
 ```rust
@@ -978,13 +991,13 @@ pub async fn sync_source(
 Implement API endpoints for pages and bookmarks.
 
 #### Acceptance Criteria
-- [ ] GET /api/sources/:id/pages - list pages
-- [ ] GET /api/sources/:id/pages/:path - get page content
-- [ ] GET /api/bookmarks - list bookmarks
-- [ ] POST /api/bookmarks - create bookmark
-- [ ] DELETE /api/bookmarks/:id - delete bookmark
-- [ ] Page content as rendered HTML
-- [ ] Pagination for large page lists
+- [x] GET /api/v1/sources/{id}/pages — list pages, navigation order
+- [x] GET /api/v1/sources/{id}/pages/{path} — get page content
+- [~] GET/POST/DELETE /api/v1/bookmarks — **not built**: no bookmark model until Phase 3; the
+      routes land with P3's bookmark work
+- [x] Page content as rendered HTML — the same normalize→sanitize→render path the reader uses,
+      never raw upstream HTML, with the page outline alongside
+- [x] Pagination for large page lists — offset/limit, bounded
 
 #### Technical Notes
 ```rust
@@ -1055,14 +1068,22 @@ Medium-priority for a service that exposes the user's entire reading history and
 fetch arbitrary URLs. It is the control that makes the rest of the API safe to ship.
 
 #### Acceptance Criteria
-- [ ] **Token required for every request, loopback included.** No bypass, no opt-out.
-- [ ] Token generated on first run from a CSPRNG (≥ 256 bits), stored in the macOS Keychain
-- [ ] Token in `Authorization: Bearer` header; compared in constant time
-- [ ] `tome status --show-token` prints it; `tome config rotate-token` replaces it
-- [ ] Token never written to logs, never included in error messages, never in the config YAML
-- [ ] `GET /api/v1/status` is the only unauthenticated route and returns only status + version
-- [ ] Clear, non-leaky error for missing/invalid token (401, no hint about why)
-- [ ] Test asserts that a request with no token, a wrong token, and a token from a previous
+- [x] **Token required for every request, loopback included.** No bypass, no opt-out. (S3-5)
+- [x] Token generated on first run from a CSPRNG (≥ 256 bits, `/dev/urandom`), stored in the
+      macOS Keychain via `/usr/bin/security` (absolute path, argument vector — the man-ingest
+      rule). When `TOME_HOME` is set (tests, throwaway libraries) a `0600` file under the state
+      root is used instead, because a test run must not write to the user's real Keychain
+- [x] Token in `Authorization: Bearer` header; compared in constant time (both sides hashed,
+      branch-free digest compare; the server keeps only the hash after startup)
+- [x] `tome status --show-token` prints it; `tome config rotate-token` replaces it — and says
+      that a running server keeps its startup token until restarted
+- [x] Token never written to logs, never included in error messages, never in the config YAML —
+      `--show-token` is the one place it is ever printed
+- [x] `GET /api/v1/status` is the only unauthenticated route and returns only status + version —
+      the test counts the keys
+- [x] Clear, non-leaky error for missing/invalid token (401, no hint about why) — missing,
+      malformed, wrong and rotated-away tokens produce byte-identical responses, pinned by test
+- [x] Test asserts that a request with no token, a wrong token, and a token from a previous
       rotation are all rejected
 
 #### Technical Notes
@@ -1490,70 +1511,69 @@ impl McpTool for LookupSymbolTool {
 Define and document the Claude Code plugin integration.
 
 #### Acceptance Criteria
-- [ ] Plugin manifest specification
-- [ ] Slash commands defined (/tome add, /tome search, etc.)
-- [ ] MCP tool integration documented
-- [ ] Installation instructions
-- [ ] Example workflows documented
-- [ ] Error handling guidelines
+- [x] Plugin manifest specification — `dist/claude-plugin/.claude-plugin/plugin.json`, and
+      **the format below was wrong**: see the correction
+- [x] Slash commands defined — `/tome:add`, `/tome:search`, `/tome:list`, `/tome:pull`,
+      `/tome:remove`, as markdown files under `commands/`
+- [x] MCP tool integration documented — bundled via `.mcp.json`, no user config needed
+- [x] Installation instructions (`dist/claude-plugin/README.md`)
+- [x] Example workflows documented
+- [x] Error handling guidelines — a table mapping each tool error to what it means, because
+      the tools' errors are written to be relayed rather than worked around
 
 #### Technical Notes
-```yaml
-# Claude Code Plugin Manifest
-name: tome
-version: 1.0.0
-description: Manage documentation with Tome
 
-slash_commands:
-  - name: add
-    description: Add documentation source to Tome
-    usage: /tome add <url>
-    handler: tome_add
+> **Correction: the manifest format below never existed.** There is no
+> `slash_commands:` YAML and no `handler:` field; a Claude Code plugin is a **directory**, its
+> manifest is JSON at `.claude-plugin/plugin.json` (only `name` is required), slash commands are
+> **markdown files** under `commands/` whose frontmatter carries `description`, `argument-hint`
+> and `allowed-tools`, and a bundled MCP server is standard MCP config in `.mcp.json` at the
+> plugin root. This is the same class of error as the Unix-socket MCP transport: a surface
+> specified from imagination rather than from the tool. The shipped plugin is built to the real
+> format and passes `claude plugin validate`.
 
-  - name: search
-    description: Search Tome documentation
-    usage: /tome search <query>
-    handler: tome_search
-
-  - name: list
-    description: List available documentation sources
-    usage: /tome list
-    handler: tome_list
-
-  - name: pull
-    description: Fetch/update documentation sources
-    usage: /tome pull [source]
-    handler: tome_pull   # matches the CLI; `sync` means bookmark sync, which is automatic
-
-  - name: remove
-    description: Remove documentation source
-    usage: /tome remove <source>
-    handler: tome_remove
-
-mcp:
-  command: tome
-  args: ["mcp"]          # stdio; there is no socket
-  tools:
-    - tome_search
-    - tome_get_page
-    - tome_list_sources
-    - tome_get_toc
-    - tome_bookmark
-    - tome_lookup_symbol
 ```
+dist/claude-plugin/
+├── .claude-plugin/plugin.json   # name (required), version, description, author, …
+├── .mcp.json                    # { "mcpServers": { "tome": { "command": "tome", "args": ["mcp"] } } }
+├── commands/{add,search,list,pull,remove}.md
+└── README.md
+```
+
+```markdown
+---
+description: Search the Tome documentation library
+argument-hint: <query> [--scope <source-id>]
+allowed-tools: mcp__plugin_tome_tome__tome_search, mcp__plugin_tome_tome__tome_get_page
+---
+Search the user's Tome library for: **$ARGUMENTS**
+```
+
+Note the tool names: a plugin's own MCP tools are scoped
+`mcp__plugin_<plugin>_<server>__<tool>`, so an `allowed-tools` entry written against the bare
+name silently never matches.
+
+Two behaviours the command bodies encode, both learned from the CLI's own design:
+
+- **`--yes` is mandatory in every command that mutates.** A Claude Code session has no terminal,
+  so an interactive confirmation cannot be answered and the command refuses. For `/tome:remove`
+  that makes the assistant's own confirmation the only one there is, which is why its body asks
+  first and runs second.
+- **`/tome:search` reads the best result** rather than answering from titles. A title match is
+  not an answer, and opening a local page is free.
 
 **Example Workflow:**
 ```
-User: /tome add https://docs.pola.rs/
+User: /tome:add https://docs.pola.rs/
 
 Claude Code:
-  → Invokes: tome add https://docs.pola.rs/ --json
+  → Invokes: tome add https://docs.pola.rs/ --yes --json
   → Parses response
-  → "I've added Polars documentation to Tome. It detected MkDocs
-     with Material theme and will sync weekly.
+  → "I've added Polars documentation to Tome. Detected MkDocs
+     (confidence 0.90), so it uses the MkDocs scraper.
 
-     Found 847 pages across 12 sections. Would you like me to
-     search for something specific?"
+     Found 847 pages. Would you like me to search for something
+     specific?"
 
 User: How do I create a DataFrame?
 
@@ -1582,18 +1602,39 @@ Claude Code:
 #### Description
 Implement the configurable sync strategy system.
 
-#### Acceptance Criteria
-- [ ] Manual sync (only when triggered)
-- [ ] On-launch sync (check at app start)
-- [ ] Scheduled sync (daily, weekly, monthly), with missed schedules coalesced — not replayed —
-      after the app has been closed
-- [ ] Watch sync: registry checked at most daily per source, jittered, conditional requests
-- [ ] Per DEC-006, `watch` **notifies by default rather than fetching**, honouring the NFR
-      "no background network activity without user action"
-- [ ] Version pinning (ignore updates)
-- [ ] Background sync is cancellable and yields to user-initiated work
-- [ ] Sync state persisted across restarts
-- [ ] Concurrency capped: a `--all` pull must not open 50 simultaneous crawls
+Implemented by **S3-7** as `tome_core::sync::due` — a pure decision function plus one caller,
+`tome pull --all --due`. **It decides; it never fetches.** That split is what makes every case
+below a unit test with its own clock rather than a timing-dependent hope, and it is the direct
+answer to the polling defect recorded in the technical note.
+
+- [x] Manual sync (only when triggered) — `Due::OnlyManually`
+- [x] On-launch sync (check at app start) — and **not** on every tick, which is the defect a
+      single `bool` invites: an on-launch source re-fetched every 15 minutes for as long as the
+      app stays open. `Trigger::{Launch, Tick}` distinguishes them and a test pins it
+- [x] Scheduled sync (daily, weekly, monthly), with missed schedules coalesced — not replayed.
+      Coalescing falls out of comparing `last_synced` against a threshold rather than counting
+      elapsed periods; the test closes the laptop for six weeks and asserts one sync, then
+      asserts it is not due again
+- [~] Watch sync: registry checked at most daily per source, jittered, conditional requests —
+      **not built, on purpose**
+- [~] Per DEC-006, `watch` notifies by default rather than fetching — **DEC-006 is still open
+      and is the owner's call.** `due` returns `Due::WatchUndecided`, which `should_fetch()`
+      reports as false: the conservative direction makes no request, and a test asserts it, so
+      implementing `watch` here instead of deciding it first fails loudly
+- [x] Version pinning (ignore updates) — `pin_version` beats every strategy and both triggers,
+      tested across the cross-product
+- [~] Background sync is cancellable and yields to user-initiated work — no background sync
+      loop exists yet; `--due` is invoked, not scheduled. The daemon that would need cancelling
+      belongs with the app's launch path (Stage 4)
+- [x] Sync state persisted across restarts — `last_synced` is a database column, and `due` takes
+      it as a parameter, so restarts are not a special case
+- [~] Concurrency capped: a `--all` pull must not open 50 simultaneous crawls — `pull` is
+      sequential, which caps it at one. The cap becomes a real decision when a background
+      scheduler exists
+
+Also implemented: a clock-skew guard. A `last_synced` in the future — a config synced from a
+machine ahead of this one — yields "not yet" rather than a fetch loop, which is the safe
+direction and is pinned by test.
 
 #### Technical Notes
 ```rust

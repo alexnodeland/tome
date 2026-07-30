@@ -237,6 +237,64 @@ fn list_filters_by_category() {
     assert_eq!(miss["sources"].as_array().expect("sources").len(), 0);
 }
 
+/// `pull --all --due` consults each source's sync strategy (P4-018), and
+/// says what it skipped rather than looking like it did nothing.
+#[test]
+fn pull_due_respects_the_sync_strategy() {
+    let server = FixtureServer::start("sphinx-example").expect("fixture server");
+    let home = tempfile::tempdir().expect("tempdir");
+    let url = format!("{}/", server.url());
+
+    stdout_json(&tome(
+        home.path(),
+        &[
+            "add",
+            &url,
+            "--yes",
+            "--insecure",
+            "--json",
+            "--quiet",
+            "--name",
+            "widget",
+        ],
+    ));
+
+    // `tome add` writes no `sync:` block, so the source defaults to `manual`
+    // — which `--due` must never fetch automatically.
+    let json = stdout_json(&tome(
+        home.path(),
+        &["pull", "--all", "--due", "--json", "--quiet"],
+    ));
+    assert_eq!(json["pulled"].as_array().expect("pulled").len(), 0);
+    let skipped = json["skipped"].as_array().expect("skipped");
+    assert_eq!(skipped.len(), 1);
+    assert_eq!(skipped[0]["source"], "widget");
+    assert_eq!(skipped[0]["reason"], "OnlyManually");
+
+    // Plain `--all` is a person asking for everything, and gets it.
+    let json = stdout_json(&tome(home.path(), &["pull", "--all", "--json", "--quiet"]));
+    assert_eq!(json["pulled"].as_array().expect("pulled").len(), 1);
+
+    // A daily source that has just synced is not due either — a different
+    // reason, and the JSON says which.
+    let config = tome_core::Paths::under_root(home.path())
+        .sources_dir()
+        .join("widget.yaml");
+    let yaml = std::fs::read_to_string(&config).expect("read config");
+    std::fs::write(
+        &config,
+        format!("{yaml}sync:\n  strategy: scheduled\n  schedule: daily\n"),
+    )
+    .expect("write config");
+
+    let json = stdout_json(&tome(
+        home.path(),
+        &["pull", "--all", "--due", "--json", "--quiet"],
+    ));
+    assert_eq!(json["pulled"].as_array().expect("pulled").len(), 0);
+    assert_eq!(json["skipped"][0]["reason"], "NotYet");
+}
+
 /// Removing an unknown source fails and names the known ones.
 #[test]
 fn remove_unknown_source_fails() {

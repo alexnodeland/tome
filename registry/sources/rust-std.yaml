@@ -1,0 +1,11 @@
+schema_version: 1
+name: Rust Standard Library
+source:
+  type: rustdoc
+  url: https://doc.rust-lang.org/std/
+category: Rust
+attribution:
+  homepage: https://doc.rust-lang.org/std/
+  licence: MIT OR Apache-2.0
+sync:
+  strategy: manual

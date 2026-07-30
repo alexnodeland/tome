@@ -1,0 +1,11 @@
+schema_version: 1
+name: Python 3
+source:
+  type: readthedocs
+  url: https://docs.python.org/3/
+category: Python
+attribution:
+  homepage: https://docs.python.org/3/
+  licence: PSF-2.0
+sync:
+  strategy: manual

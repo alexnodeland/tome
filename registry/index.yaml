@@ -1,0 +1,44 @@
+# The Tome source registry — an index of ready-made source configurations.
+#
+# It contains CONFIGURATION, NEVER CONTENT. Tome does not host or redistribute
+# anyone's documentation; a user's own machine fetches it from the origin.
+# That is what keeps the legal posture clean (RISK-011, SPIKE-010), and it is
+# the one property here that must never be traded for convenience.
+#
+# `verified` is the date the verification job last confirmed the config still
+# produces pages against the live site. A stale date is the signal that a
+# scraper has rotted (RISK-003) — the whole point of the field.
+version: 1
+updated: 2026-07-30
+sources:
+  - id: rust-std
+    name: Rust Standard Library
+    category: Rust
+    homepage: https://doc.rust-lang.org/std/
+    licence: MIT OR Apache-2.0
+    config: sources/rust-std.yaml
+    verified: 2026-07-30
+
+  - id: cargo-book
+    name: The Cargo Book
+    category: Rust
+    homepage: https://doc.rust-lang.org/cargo/
+    licence: MIT OR Apache-2.0
+    config: sources/cargo-book.yaml
+    verified: 2026-07-30
+
+  - id: python
+    name: Python 3
+    category: Python
+    homepage: https://docs.python.org/3/
+    licence: PSF-2.0
+    config: sources/python.yaml
+    verified: 2026-07-30
+
+  - id: node
+    name: Node.js
+    category: JavaScript
+    homepage: https://nodejs.org/api/
+    licence: MIT
+    config: sources/node.yaml
+    verified: 2026-07-30

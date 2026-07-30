@@ -16,6 +16,8 @@ mod add;
 mod mcp;
 mod mcp_tools;
 mod remove;
+mod serve;
+mod token;
 
 use std::path::PathBuf;
 
@@ -77,6 +79,16 @@ enum Command {
         source: Option<String>,
         #[arg(long)]
         all: bool,
+        /// With --all, pull only sources their sync strategy says are due
+        /// (P4-018). Without it, --all pulls everything, because a person
+        /// typing `tome pull --all` has asked for exactly that.
+        #[arg(long, requires = "all")]
+        due: bool,
+        /// Stop after this many pages, overriding the config. For health
+        /// checks — `scripts/verify-registry.sh` uses it — where the question
+        /// is "does this scraper still find anything", not "fetch the site".
+        #[arg(long)]
+        max_pages: Option<u32>,
     },
     /// Search documentation.
     ///
@@ -105,11 +117,29 @@ enum Command {
         yes: bool,
     },
     /// Show sync and index status, and where the library lives.
-    Status,
-    /// Start the local HTTP API server.
+    Status {
+        /// Print the API bearer token (creates one if none exists yet).
+        #[arg(long)]
+        show_token: bool,
+    },
+    /// View or change configuration.
+    Config {
+        #[command(subcommand)]
+        action: ConfigAction,
+    },
+    /// Start the local HTTP API server (off unless you run this).
     Serve {
+        /// Port to listen on. 0 picks an ephemeral port, printed on stderr.
         #[arg(long, default_value_t = 7431)]
         port: u16,
+        /// Address to bind. Anything but loopback logs a warning — the
+        /// bearer token becomes all that protects the library.
+        #[arg(long, default_value = "127.0.0.1")]
+        bind: std::net::IpAddr,
+        /// Origin allowed to read API responses from a browser (repeatable).
+        /// No origins means no CORS headers at all. `*` is rejected.
+        #[arg(long = "allow-origin")]
+        allow_origin: Vec<String>,
     },
     /// Start the MCP server (stdio by default).
     Mcp {
@@ -119,6 +149,12 @@ enum Command {
         #[arg(long, default_value_t = 7432)]
         port: u16,
     },
+}
+
+#[derive(Subcommand)]
+enum ConfigAction {
+    /// Replace the API bearer token; the old one stops working.
+    RotateToken,
 }
 
 fn main() -> Result<()> {
@@ -156,9 +192,32 @@ fn run(cli: Cli) -> Result<()> {
     let paths = Paths::resolve()?;
 
     match cli.command {
-        Command::Pull { source, all } => pull(&paths, source.as_deref(), all, cli.quiet, cli.json)?,
+        Command::Pull {
+            source,
+            all,
+            due,
+            max_pages,
+        } => pull(
+            &paths,
+            source.as_deref(),
+            all,
+            due,
+            max_pages,
+            cli.quiet,
+            cli.json,
+        )?,
         Command::List { category } => list(&paths, category.as_deref(), cli.json)?,
-        Command::Status => status(&paths, cli.json),
+        Command::Status { show_token } => status(&paths, show_token, cli.json)?,
+        Command::Config { action } => match action {
+            ConfigAction::RotateToken => {
+                let _new = token::rotate(&paths)?;
+                // The token itself is deliberately not printed here — use
+                // `tome status --show-token` for that, one place only.
+                println!(
+                    "API token rotated. A running `tome serve` keeps the old token until restarted."
+                );
+            }
+        },
         Command::Add {
             target,
             yes,
@@ -183,14 +242,41 @@ fn run(cli: Cli) -> Result<()> {
             scope,
             limit,
         } => search(&paths, &query, scope.as_deref(), limit, cli.json)?,
-        Command::Serve { .. } => {
-            anyhow::bail!("`tome serve` is not implemented yet (S3-5).");
+        Command::Serve {
+            port,
+            bind,
+            allow_origin,
+        } => {
+            // `*` is rejected before the server exists: a wildcard on a
+            // localhost service holding user data hands every website read
+            // access, and no later check can undo having started that way.
+            if allow_origin.iter().any(|o| o.trim() == "*") {
+                anyhow::bail!(
+                    "`--allow-origin *` is not accepted. Name each origin explicitly, \
+                     e.g. --allow-origin chrome-extension://<id>."
+                );
+            }
+            serve::run(
+                &paths,
+                serve::ServeOptions {
+                    port,
+                    bind,
+                    allowed_origins: allow_origin,
+                },
+            )?;
         }
         Command::Mcp { http, .. } => {
             if http {
-                // Streamable HTTP shares the HTTP API's auth and Host/Origin
-                // guard (P4-014), so it lands with `tome serve` (S3-5).
-                anyhow::bail!("`tome mcp --http` is not implemented yet (S3-5 owns the auth).");
+                // Streamable HTTP is the spec's second transport and is
+                // deliberately still not implemented: no MCP client Tome
+                // targets needs it (Claude Code spawns the process), and an
+                // HTTP MCP endpoint has exactly the browser-reachability
+                // problem `tome serve` spends its whole middleware stack on.
+                // It lands when a client that cannot spawn processes does.
+                anyhow::bail!(
+                    "`tome mcp --http` is not implemented yet. Use stdio: a client spawns \
+                     `tome mcp` itself — see dist/claude-plugin/.mcp.json for the shape."
+                );
             }
             mcp::serve_stdio(&paths, mcp_tools::all())?;
         }
@@ -199,9 +285,22 @@ fn run(cli: Cli) -> Result<()> {
     Ok(())
 }
 
-fn status(paths: &Paths, json: bool) {
+fn status(paths: &Paths, show_token: bool, json: bool) -> Result<()> {
     // Proves the CLI and the app agree on where the library lives.
     let initialised = paths.state_root().exists();
+
+    if show_token {
+        // The one place the token is ever printed. Not part of the default
+        // output, not in `--json` without asking, never in logs.
+        let api_token = token::load_or_create(paths)?;
+        if json {
+            println!("{}", serde_json::json!({ "token": api_token }));
+        } else {
+            println!("{api_token}");
+        }
+        return Ok(());
+    }
+
     if json {
         println!(
             "{}",
@@ -215,7 +314,7 @@ fn status(paths: &Paths, json: bool) {
                 "initialised": initialised,
             })
         );
-        return;
+        return Ok(());
     }
     println!(
         "Tome {} ({})",
@@ -234,6 +333,7 @@ fn status(paths: &Paths, json: bool) {
             "not yet initialised"
         }
     );
+    Ok(())
 }
 
 /// Every source configuration on disk, as `(id, path)`.
@@ -269,7 +369,15 @@ fn source_configs(paths: &Paths) -> Result<Vec<(SourceId, PathBuf)>> {
     Ok(found)
 }
 
-fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool, json: bool) -> Result<()> {
+fn pull(
+    paths: &Paths,
+    source: Option<&str>,
+    all: bool,
+    only_due: bool,
+    max_pages: Option<u32>,
+    quiet: bool,
+    json: bool,
+) -> Result<()> {
     // `pull` writes, so it creates the library. `list` deliberately does not.
     paths.ensure_created()?;
     let available = source_configs(paths)?;
@@ -298,10 +406,56 @@ fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool, json: bool)
         (None, false) => anyhow::bail!("Name a source, or pass --all."),
     };
 
+    // `--due` consults each source's sync strategy (P4-018). The database is
+    // where `last_synced` lives; with no database nothing has ever synced, so
+    // every scheduled source is due.
+    let synced_at = paths
+        .database_file()
+        .exists()
+        .then(|| Database::open(paths))
+        .transpose()?
+        .map(|db| db.list_sources())
+        .transpose()?
+        .unwrap_or_default();
+
     let mut pulled = Vec::new();
+    let mut skipped = Vec::new();
     for (id, config_path) in selected {
-        let config = SourceConfig::parse_file(config_path)
+        let mut config = SourceConfig::parse_file(config_path)
             .with_context(|| format!("reading {}", config_path.display()))?;
+
+        // `--max-pages` overrides the config in memory, never on disk: the
+        // file a health check reads must stay byte-identical to the one
+        // users get, or the check verifies something nobody runs.
+        if let Some(cap) = max_pages {
+            config.cap_pages(cap);
+        }
+
+        if only_due {
+            let last = synced_at
+                .iter()
+                .find(|s| s.id == *id)
+                .and_then(|s| s.last_synced);
+            let verdict = tome_core::sync::due(
+                &config.sync,
+                last,
+                tome_core::sync::Trigger::Launch,
+                chrono::Utc::now(),
+            );
+            if !verdict.should_fetch() {
+                // Said out loud, not silently skipped: "pull --due did
+                // nothing" must be distinguishable from "pull --due is
+                // broken".
+                skipped.push(serde_json::json!({
+                    "source": id.as_str(),
+                    "reason": format!("{verdict:?}"),
+                }));
+                if !quiet && !json {
+                    eprintln!("Skipping {id}: {verdict:?}");
+                }
+                continue;
+            }
+        }
 
         if !quiet {
             eprintln!("Pulling {id}…");
@@ -320,8 +474,11 @@ fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool, json: bool)
 
     if json {
         // One shape, always, like `list --json`: pulling one source still
-        // prints an array of one.
-        println!("{}", serde_json::json!({ "pulled": pulled }));
+        // prints an array of one, and `skipped` is present even when empty.
+        println!(
+            "{}",
+            serde_json::json!({ "pulled": pulled, "skipped": skipped })
+        );
     }
     Ok(())
 }

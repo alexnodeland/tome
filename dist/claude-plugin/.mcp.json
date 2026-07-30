@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tome": {
+      "command": "tome",
+      "args": ["mcp"]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+schema_version: 1
+# Node's docs are one enormous page per module rather than a generator's
+# output, so the generic scraper is correct here — there is no Node profile to
+# detect. `max_depth: 2` keeps the crawl inside the API reference.
+name: Node.js
+source:
+  type: generic
+  url: https://nodejs.org/api/
+  generic:
+    max_depth: 2
+    max_pages: 300
+category: JavaScript
+attribution:
+  homepage: https://nodejs.org/api/
+  licence: MIT
+sync:
+  strategy: manual
