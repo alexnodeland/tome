@@ -27,6 +27,7 @@
     applyToDocument,
     type Appearance,
   } from '$lib/appearance';
+  import { accelerator, pretty, unusableBecause } from '$lib/accelerator';
   import { SHORTCUTS } from '$lib/shortcuts';
   import {
     preferences,
@@ -37,7 +38,7 @@
     type TextSize,
     type Theme,
   } from '$lib/stores/preferences';
-  import type { LibraryLocation } from '$lib/tauri';
+  import { setDockVisible, setGlobalShortcut, type LibraryLocation } from '$lib/tauri';
 
   interface Props {
     open: boolean;
@@ -45,10 +46,21 @@
     location?: LibraryLocation | null;
     /** Appearance changed. The shell forwards it to the reader frame. */
     onappearance?: (appearance: Appearance) => void;
+    /** Why the global shortcut is not registered, if it is not. */
+    shortcutError?: string | null;
+    /** The shortcut was re-registered, successfully or not. */
+    onshortcut?: (error: string | null) => void;
     onclose?: () => void;
   }
 
-  let { open, location = null, onappearance, onclose }: Props = $props();
+  let {
+    open,
+    location = null,
+    shortcutError = null,
+    onappearance,
+    onshortcut,
+    onclose,
+  }: Props = $props();
 
   type Tab = 'appearance' | 'general' | 'library' | 'keyboard';
   const TABS: { id: Tab; label: string }[] = [
@@ -61,6 +73,13 @@
 
   let appearance = $state<Appearance>(loadAppearance());
   let confirmBeforeRemove = $state(preferences.confirmBeforeRemove.load());
+  let shortcutEnabled = $state(preferences.globalShortcutEnabled.load());
+  let shortcut = $state(preferences.globalShortcut.load());
+  let showInDock = $state(preferences.showInDock.load());
+  /** True while the next keystroke is being captured as the new shortcut. */
+  let recording = $state(false);
+  /** Why the last captured keystroke was refused, if it was. */
+  let rejected = $state<string | null>(null);
 
   let dialog = $state<HTMLElement>();
 
@@ -77,6 +96,51 @@
     onappearance?.(appearance);
   }
 
+  /**
+   * Register whatever the two shortcut controls currently say.
+   *
+   * Always both at once: enabling and rebinding are the same operation to
+   * Rust, which is told the final accelerator or `null`. Doing them
+   * separately would leave a window where the old combination is still live.
+   */
+  async function applyShortcut(): Promise<void> {
+    preferences.globalShortcutEnabled.save(shortcutEnabled);
+    preferences.globalShortcut.save(shortcut);
+    try {
+      await setGlobalShortcut(shortcutEnabled ? shortcut : null);
+      onshortcut?.(null);
+    } catch (e) {
+      onshortcut?.(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  function record(event: KeyboardEvent): void {
+    if (!recording) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.key === 'Escape') {
+      recording = false;
+      rejected = null;
+      return;
+    }
+    const next = accelerator(event);
+    // Null means "not a shortcut yet" — a modifier still being held down. Keep
+    // listening rather than treating it as a rejection.
+    if (!next) return;
+
+    const why = unusableBecause(next);
+    if (why) {
+      // Stay armed. The user's next attempt is the fix, and closing the
+      // recorder to show an error would make them re-open it.
+      rejected = why;
+      return;
+    }
+    shortcut = next;
+    recording = false;
+    rejected = null;
+    void applyShortcut();
+  }
+
   function reset(): void {
     change({
       theme: 'system',
@@ -86,6 +150,11 @@
     });
     confirmBeforeRemove = true;
     preferences.confirmBeforeRemove.save(true);
+    shortcutEnabled = false;
+    shortcut = 'CmdOrCtrl+Shift+D';
+    showInDock = true;
+    void applyShortcut();
+    setDockVisible(true).catch(() => {});
   }
 
   function keydown(event: KeyboardEvent): void {
@@ -128,7 +197,12 @@
       aria-labelledby="preferences-title"
       tabindex="-1"
       bind:this={dialog}
-      onkeydown={keydown}
+      onkeydown={(e) => {
+        // The recorder claims every keystroke while it is armed, including
+        // Escape — which cancels recording rather than closing the sheet.
+        if (recording) record(e);
+        else keydown(e);
+      }}
     >
       <header>
         <h2 id="preferences-title">Preferences</h2>
@@ -233,6 +307,60 @@
           <p class="hint">
             Removing deletes the source's pages, assets and index entries. The configuration goes
             last, so a failed removal can be run again.
+          </p>
+
+          <div class="field">
+            <span class="label" id="label-shortcut">Global shortcut</span>
+            <label class="check">
+              <input
+                type="checkbox"
+                checked={shortcutEnabled}
+                onchange={(e) => {
+                  shortcutEnabled = e.currentTarget.checked;
+                  void applyShortcut();
+                }}
+              />
+              <span>Summon Tome from anywhere</span>
+            </label>
+            <div class="choices">
+              <button
+                class:selected={recording}
+                aria-labelledby="label-shortcut"
+                disabled={!shortcutEnabled}
+                onclick={() => (recording = !recording)}
+              >
+                {recording ? 'Press keys…' : pretty(shortcut)}
+              </button>
+            </div>
+            {#if rejected}
+              <p class="error" role="alert">{rejected}</p>
+            {:else if shortcutError}
+              <p class="error" role="alert">{shortcutError}</p>
+            {:else}
+              <p class="hint">
+                Off by default: a system-wide shortcut claimed without asking is one taken from
+                whatever you had bound to it. Use at least two modifiers, and avoid combinations
+                macOS reserves — those register successfully and then never fire, which is the worst
+                way to find out.
+              </p>
+            {/if}
+          </div>
+
+          <label class="check">
+            <input
+              type="checkbox"
+              checked={showInDock}
+              onchange={(e) => {
+                showInDock = e.currentTarget.checked;
+                preferences.showInDock.save(showInDock);
+                setDockVisible(showInDock).catch(() => {});
+              }}
+            />
+            <span>Show in the Dock</span>
+          </label>
+          <p class="hint">
+            Off makes Tome menu-bar-only. The menu bar item is always there, so turning this off
+            never leaves you without a way back in.
           </p>
 
           <div class="field">
@@ -418,6 +546,16 @@
     gap: var(--space-2);
     font-size: var(--text-sm);
     color: var(--color-text-primary);
+  }
+
+  .error {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-tertiary);
+    color: var(--color-error-text);
+    font-size: var(--text-xs);
+    line-height: var(--leading-normal);
   }
 
   .hint {

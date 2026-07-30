@@ -12,6 +12,7 @@ use tome_core::Paths;
 mod onboarding;
 mod reader;
 mod search;
+mod tray;
 
 /// Where this library lives on disk. Exposed so the UI can show it and so an
 /// integration test can assert the app and the CLI agree.
@@ -34,6 +35,40 @@ fn library_location() -> Result<LibraryLocation, String> {
         cache_root: paths.cache_root().display().to_string(),
         initialised: paths.state_root().exists(),
     })
+}
+
+/// Register (or clear) the system-wide shortcut.
+///
+/// Called by the frontend at startup with whatever it has stored, and again
+/// whenever the preference changes — the accelerator lives in the same
+/// `localStorage` as every other preference, so Rust is told rather than
+/// asked. Returns the failure text: on macOS a refused registration is the
+/// only conflict detection there is.
+#[tauri::command]
+fn set_global_shortcut(app: tauri::AppHandle, accelerator: Option<String>) -> Result<(), String> {
+    tray::set_shortcut(&app, accelerator.as_deref())
+}
+
+/// Show or hide the Dock icon (P5-008's "hide from dock").
+///
+/// `Accessory` is what makes an application menu-bar-only. Hiding the Dock
+/// icon while the window is closed would leave no way back in, which is why
+/// the menu bar item is created unconditionally and before this can be called.
+#[tauri::command]
+fn set_dock_visible(app: tauri::AppHandle, visible: bool) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let policy = if visible {
+            tauri::ActivationPolicy::Regular
+        } else {
+            tauri::ActivationPolicy::Accessory
+        };
+        app.set_activation_policy(policy)
+            .map_err(|e| format!("could not change the Dock setting: {e}"))?;
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, visible);
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -80,6 +115,7 @@ pub fn run() {
 
     let protocol_paths = paths.clone();
     let result = tauri::Builder::default()
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(reader::ReaderState { paths })
         // Localized assets live in the cache directory, outside the bundle,
         // so the webview cannot reach them by URL without this. The handler
@@ -98,7 +134,18 @@ pub fn run() {
             search::source_exists,
             onboarding::registry_catalogue,
             onboarding::install_registry_source,
+            set_global_shortcut,
+            set_dock_visible,
         ])
+        .setup(|app| {
+            // The menu bar item. A failure here is logged and not fatal: an
+            // app that refuses to launch because it could not draw a status
+            // item would be unusable for a feature that is an accessory.
+            if let Err(e) = tray::install(app.handle()) {
+                tracing::warn!("the menu bar item could not be created: {e}");
+            }
+            Ok(())
+        })
         .run(tauri::generate_context!());
 
     if let Err(e) = result {
