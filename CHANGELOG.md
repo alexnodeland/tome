@@ -34,7 +34,34 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Added — 2026-07-30 — errors that say what to do, and a way to repair (S4-3)
+
+- **`tome debug check`** — reports; never repairs. Library writable, database opens, every source
+  configuration parses, index opens, and **the index and the database agree on every source's page
+  count**. That last one is the failure with no symptom: an interrupted pull leaves the database
+  ahead of the index and search quietly misses pages that are on disk.
+- **`tome debug rebuild-index`** — discards the index and rebuilds it from pages already on disk,
+  with **no network**. A discarded index previously left search silently empty until a full
+  re-crawl; SPIKE-003 measured the difference at 5–21 seconds against about seven hours.
+- **`tome debug report`** — a redacted bundle to paste into a bug report. No page paths, no search
+  queries, no note text, `$HOME` rewritten to `~`. There is no telemetry and there will not be, so
+  this is the only path from a broken machine to something a maintainer can read.
+- **Logs, at last.** `~/Library/Application Support/Tome/logs/tome-<date>.log`, daily rotation,
+  7-day retention. `logs/` had been in the PRD and created by `Paths::ensure_created` since S0-3
+  and **nothing had ever written to it**. One `write_all` per event, so the app and the CLI cannot
+  interleave mid-line; created on the first event, so a read-only command still creates nothing.
+- **`Error::suggestion` is exhaustive** — no `_ =>` arm, so a new variant stops the build until
+  someone decides what a person should do about it. Every command an error names is checked against
+  a list of commands that exist, which is P5-004's own warning turned into a test.
+
 ### Fixed — 2026-07-30
+
+- **Six error messages were sentence fragments** ("The download failed: connection reset"), found
+  by the audit above on its first run. An interpolated detail now goes in parentheses and every
+  message ends in a full stop.
+- **`IndexSchemaOutdated` told users to run `tome pull --all`**, which works and also re-crawls
+  every site to rebuild a file derived from content already on disk. It names
+  `tome debug rebuild-index` now.
 
 - **`npm run build` was deleting the Claude Code plugin and the cask.** Both were committed under
   `dist/` behind gitignore negations; `dist/` is Vite's `outDir` and Vite empties it on every

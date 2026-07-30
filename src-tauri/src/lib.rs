@@ -37,12 +37,23 @@ fn library_location() -> Result<LibraryLocation, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("warn,tome=info")),
-        )
-        .init();
+    // stderr and a rotated file under the library's `logs/` (S4-3). The app
+    // matters more than the CLI here: a GUI has no terminal to print to, so
+    // without the file half every diagnostic it emits is written to a stream
+    // nobody is reading. The file is created on the first event, not now — a
+    // launch that fails before it logs anything leaves no directory behind.
+    let filter = || {
+        tracing_subscriber::EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("warn,tome=info"))
+    };
+    match Paths::resolve() {
+        Ok(paths) => tracing_subscriber::fmt()
+            .with_writer(tome_core::logging::to_stderr_and_file(&paths))
+            .with_ansi(false)
+            .with_env_filter(filter())
+            .init(),
+        Err(_) => tracing_subscriber::fmt().with_env_filter(filter()).init(),
+    }
 
     // First launch creates the directory structure. Failing here is fatal and
     // must say why: an unwritable data directory is not recoverable at runtime.

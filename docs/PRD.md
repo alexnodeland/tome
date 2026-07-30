@@ -1062,7 +1062,7 @@ Commands:
   list                 List all sources                     (--category)
   search <query>       Search documentation
   remove <source>      Remove a source                      (--yes)
-  config [source]      View/edit configuration      (rotate-token replaces the API bearer token)
+  config [source]      View/edit configuration      (rotate-token, forget-token)
   registry             Browse/install from the source registry
   serve                Start local API server       (--port, --bind, --allow-origin; off unless run)
   mcp                  Start MCP server (stdio by default; --http for Streamable HTTP)
@@ -1070,6 +1070,9 @@ Commands:
   export               Export bookmarks/annotations
   import <path>        Import previously exported bookmarks/annotations
   debug <subcommand>   Diagnostics and recovery (hidden from top-level --help)
+                         check          report problems; never repairs
+                         rebuild-index  rebuild the index from local content, no network
+                         report         a redacted bundle to paste into a bug report
 
 Global options:
   --json               Output as JSON (for scripting)
@@ -1095,6 +1098,36 @@ with `--json` or when stdin is not a terminal — and that check runs before any
 config as `fetch.allow_insecure`. The written YAML is round-tripped through the real config parser
 before the initial pull, so `add` cannot write a file `pull` would reject. Local paths are refused
 until local/docset ingestion exists.
+
+`tome config rotate-token` replaces the API bearer token; `tome config forget-token` deletes it.
+The second exists because of uninstall: `brew uninstall --zap` removes files, and the Keychain is
+not a file, so without it the one secret Tome creates outlives the uninstall. The cask's caveats
+name it.
+
+**`tome debug` is diagnostics and recovery**, hidden from the top-level help because nothing there
+belongs to an ordinary day.
+
+- **`check`** reports and never repairs — a diagnostic that fixes things cannot be run twice to see
+  whether the fix worked. It verifies that the library is writable, the database opens, every source
+  configuration parses, the index opens, and **that the index and the database agree on every
+  source's page count**. That last one is the failure with no symptom: an interrupted pull leaves the
+  database ahead of the index and search quietly misses pages that are on disk. An empty library is
+  reported as healthy, not as a fault, and `check` creates nothing. Exits non-zero when something is
+  wrong, so `tome debug check && …` works.
+- **`rebuild-index`** discards the index and rebuilds it from pages already on disk. **No network**:
+  the index is derived and lives under the cache root, and SPIKE-003 measured a rebuild at 5–21 s per
+  100 000 pages against about seven hours to re-crawl them. The database, the configurations and the
+  cached content are untouched.
+- **`report`** prints a redacted bundle: version, OS, library locations with `$HOME` rewritten to
+  `~`, source ids with page counts and last-pull dates, the `check` findings, and the tail of the
+  log. **No page paths, no search queries, no note text, no username.** There is no telemetry and
+  there will not be, so this is the only path from a broken machine to something a maintainer can
+  read — which means it has to be worth reading *and* safe to publish.
+
+**Logs.** Every command writes to `~/Library/Application Support/Tome/logs/tome-<date>.log` as well
+as to stderr, rotated daily with 7-day retention. The file is created on the first event, never at
+startup, so a read-only command on a machine that has pulled nothing still creates nothing. Log
+lines carry no reading history, by the same rule that governs error messages.
 
 `tome remove <source>` deletes the source's search-index entries, database rows, cached content,
 and — deliberately last, so a failed removal can be re-run — its config file. Confirmation is

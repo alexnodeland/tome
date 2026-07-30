@@ -19,6 +19,7 @@ pub mod fetch;
 pub mod hash;
 pub mod highlight;
 pub mod html;
+pub mod logging;
 pub mod man;
 pub mod model;
 pub mod normalize;

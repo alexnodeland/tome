@@ -13,6 +13,7 @@
 //!   with an opaque parse error. All diagnostics go to stderr.
 
 mod add;
+mod debug;
 mod mcp;
 mod mcp_tools;
 mod remove;
@@ -141,6 +142,16 @@ enum Command {
         #[arg(long = "allow-origin")]
         allow_origin: Vec<String>,
     },
+    /// Diagnostics and recovery.
+    ///
+    /// Hidden from the top-level help: nothing here is part of an ordinary
+    /// day, and a `debug` command in the main list invites people to reach
+    /// for it before the command that would have worked.
+    #[command(hide = true)]
+    Debug {
+        #[command(subcommand)]
+        action: DebugAction,
+    },
     /// Start the MCP server (stdio by default).
     Mcp {
         /// Use Streamable HTTP instead of stdio.
@@ -148,6 +159,27 @@ enum Command {
         http: bool,
         #[arg(long, default_value_t = 7432)]
         port: u16,
+    },
+}
+
+#[derive(Subcommand)]
+enum DebugAction {
+    /// Check the library for problems. Reports; never repairs.
+    Check,
+    /// Discard the search index and rebuild it from local content.
+    ///
+    /// No network. The index is derived and lives under the cache root; the
+    /// database, the configurations and the cached pages are untouched.
+    RebuildIndex,
+    /// Print a redacted diagnostic report, for pasting into a bug report.
+    ///
+    /// No page paths, no search queries, no home directory. There is no
+    /// telemetry and never will be, so this is the only path from a broken
+    /// machine to something a maintainer can read.
+    Report {
+        /// How many log lines to include.
+        #[arg(long, default_value_t = 50)]
+        lines: usize,
     },
 }
 
@@ -165,13 +197,36 @@ enum ConfigAction {
 
 fn main() -> Result<()> {
     // stderr, always: stdout belongs to `tome mcp` and to `--json` output.
-    tracing_subscriber::fmt()
-        .with_writer(std::io::stderr)
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("warn,tome=info")),
-        )
-        .init();
+    // And, since S4-3, to `logs/tome-<date>.log` as well, so that a bug report
+    // can say what happened rather than what the reporter remembers. Nothing
+    // leaves the machine — `tome debug report` is how a person shares it, and
+    // it redacts.
+    //
+    // Resolving paths before parsing arguments: the log destination cannot
+    // depend on the subcommand, or the failure being diagnosed goes unlogged
+    // when it happens during parsing. A library that cannot be resolved just
+    // means no file half — that error will be reported by the command itself.
+    let log_file = Paths::resolve()
+        .map(|paths| tome_core::logging::to_stderr_and_file(&paths))
+        .ok();
+    let filter = || {
+        tracing_subscriber::EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("warn,tome=info"))
+    };
+    match log_file {
+        Some(writer) => tracing_subscriber::fmt()
+            .with_writer(writer)
+            // The file gets the same bytes as the terminal, so escape codes
+            // would end up in it. Losing colour on stderr is the cheaper half
+            // of that trade.
+            .with_ansi(false)
+            .with_env_filter(filter())
+            .init(),
+        None => tracing_subscriber::fmt()
+            .with_writer(std::io::stderr)
+            .with_env_filter(filter())
+            .init(),
+    }
 
     let cli = Cli::parse();
     let json = cli.json;
@@ -281,6 +336,11 @@ fn run(cli: Cli) -> Result<()> {
                 },
             )?;
         }
+        Command::Debug { action } => match action {
+            DebugAction::Check => debug::check(&paths, cli.json)?,
+            DebugAction::RebuildIndex => debug::rebuild_index(&paths, cli.json, cli.quiet)?,
+            DebugAction::Report { lines } => debug::report(&paths, lines)?,
+        },
         Command::Mcp { http, .. } => {
             if http {
                 // Streamable HTTP is the spec's second transport and is

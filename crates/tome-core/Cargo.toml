@@ -24,6 +24,11 @@ syntect.workspace = true
 tantivy.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+# For `logging`'s `MakeWriter` impls only. The orphan rule puts them here: the
+# writer type is tome-core's and the trait is tracing-subscriber's, so neither
+# the CLI nor the app could implement it for us. Already in the workspace --
+# both binaries depend on it -- so this adds no crate to the tree.
+tracing-subscriber.workspace = true
 ureq.workspace = true
 url.workspace = true
 
