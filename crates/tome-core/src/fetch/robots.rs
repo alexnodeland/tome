@@ -238,19 +238,11 @@ fn rule_matches(rule: &str, path: &str) -> bool {
     ri == r.len()
 }
 
-/// Truncate to at most `max` bytes without splitting a UTF-8 character —
-/// `body[..max]` panics on multi-byte input, which is exactly the kind of
-/// crash a hostile robots.txt would love.
-fn truncate_at_char_boundary(body: &str, max: usize) -> &str {
-    if body.len() <= max {
-        return body;
-    }
-    let mut end = max;
-    while end > 0 && !body.is_char_boundary(end) {
-        end -= 1;
-    }
-    &body[..end]
-}
+// `truncate_at_char_boundary` used to live here, privately. It is now
+// `crate::text::truncate_at_char_boundary`, because the same bug was written
+// again in `tome-cli`'s MCP page truncation — with this comment sitting three
+// files away explaining exactly why not to.
+use crate::text::truncate_at_char_boundary;
 
 #[cfg(test)]
 mod tests {

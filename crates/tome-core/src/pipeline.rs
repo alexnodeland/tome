@@ -62,6 +62,11 @@ pub struct IngestReport {
     /// True when the crawl stopped at `max_pages` rather than running out of
     /// links — so the caller can say "capped" rather than implying "complete".
     pub hit_page_cap: bool,
+    /// Pages deleted because the site no longer has them.
+    ///
+    /// Always 0 unless the crawl finished cleanly — no page errors and no page
+    /// cap. See the pruning block in [`pull`].
+    pub pages_pruned: usize,
     /// What indexing did. `None` if it was not reached — a crawl that
     /// produced nothing does not touch the index.
     pub index: Option<IndexReport>,
@@ -128,6 +133,9 @@ pub fn pull(
 ) -> Result<IngestReport> {
     let started = Instant::now();
     let mut report = IngestReport::default();
+    // Errors that leave doubt about whether a page still exists. See where it
+    // is assigned, below.
+    let mut ambiguous_errors = 0usize;
 
     paths.ensure_source_dirs(&config.id)?;
 
@@ -172,6 +180,20 @@ pub fn pull(
             });
         });
         report.hit_page_cap = outcome.hit_page_cap;
+        // Counted from the TYPED errors, before they are flattened to
+        // strings for the user. A 404 or a 410 is what a page removed
+        // upstream looks like — it is the evidence pruning runs on, not an
+        // obstacle to it. Everything else (5xx, timeouts, transport
+        // failures) is a page the crawl could not read, which says nothing
+        // about whether it still exists.
+        //
+        // Found by S4-1's own test: the first version counted every error,
+        // so the one case pruning exists for was the case that disabled it.
+        ambiguous_errors = outcome
+            .errors
+            .iter()
+            .filter(|e| !matches!(e.error, crate::error::Error::Http { status: 404 | 410 }))
+            .count();
         for error in &outcome.errors {
             // The URL is the crawler's own, not reading history — it is what
             // the user has to look at to understand why a page is missing.
@@ -229,6 +251,24 @@ pub fn pull(
         });
     }
 
+    // Pages the site no longer has (S4-1, policy agreed 2026-07-29).
+    //
+    // **Only after a clean crawl**, and the guard is the entire feature. A
+    // crawl stops early for reasons that have nothing to do with the site —
+    // `max_pages`, a dropped network, a closed laptop — and treating "not seen
+    // this run" as "deleted upstream" would delete a library a few hundred
+    // pages at a time. Any doubt at all and nothing goes; the next clean run
+    // catches up.
+    //
+    // The stored file goes with the row. Assets deliberately do not: they are
+    // content-addressed and shared between pages, so removing one page's
+    // assets would blank an image on every other page that uses it.
+    report.pages_pruned = if safe_to_prune(&report, ambiguous_errors, held.len()) {
+        prune_missing(&database, &store, &config.id, &held)?
+    } else {
+        0
+    };
+
     // Record what the pull actually produced. Without this, `Source.page_count`
     // stays at its default of 0 for ever and every consumer that trusts it
     // disagrees with every consumer that counts rows — which is exactly what
@@ -256,6 +296,57 @@ pub fn pull(
 
     report.elapsed = started.elapsed();
     Ok(report)
+}
+
+/// Whether this crawl is trustworthy enough to delete anything on.
+///
+/// Three conditions, and none is optional.
+///
+/// * **Not capped.** A capped crawl saw a prefix of the site; the pages it did
+///   not see are pages it did not *look at*.
+/// * **No ambiguous errors.** A 404 or 410 is evidence that a page is gone and
+///   is exactly what pruning runs on. A 5xx, a timeout or a dropped connection
+///   is a page the crawl could not read, which is evidence of nothing.
+/// * **It produced at least one page.** A site that has moved, an entry point
+///   that 404s, a captive portal — each of these is a crawl that "completed
+///   cleanly" and found nothing, and without this guard it would empty the
+///   library. This is the disaster case, and it is one line.
+fn safe_to_prune(report: &IngestReport, ambiguous_errors: usize, produced: usize) -> bool {
+    !report.hit_page_cap && ambiguous_errors == 0 && produced > 0
+}
+
+/// Delete database rows and stored files for pages this crawl did not see.
+///
+/// Returns how many went. Assets are left alone: they are content-addressed
+/// and shared, so deleting one page's assets can blank an image on another.
+/// They are re-fetched only when referenced, and the cache root is disposable
+/// by design.
+fn prune_missing(
+    database: &Database,
+    store: &PageStore,
+    source: &SourceId,
+    held: &HashSet<PagePath>,
+) -> Result<usize> {
+    let stale: Vec<PagePath> = database
+        .list_pages(source)?
+        .into_iter()
+        .map(|page| page.path)
+        .filter(|path| !held.contains(path))
+        .collect();
+
+    for path in &stale {
+        // The file first, then the row. The other order would leave a row
+        // pointing at nothing if this failed half way — and a row without a
+        // file is what `Error::PageStore` exists to report, whereas a file
+        // without a row is simply unreferenced bytes in a cache.
+        store.remove(path)?;
+        database.delete_page(source, path)?;
+    }
+
+    if !stale.is_empty() {
+        tracing::info!(source = %source, pruned = stale.len(), "pages removed upstream");
+    }
+    Ok(stale.len())
 }
 
 /// Bring the search index up to date with what a source holds on disk (S2-3,

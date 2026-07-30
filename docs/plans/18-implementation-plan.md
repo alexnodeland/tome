@@ -427,7 +427,7 @@ the app shows, and `--zap` leaves nothing behind.
 
 | # | Work | Spec | Model |
 |---|------|------|-------|
-| S4-1 | Loop-until-dry bug hunt across the codebase | — | Opus fleet |
+| S4-1 | Loop-until-dry bug hunt across the codebase | — | ✅ 2026-07-30 |
 | S4-2 | Performance profiling + lazy loading | P5-001/002/003 | Opus |
 | S4-3 | Error taxonomy audit + recovery | P5-004/005 | Fable |
 | S4-4 | Onboarding (registry-first) | P5-006 | Fable |

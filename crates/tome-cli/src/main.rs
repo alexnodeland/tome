@@ -599,6 +599,15 @@ fn report_human(id: &str, report: &IngestReport) {
     if report.hit_page_cap {
         println!("  stopped at the page cap — the source has more pages than were fetched");
     }
+    if report.pages_pruned > 0 {
+        // Said out loud. Deleting the user's content silently is the thing
+        // the whole pruning guard exists to avoid doing by accident; doing it
+        // correctly and without mentioning it is only marginally better.
+        println!(
+            "  {} pages removed — the site no longer has them",
+            report.pages_pruned
+        );
+    }
     if !report.page_errors.is_empty() {
         println!("  {} pages could not be fetched:", report.page_errors.len());
         for error in report.page_errors.iter().take(10) {
@@ -641,6 +650,7 @@ fn report_json(report: &IngestReport) -> serde_json::Value {
         "pages": report.pages_stored,
         "seconds": report.elapsed.as_secs_f64(),
         "hit_page_cap": report.hit_page_cap,
+        "pages_pruned": report.pages_pruned,
         "page_errors": report.page_errors,
         "asset_errors": report.asset_errors.len(),
         // `null` when indexing did not run — distinct from an index run

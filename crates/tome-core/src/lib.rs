@@ -33,6 +33,7 @@ pub mod scrape;
 pub mod search;
 pub mod store;
 pub mod sync;
+pub mod text;
 
 pub use error::{Error, Result};
 pub use paths::Paths;

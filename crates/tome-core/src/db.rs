@@ -282,15 +282,15 @@ impl Database {
     /// content is the expensive half — hours of polite crawling — while the
     /// index that reads it is seconds to rebuild.
     ///
-    /// **The policy is now agreed and is not yet implemented** (owner,
-    /// 2026-07-29): prune pages not seen this run, but *only* when the crawl
-    /// completed with **no errors and without hitting the page cap**. Any
-    /// doubt at all and nothing is deleted; the next clean run will catch up.
-    /// Whoever implements it owes a test that a capped or errored crawl
-    /// deletes nothing — the guard is the entire point, and it is the half
-    /// that fails silently.
+    /// **Implemented at S4-1** (policy agreed 2026-07-29). `pull` prunes pages
+    /// it did not see, but *only* when the crawl completed with **no errors
+    /// and without hitting the page cap** — see `pipeline::prune_missing` and
+    /// `pipeline::outcome_was_clean`. Any doubt at all and nothing is
+    /// deleted; the next clean run catches up. The guard is the entire point
+    /// and it is the half that fails silently, so it is tested from both
+    /// sides: a capped crawl and an errored crawl each delete nothing.
     ///
-    /// Until then this exists for explicit removal and for
+    /// Also used for explicit removal, and by
     /// [`crate::pipeline::index_source`], which reconciles whatever the
     /// database actually holds.
     pub fn delete_page(&self, source: &SourceId, path: &PagePath) -> Result<bool> {

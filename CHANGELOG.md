@@ -34,6 +34,38 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Fixed — 2026-07-30 — the bug hunt (S4-1)
+
+- **`tome_get_page` panicked on any page over 48 KiB whose budget boundary landed inside a
+  multi-byte character.** `&s[..n]` is not byte-safe, and documentation is full of em dashes and
+  curly quotes. The same bug had been written and fixed in `fetch::robots`, with a comment
+  explaining the trap, three files away. `tome_core::text::truncate_at_char_boundary` is now the
+  one implementation.
+- **The same function returned zero content** for a page whose first 48 KiB contained no blank
+  line — one long table, one long code block — reporting "showing 0 of N KiB" as though that were
+  a result. It now falls back to a line break, then to the boundary.
+- **And it could cut inside a code fence**, rendering the truncation notice and everything after
+  it as code. It closes an unbalanced fence.
+
+### Added — 2026-07-30 — pruning pages the site no longer has (S4-1)
+
+Agreed 2026-07-29, recorded on `Database::delete_page`, unimplemented until now: a page removed
+upstream stayed in the library and in search for ever.
+
+`pull` deletes pages it did not see — but **only** when the crawl is trustworthy, and the guard is
+the whole feature. Three conditions, and implementing it found that the first draft of the guard
+was wrong twice:
+
+- **Not capped.** A crawl that stopped at `max_pages` saw a prefix of the site.
+- **No *ambiguous* errors.** The first version refused to prune if the crawl reported any error at
+  all — and a page removed upstream reports **404**, so the one case pruning exists for was the
+  case that disabled it. 404 and 410 mean gone; 5xx and timeouts mean unknown.
+- **It produced at least one page.** A moved site or a 404 entry point is a crawl that completes
+  cleanly with no ambiguous errors and finds nothing. Without this guard, that empties the
+  library.
+
+Five tests, four of which assert that nothing was deleted.
+
 ### Added — 2026-07-30 — measured performance, and a focus trap (S4-2, S4-7)
 
 - **`scripts/measure-startup.sh`** — startup and idle memory, with a stated definition of what it

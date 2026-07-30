@@ -107,6 +107,9 @@ pub struct InstallReport {
     /// running out of links, so the UI can say "capped" instead of implying
     /// the source is complete.
     capped: bool,
+    /// Pages deleted because the site no longer has them. Always 0 on a first
+    /// install; carried anyway so the shape does not change on a re-pull.
+    pruned: usize,
 }
 
 /// Progress, pushed to the UI while a pull runs.
@@ -205,5 +208,6 @@ fn install_blocking(app: &AppHandle, id: &str) -> Result<InstallReport, String> 
         pages: report.pages_stored,
         page_errors: report.page_errors.len(),
         capped: report.hit_page_cap,
+        pruned: report.pages_pruned,
     })
 }
