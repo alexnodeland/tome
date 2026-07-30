@@ -83,6 +83,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Full history, for the secret scan below.
+          #
+          # `actions/checkout` fetches depth 1 by default, and gitleaks scans a
+          # commit RANGE — `<sha>^..<sha>`. With one commit there is no `<sha>^`,
+          # so git fails, gitleaks scans **~0 bytes**, and reports "no leaks
+          # found in partial scan". On 2026-07-30 it happened to propagate the
+          # git error and fail the job; had it exited 0 this would have been a
+          # permanently green secret scan that had never read a line of code.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:

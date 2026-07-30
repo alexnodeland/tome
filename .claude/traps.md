@@ -657,6 +657,12 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   the principle explicitly ("three orders of magnitude of headroom, so it fires on a lost index
   rather than on a slow machine") and survived. Either follow that, or `#[ignore]` the test the
   way `fuzzy_cost` and the relevance measurements are.
+- **A secret scan on a shallow clone scans nothing and says "no leaks found".** `actions/checkout`
+  fetches depth 1 by default; gitleaks scans the range `<sha>^..<sha>`, and with one commit there
+  is no `<sha>^`. It logged `scanned ~0 bytes (0)` and `no leaks found in partial scan`. It only
+  failed the job because it propagated git's error — **had it exited 0, the repository would have
+  had a permanently green secret scan that had never read a line of code**, which is worse than
+  having none. The audit job checks out with `fetch-depth: 0`.
 - **`rustsec/audit-check` is not target-scoped and cargo-deny is.** The action reads `Cargo.lock`
   whole, so it fails on `unmaintained` advisories for Tauri's Linux GTK bindings that no macOS
   build compiles — while reporting **zero vulnerabilities**. It also ran *first* in its job, so
