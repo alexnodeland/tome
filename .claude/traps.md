@@ -689,7 +689,23 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   throwaway tap under `$(brew --repository)/Library/Taps` and removes it on exit — without that,
   "the cask is linted" is a claim nobody has ever checked. The CHANGELOG asserted it for two
   stages while the file it named did not exist.
-- The built app is `adhoc, linker-signed`. `spctl` rejects it. Expected.
+- **`adhoc, linker-signed` is NOT good enough, and 0.1.0 shipped broken because of it.** Without
+  `bundle.macOS.signingIdentity: "-"`, Tauri leaves the linker's automatic signature on the main
+  executable and writes **no `_CodeSignature/CodeResources`**. `codesign --verify` then says *"code
+  has no resources but signature indicates they must be present"*, and macOS presents that to the
+  user as **"Tome.app is damaged and can't be opened"** with only a Move to Trash button — which is
+  what happened on the first real `brew install`. It is not the documented `xattr -dr` path and
+  the user cannot recover from it. A correct ad-hoc signature (`flags=0x10002(adhoc,runtime)`,
+  `Identifier=com.alexnodeland.tome`) gives the ordinary unsigned-app experience instead.
+  `scripts/verify-bundle.sh` now checks both the signature and the presence of `CodeResources`.
+- **`codesign` parses entitlements with AMFI's XML reader, which is stricter than `plutil`.** A
+  `--` anywhere inside an XML comment is illegal per the XML spec; `plutil -lint` accepts it and
+  AMFI rejects the whole file with `AMFIUnserializeXML: syntax error near line N`.
+  `entitlements.plist` was written in S0 and **first parsed by anything on 2026-07-30**, when
+  signing was switched on. Nothing had ever read it.
+- **Do not compare a bundled binary to its staged sidecar by SHA-256 once signing is on** —
+  `codesign` rewrites the binary, so the digests legitimately differ. Compare the Mach-O
+  **`LC_UUID`** (`dwarfdump --uuid`), which the linker assigns and codesign leaves alone.
 - **The CLI ships as a Tauri `externalBin` sidecar, and that is load-bearing.** Tauri wants
   `src-tauri/binaries/tome-<target-triple>` and copies it to `Contents/MacOS/tome`, dropping the
   triple. Three ways it goes wrong silently: the triple must match `--target`, not the *host*, or

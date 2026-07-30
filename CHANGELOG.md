@@ -7,6 +7,24 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-07-30
+
+**0.1.0 could not be installed.** `brew install --cask` put it in `/Applications`, and macOS said
+*"Tome.app is damaged and can't be opened"* and offered only to move it to the Trash — which it
+did. Two defects, both in artifacts that had never been exercised until the first real install:
+
+- **The app was not ad-hoc signed.** Without `bundle.macOS.signingIdentity: "-"`, Tauri leaves the
+  linker's automatic signature on the main executable and writes no
+  `_CodeSignature/CodeResources`, so the bundle fails validation. macOS reports that as *damaged*
+  rather than *unidentified developer*, and the documented `xattr -dr` step cannot fix it.
+- **`entitlements.plist` did not parse.** `codesign` reads entitlements with AMFI's XML parser,
+  which enforces the XML rule that a comment body may not contain `--`. `plutil -lint` accepts it.
+  The file was written in S0 and first parsed by anything today, when signing was switched on.
+
+`scripts/verify-bundle.sh` now checks that the signature validates and that
+`_CodeSignature/CodeResources` exists, so this cannot ship again. Its same-build check compares the
+Mach-O `LC_UUID` instead of a SHA-256, because signing legitimately rewrites the binary.
+
 ## [0.1.0] — 2026-07-30
 
 **The first release.** Ingestion, the reader, search, agent access over MCP, and a local HTTP API
