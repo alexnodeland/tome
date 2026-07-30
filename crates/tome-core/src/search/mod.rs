@@ -1637,9 +1637,20 @@ mod tests {
             matches!(error, Error::IndexSchemaOutdated),
             "got {error:?}, which will not tell anyone what to do"
         );
+        // `tome debug rebuild-index`, not `tome pull --all`: both work, and
+        // only one of them avoids re-crawling every site to rebuild a file
+        // derived from content already on disk. Changed in S4-3, when that
+        // command came to exist.
         assert!(
-            error.to_string().contains("tome pull"),
+            error.to_string().contains("tome debug rebuild-index"),
             "the message must name the remedy: {error}"
+        );
+        assert_eq!(
+            error.suggestion(),
+            Some(
+                "Run `tome debug rebuild-index`. The index is derived from local content \
+                 and needs no network."
+            )
         );
         // And the index is still there — a read must not destroy it.
         assert!(dir.path().join("meta.json").exists());

@@ -252,18 +252,30 @@ impl IncrementalIndexer {
 #### Description
 Audit all error paths and ensure consistent, user-friendly error handling.
 
+> **Done by S4-3, 2026-07-30.** The taxonomy was already frozen (S0-4); what this ticket added was
+> the *audit that keeps it honest*. `Error::suggestion` no longer has a `_ =>` arm, so adding a
+> variant stops the build until someone decides what a person should do about it — a catch-all is
+> how twenty variants came to share two suggestions. The audit found six messages that were
+> fragments rather than sentences on its first run, and one that named `tome pull --all` where
+> `tome debug rebuild-index` would have saved a full re-crawl.
+
 #### Acceptance Criteria
-- [ ] All errors categorized (network, file, auth, etc.)
-- [ ] User-friendly error messages
-- [ ] Actionable error suggestions
-- [ ] No stack traces shown to users
-- [ ] Errors logged locally for debugging
-- [ ] **No error telemetry of any kind.** The original criterion said "error telemetry (opt-in)",
-      which contradicts the product's stated position — `09-non-functional-requirements.md` says
-      "Zero data collection or phone-home" and `13-observability-plan.md` says "No external crash
-      reporting". Users share a diagnostics bundle manually if they choose to file a bug.
-- [ ] "Copy diagnostics" produces a shareable, **redacted** report: no page paths, no search
-      queries, no note text, no home-directory usernames
+- [x] All errors categorized — `tome-core/src/error.rs`, exhaustively matched by
+      `error::tests::variant`, so a new variant cannot be added without being categorised
+- [x] User-friendly error messages — every one is a whole sentence, asserted
+- [x] Actionable error suggestions — every variant returns one, or is named in `NO_ACTION` with a
+      reason. `BlockedByRobots` and `Io` are the two exceptions, and both are decisions
+- [x] **Every command an error names must exist** — `REAL_COMMANDS`. This ticket's own technical
+      notes made that mistake, suggesting `tome debug rebuild-index` when there was no such command;
+      the list is that note, enforced
+- [x] No stack traces shown to users — asserted against `Custom {`, `kind:`, `panicked at`, `::`
+- [x] Errors logged locally for debugging — `tome-core/src/logging.rs`. `logs/` had been in the PRD
+      and created by `Paths::ensure_created` since S0-3, and **nothing had ever written to it**.
+      Daily rotation, 7-day retention, one `write_all` per event so two processes cannot interleave,
+      and created lazily so a read-only command still creates nothing
+- [x] **No error telemetry of any kind.** Nothing here leaves the machine.
+- [x] Redacted diagnostics — `tome debug report`. No page paths, no search queries, no note text,
+      `$HOME` rewritten to `~`. A test types a distinctive query and asserts it appears nowhere
 
 #### Technical Notes
 ```rust
@@ -331,13 +343,25 @@ impl TomeError {
 #### Description
 Implement automatic recovery from common error conditions.
 
+> **Done by S4-3, 2026-07-30, without the `RecoveryManager` below.** Retry already lived in the
+> fetcher (S1-4), where it belongs — it is the only layer that knows about `Retry-After`. A second
+> generic retry wrapper above it would have retried operations that had already exhausted their
+> retries. What was actually missing was a way for a *person* to repair a library, which is the
+> commands rather than the abstraction.
+
 #### Acceptance Criteria
-- [ ] Retry network errors with backoff
-- [ ] Rebuild corrupted indexes automatically
-- [ ] Recover from crashed sync state
-- [ ] Graceful degradation when offline
-- [ ] User notification for unrecoverable errors
-- [ ] Recovery actions in error dialogs
+- [x] Retry network errors with backoff — `fetch::Fetcher::request_with_retry`, honouring
+      `Retry-After` on 429/503 and backing off exponentially on other 5xx
+- [x] Rebuild corrupted indexes — `SearchEngine::open_or_rebuild` discards an index that will not
+      open, and **`tome debug rebuild-index` repopulates it from local content with no network**.
+      Before this, a discarded index left search silently empty until a full re-crawl
+- [~] Recover from crashed sync state — **there is no sync.** ADR-0001 designs it and Stage 5 is
+      deferred; this lands with it
+- [x] Graceful degradation when offline — every read path is local. `rebuild-index` is asserted to
+      make zero requests while a server is running and reachable
+- [x] User notification for unrecoverable errors — `tome debug check` names the remedy for each
+      finding, and exits non-zero so a script can act on it
+- [~] Recovery actions in error dialogs — the CLI's half is done; the app's dialogs are S4-4/S4-5
 
 #### Technical Notes
 ```rust

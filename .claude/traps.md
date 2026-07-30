@@ -467,6 +467,40 @@ a test written from the same misunderstanding as the code agrees with it. The go
 - **macOS ships bash 3.2**, which has no `mapfile`. A script using it dies with a bare "command
   not found" partway through, after printing a banner that suggests it was working.
 
+## Traps — errors, logging and recovery
+
+- **A `_ =>` arm in `Error::suggestion` is how the taxonomy rots.** It is now exhaustive, so
+  adding a variant stops the build until someone decides what a person should do about it. The
+  two variants with no suggestion (`BlockedByRobots`, `Io`) are named in the test's `NO_ACTION`
+  list with reasons — an omission and a decision look identical otherwise.
+- **Every command an error names must exist**, and `REAL_COMMANDS` in `error.rs` enforces it.
+  P5-004's own technical notes suggested `tome debug rebuild-index` at a time when no such
+  command existed, and left a comment saying error strings naming non-existent commands are worse
+  than no suggestion. That comment is now a test.
+- **Error messages are whole sentences**, which is why an interpolated detail goes in parentheses
+  (`"The download failed ({message})."`) rather than after a colon at the end. Six messages were
+  fragments when the audit first ran; nobody had noticed, because each one reads fine alone and
+  the inconsistency is only visible across the set.
+- **The logger must not create its directory at startup.** `tome search` on a machine that has
+  pulled nothing must exit 0 and create no library, and a test asserts it — so `DailyFile` names
+  a directory and creates it on the first event. A logger initialised eagerly turns every
+  read-only command into one that writes.
+- **One `write_all` per log event, or two processes interleave mid-line.** The app and the CLI
+  share a library and can run at once; `O_APPEND` writes under a page are atomic, several small
+  writes are not. `LogWriter` buffers the event and appends it on `Drop`, which is exactly one
+  event because `MakeWriter` hands out a fresh writer per event.
+- **`with_ansi(false)` when the log file shares a writer with stderr**, or escape codes end up in
+  the file. Losing colour on the terminal is the cheaper half of that trade.
+- **`tome debug check` must not repair.** A diagnostic that fixes things cannot be run twice to
+  see whether the fix worked — which is why it calls `SearchEngine::open`, never
+  `open_or_rebuild`.
+- **An empty library is not a fault.** `check` reports a machine that has pulled nothing as
+  healthy and exits 0; reporting it as broken sends people looking for a problem that is a first
+  run, and breaks `tome debug check && tome pull --all`.
+- **The index and the database can disagree, and nothing says so.** An interrupted pull leaves
+  the database ahead of the index; search then misses pages that are on disk, silently. That
+  comparison is the one check in `debug check` with no other symptom.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does
