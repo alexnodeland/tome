@@ -1,0 +1,205 @@
+<div class="prose">
+  <h1>Agent access</h1>
+  <p class="lede">
+    Your coding agent reads the documentation you actually have, for the versions you actually
+    pinned — not what it remembers, and not what it can reach over the network.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>Claude Code</h2>
+  <p>Install the plugin. It bundles the MCP server, so there is nothing else to configure.</p>
+
+  <pre><code><span class="prompt">&gt;</span> /plugin marketplace add alexnodeland/tome
+<span class="prompt">&gt;</span> /plugin install tome</code></pre>
+
+  <p>Check it took:</p>
+
+  <pre><code><span class="prompt">&gt;</span> /tome:list</code></pre>
+
+  <div class="annotated">
+    <p>
+      If the tools do not appear, <code>tome</code> is not on the <code>PATH</code> Claude Code
+      sees. Run <code>which tome</code> in the same shell you launch it from.
+    </p>
+    <aside class="note">
+      <span class="measure">silent failure</span>
+      an MCP server that cannot start does not announce itself — its tools are simply absent
+    </aside>
+  </div>
+
+  <h3>Or wire it up by hand</h3>
+  <p>Any MCP client that spawns processes:</p>
+
+  <pre><code>{ "mcpServers": { "tome": { "command": "tome", "args": ["mcp"] } } }</code></pre>
+</div>
+
+<div class="prose">
+  <h2>The tools</h2>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Does</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>tome_search</code></td>
+          <td>
+            Search every source, or one via <code>scope</code>. <code>@name</code> searches declared
+            symbols only.
+          </td>
+        </tr>
+        <tr>
+          <td><code>tome_get_page</code></td>
+          <td>Read a page as markdown. <code>section</code> reads one heading's subtree.</td>
+        </tr>
+        <tr>
+          <td><code>tome_list_sources</code></td>
+          <td>What is in the library, with page counts.</td>
+        </tr>
+        <tr>
+          <td><code>tome_get_toc</code></td>
+          <td>One source's pages, in navigation order.</td>
+        </tr>
+        <tr>
+          <td><code>tome_lookup_symbol</code></td>
+          <td>Pages that <em>declare</em> a symbol, not every page mentioning it.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="annotated">
+    <p>
+      <strong
+        >All five are read-only, and that is a security boundary rather than a
+        simplification.</strong
+      >
+      The documentation Tome ingests is untrusted text that agents read; a prompt injection in a
+      scraped page must not be able to reach a write. Anything that changes your library is a
+      command you type.
+    </p>
+    <aside class="note">
+      <span class="measure">no writes</span>
+      when a write-capable tool exists it will be opt-in and off by default
+    </aside>
+  </div>
+
+  <h3>Long pages</h3>
+  <div class="annotated">
+    <p>
+      A page result is capped and cut at a block boundary — never mid-sentence, never through a code
+      fence — and the truncation notice lists the page's sections so the next call needs no
+      guessing. Pass <code>section</code> with a heading anchor to read just that part.
+    </p>
+    <aside class="note">
+      <span class="measure">48 KiB</span>
+      ≈ 12k tokens · an oversized result is not a transport error: the client diverts it to a file
+      and the model gets a filename instead of the page
+    </aside>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Slash commands</h2>
+  <p>The plugin adds five, for the things you do rather than the things the agent does.</p>
+
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr>
+          <td><code>/tome:add &lt;url&gt;</code></td>
+          <td>Detect, configure, pull</td>
+        </tr>
+        <tr>
+          <td><code>/tome:search &lt;query&gt;</code></td>
+          <td>Search, then open the best result and answer from it</td>
+        </tr>
+        <tr>
+          <td><code>/tome:list</code></td>
+          <td>What is in the library</td>
+        </tr>
+        <tr>
+          <td><code>/tome:pull &lt;id&gt;</code></td>
+          <td>Fetch or update</td>
+        </tr>
+        <tr>
+          <td><code>/tome:remove &lt;id&gt;</code></td>
+          <td>Remove a source, after confirming</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="annotated">
+    <p>
+      <code>/tome:search</code> opens the best result rather than answering from titles. A title
+      match is not an answer, and opening a local page costs nothing.
+    </p>
+    <aside class="note">
+      <span class="measure">158 µs</span>
+      P95 search · reading the page is the cheap part
+    </aside>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Protocol notes</h2>
+
+  <div class="annotated">
+    <p>
+      The server speaks the <strong>handshake-based MCP revision</strong> (<code>2025-11-25</code>
+      and earlier), deliberately. The current specification revision replaced that handshake with
+      per-request versioning, but the shipping client still opens with <code>initialize</code> and
+      has no way forward from a server that only speaks the new one.
+    </p>
+    <aside class="note">
+      <span class="measure">tested, not assumed</span>
+      a hello-world server was built and connected to the real client before any of this was
+      designed ·
+      <a href="https://github.com/alexnodeland/tome/blob/main/docs/spikes/008-mcp-protocol.md"
+        >SPIKE-008</a
+      >
+    </aside>
+  </div>
+
+  <p>
+    Nothing but protocol messages is ever written to stdout — a stray line corrupts the stream — and
+    the server exits cleanly when its client goes away, leaving no orphan process. Both are pinned
+    by tests that run the real binary.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>The HTTP API</h2>
+  <p>
+    If your tooling cannot spawn a process, there is a local REST API instead. It is
+    <strong>off unless you run <code>tome serve</code></strong
+    >, and every request needs a bearer token including on loopback.
+  </p>
+
+  <pre><code><span class="prompt">$</span> tome serve
+<span class="prompt">$</span> curl -H "Authorization: Bearer $(tome status --show-token)" \
+       http://127.0.0.1:7431/api/v1/search?q=vec</code></pre>
+
+  <div class="annotated">
+    <p>
+      A web page you visit cannot read it. No CORS headers are emitted by default, and a request
+      carrying an <code>Origin</code> that is not on the allowlist is refused outright — which stops
+      it having effects, not just being read.
+    </p>
+    <aside class="note">
+      <span class="measure">verified in a browser</span>
+      a hostile page could not read the API even holding a valid token, and its opaque
+      <code>no-cors</code> request was refused server-side
+    </aside>
+  </div>
+
+  <p>
+    <a href="/cli/">The full surface is in the command reference.</a>
+  </p>
+</div>

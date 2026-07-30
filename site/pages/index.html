@@ -1,0 +1,239 @@
+<div class="prose hero">
+  <div class="annotated">
+    <h1>Documentation you own, on the shelf, offline.</h1>
+    <aside class="note">
+      <span class="measure">Stages 1–3</span>
+      ingestion, reader, search and agent access all built ·
+      <strong>not released</strong> — you build it yourself
+    </aside>
+  </div>
+  <p class="lede">
+    Point Tome at any documentation site. It fetches the pages, sets them properly, indexes them,
+    and keeps them — so reading the docs never means twelve browser tabs and a network connection.
+    Your coding agent reads the same library.
+  </p>
+  <p class="hero-cta">
+    <a class="button" href="/guide/">Get started</a>
+    <span>macOS · Apple Silicon · no telemetry, of any kind</span>
+  </p>
+</div>
+
+<div class="prose">
+  <div class="facsimile">
+    <div class="facsimile-bar">
+      <span>rust-std</span>
+      <span aria-hidden="true">›</span>
+      <span>std/vec/struct.Vec.html</span>
+      <kbd style="margin-left: auto">⌘K</kbd>
+      <span>search</span>
+    </div>
+    <div class="facsimile-body">
+      <nav class="facsimile-outline" aria-label="Page outline (illustration)">
+        <ul>
+          <li>Struct Vec</li>
+          <li class="depth-2">Examples</li>
+          <li class="depth-2">Indexing</li>
+          <li class="depth-2">Capacity</li>
+          <li class="depth-2">Guarantees</li>
+        </ul>
+      </nav>
+      <div class="facsimile-page">
+        <h2>Struct Vec</h2>
+        <p>
+          A contiguous growable array type, written as <code>Vec&lt;T&gt;</code>, short for
+          “vector”.
+        </p>
+        <h3>Capacity and reallocation</h3>
+        <p>
+          The capacity of a vector is the amount of space allocated for any future elements that
+          will be added onto the vector. This is not to be confused with the
+          <em>length</em> of a vector, which specifies the number of actual elements within the
+          vector.
+        </p>
+        <pre><code>let mut vec = Vec::with_capacity(10);
+assert_eq!(vec.len(), 0);
+assert!(vec.capacity() &gt;= 10);</code></pre>
+      </div>
+    </div>
+  </div>
+  <p class="caption">
+    A depiction, drawn with the app's own design tokens — not a screenshot. The reader is a
+    sandboxed frame that never reaches the network: images are rewritten to local paths at fetch
+    time, and a test shuts the origin server down before asserting the page still renders.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>What it does</h2>
+
+  <div class="annotated">
+    <p>
+      <strong>Ingests documentation sites.</strong> ReadTheDocs and Sphinx, rustdoc, mdBook, MkDocs,
+      Docusaurus, plain HTML, and man pages. Tome classifies a site from its homepage and picks the
+      right scraper, or asks when it is not sure — an unsure answer costs one dialog, a confidently
+      wrong one fills your library with mis-parsed pages that look fine until you read them.
+    </p>
+    <aside class="note">
+      <span class="measure">0.9922</span>
+      detection accuracy over 128 homepages,
+      <strong>zero confident errors</strong> ·
+      <a
+        href="https://github.com/alexnodeland/tome/blob/main/docs/plans/02-phase-2-search-platforms.md"
+        >P2-014</a
+      >
+    </aside>
+  </div>
+
+  <div class="annotated">
+    <p>
+      <strong>Searches across everything.</strong> ⌘K opens search with snippets and scoping; ⌘F
+      finds within the open page. Typing a function's call syntax works — <code>os.cpus()</code>,
+      <code>Vec::new</code>, <code>[features]</code> — and a term prefixed with <code>@</code> finds
+      the pages that <em>declare</em> a symbol rather than the hundreds that mention it.
+    </p>
+    <aside class="note">
+      <span class="measure">0.9082 recall@3</span>
+      over 339 documents, 207 queries · target ≥ 0.90 ·
+      <a href="https://github.com/alexnodeland/tome/blob/main/docs/plans/18-implementation-plan.md"
+        >S2-12</a
+      >
+    </aside>
+  </div>
+
+  <div class="annotated">
+    <p>
+      <strong>Stays fast as the library grows.</strong> Search is measured against the same queries
+      the relevance harness uses, not generated ones — a synthetic query has whatever selectivity
+      its author gave it.
+    </p>
+    <aside class="note">
+      <span class="measure">158 µs P95</span>
+      against a 100 ms budget · index 224 MB per 100 000 pages ·
+      <a href="https://github.com/alexnodeland/tome/blob/main/docs/spikes/003-tantivy-scale.md"
+        >SPIKE-003</a
+      >
+    </aside>
+  </div>
+
+  <div class="annotated">
+    <p>
+      <strong>Reads offline, really.</strong> Assets are fetched once and rewritten to local
+      content-addressed paths; the reader re-checks that at render, and its content-security policy
+      allows only the <code>tome:</code> protocol. Opening a page cannot touch the network, because
+      there is nothing left in it that points outward.
+    </p>
+    <aside class="note">
+      <span class="measure">enforced</span>
+      the offline test shuts the fixture server down, then counts the images that still rendered
+    </aside>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Your agent reads it too</h2>
+  <p>
+    Tome ships an MCP server over stdio. Claude Code — or anything else that speaks MCP — searches
+    your library, opens pages, and looks up symbols, in the versions you actually have pinned rather
+    than whatever it remembers.
+  </p>
+
+  <pre><code><span class="prompt">$</span> tome mcp</code></pre>
+
+  <div class="annotated">
+    <p>
+      The tools are <strong>read-only, deliberately</strong>. Documentation Tome ingests is
+      untrusted text that agents read, so a prompt injection in a scraped page must not be able to
+      reach a write. Anything that changes your library is a command you type.
+    </p>
+    <aside class="note">
+      <span class="measure">5 tools</span>
+      search · get_page · list_sources · get_toc · lookup_symbol ·
+      <a href="/agents/">setup</a>
+    </aside>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Where it stands</h2>
+  <p class="lede">
+    Ingestion, reading, search and agent access all work. There is no release yet — you build it
+    yourself.
+  </p>
+
+  <div class="status">
+    <div>
+      <p class="eyebrow">Works today</p>
+      <ul class="status-works">
+        <li>Fetch, normalize, sanitize, localize, index</li>
+        <li>The reader: offline, typeset, outline, history</li>
+        <li>Search: ⌘K, ⌘F, typo tolerance, symbols</li>
+        <li>Man pages and platform detection</li>
+        <li>CLI, MCP server, local HTTP API</li>
+        <li>A Claude Code plugin and a source registry</li>
+      </ul>
+    </div>
+    <div>
+      <p class="eyebrow">Does not exist</p>
+      <ul class="status-missing">
+        <li>Bookmarks and annotations</li>
+        <li>Cross-device sync (designed, deferred)</li>
+        <li>A signed or notarized build</li>
+        <li>Anything you can <code>brew install</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p>
+      <strong>Not released.</strong> There is no DMG, no Homebrew tap, and no signing — the Apple
+      Developer Program is deferred, so when there is a build it will ship unsigned and Gatekeeper
+      will need one <code>xattr</code> command on first launch. Today, building it yourself is the
+      only way to run it.
+    </p>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Commitments</h2>
+  <p>These are constraints, not aspirations. Where the plan violated one, the plan changed.</p>
+
+  <div class="annotated">
+    <p>
+      <strong>No telemetry. None.</strong> No analytics, no crash reporting, no phone-home, not even
+      opt-in. The cost is real and worth stating: there is no usage data, so product direction comes
+      from conversations rather than dashboards.
+    </p>
+    <aside class="note">
+      <span class="measure">0 endpoints</span>
+      any metric expressed as “% of users” is therefore unmeasurable, and none is claimed
+    </aside>
+  </div>
+
+  <div class="annotated">
+    <p>
+      <strong>A good citizen on the web.</strong> Tome downloads documentation other people wrote.
+      It obeys <code>robots.txt</code> — not overridable for registry-shipped configurations —
+      rate-limits per host, identifies itself honestly, honours <code>Retry-After</code>, links back
+      to the origin, and never redistributes.
+    </p>
+    <aside class="note">
+      <span class="measure">2 req/s</span>
+      default, capped at 4 · Read the Docs publishes a 4 req/s guideline ·
+      <a href="https://github.com/alexnodeland/tome/blob/main/docs/spikes/010-legal-posture.md"
+        >SPIKE-010</a
+      >
+    </aside>
+  </div>
+
+  <div class="annotated">
+    <p>
+      <strong>Local-first.</strong> Your documentation and your reading live on your machine. Sync,
+      when it exists, carries bookmarks only — never content, and never through a server of ours.
+    </p>
+    <aside class="note">
+      <span class="measure">iCloud Drive</span>
+      per-device op logs, not CloudKit ·
+      <a href="https://github.com/alexnodeland/tome/blob/main/docs/decisions/">ADR-0001</a>
+    </aside>
+  </div>
+</div>
