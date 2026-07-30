@@ -307,6 +307,15 @@ Similar to Sphinx, rustdoc generates search-index.js with crate structure. Forma
 
 ### SPIKE-008: MCP Protocol Implementation
 
+> **Ran 2026-07-30 — complete.** Findings, raw session traces, and the era decision are in
+> [`docs/spikes/008-mcp-protocol.md`](../spikes/008-mcp-protocol.md). Short version: a
+> hand-rolled ~90-line stdio server answered a real Claude Code `tools/call` first try; the
+> minimal set is `initialize` / `notifications/initialized` / `tools/list` / `tools/call`;
+> Claude Code 2.1.220 speaks the **legacy `2025-11-25` handshake**, not the brand-new
+> `2026-07-28` stateless revision, so Tome builds legacy now and can add the modern era
+> additively later. An unsupported version fails **silently** — tools just don't appear.
+> Transports are stdio and Streamable HTTP only. No SDK needed.
+
 **Priority raised P2 → P0.** The original plan scheduled this "before P4" and then specified the
 MCP server against a **transport that does not exist in the protocol** (a Unix socket). That is
 precisely the error a spike prevents, and scheduling the spike after the design was written is why
@@ -325,14 +334,20 @@ MCP (Model Context Protocol) is relatively new. We need to understand:
 - Client compatibility (Claude Code, other tools)
 
 **Investigation Tasks:**
-- [ ] Read the **current** specification revision; record which revision, since it moves
-- [ ] Identify the minimal required message set (`initialize`, `notifications/initialized`,
-      `tools/list`, `tools/call`)
-- [ ] **Build a hello-world stdio server and connect Claude Code to it.** This is the whole point.
-- [ ] Confirm the supported transports and discard anything not in the spec
-- [ ] Test version negotiation against a client requesting a version we do not list
-- [ ] Verify what happens when the server writes to stdout by mistake
-- [ ] Measure tool-result size limits in practice, and how a client behaves when a result is huge
+- [x] Read the **current** specification revision; record which revision, since it moves —
+      `2026-07-28`, a breaking redesign two days old; the shipping client still speaks `2025-11-25`
+- [x] Identify the minimal required message set (`initialize`, `notifications/initialized`,
+      `tools/list`, `tools/call`) — confirmed; nothing else observed in any session
+- [x] **Build a hello-world stdio server and connect Claude Code to it.** This is the whole point.
+- [x] Confirm the supported transports and discard anything not in the spec — stdio and
+      Streamable HTTP; HTTP+SSE is deprecated and not built
+- [x] Test version negotiation against a client requesting a version we do not list — an
+      unknown version is a **silent drop**: no error anywhere, tools simply absent
+- [x] Verify what happens when the server writes to stdout by mistake — Claude Code skips whole
+      non-JSON lines; the invariant stands, but the observed failure is subtler than a disconnect
+- [x] Measure tool-result size limits in practice, and how a client behaves when a result is
+      huge — 500 KB survives the transport but is diverted to a file, never reaching the model:
+      a usefulness defect, which is what S3-4's truncation + `section` exist for
 
 **Success Criteria:**
 - A trivial server is reachable from Claude Code end-to-end
@@ -477,7 +492,7 @@ testing, and misdiagnosed as a TOC bug.
 | SPIKE-005 | mandoc Output | P1 | Not Started | - | During P1 |
 | SPIKE-006 | Sphinx searchindex.js | P1 | Not Started | - | During P1 |
 | SPIKE-007 | rustdoc search-index.js | P2 | Not Started | - | Before P2 |
-| SPIKE-008 | MCP Protocol | **P0** | Not Started | - | Before P1 |
+| SPIKE-008 | MCP Protocol | **P0** | **Complete 2026-07-30** — [write-up](../spikes/008-mcp-protocol.md). Claude Code connected end-to-end; build the legacy `2025-11-25` handshake, four methods, no SDK | agent | (was: before P1) |
 | SPIKE-009 | Apple Silicon Perf | P2 | Not Started | - | Before P5 |
 
 > **Every row has an empty owner.** That is the most important thing in this table. Assign owners
