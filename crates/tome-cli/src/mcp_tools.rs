@@ -25,6 +25,17 @@ use tome_core::store::PageStore;
 
 use crate::mcp::{McpState, McpTool};
 
+/// The byte budget for one `tome_get_page` result (S3-4).
+///
+/// SPIKE-008 measured why this exists: an oversized tool result does not
+/// break the transport — the client diverts it to a file and the model
+/// receives a filename instead of the page, which defeats the tool's whole
+/// purpose. 48 KiB is ~12k tokens, comfortably inside Claude Code's default
+/// 25k-token cap with room for the rest of the turn. Truncation happens at a
+/// block boundary and the notice lists the page's sections, so the model's
+/// next move — `section` — is in the text it just read.
+const PAGE_BYTE_BUDGET: usize = 48 * 1024;
+
 /// Every tool the server registers, in the order `tools/list` shows them.
 pub(crate) fn all() -> Vec<Box<dyn McpTool>> {
     vec![
@@ -133,7 +144,9 @@ impl McpTool for GetPage {
     }
     fn description(&self) -> &'static str {
         "Read a documentation page from the local library as markdown. \
-         Takes the source_id and page_path that tome_search returns."
+         Takes the source_id and page_path that tome_search returns. Long \
+         pages are truncated at a block boundary; pass `section` (a heading \
+         anchor id, shown as {#id}) to read one section instead."
     }
     fn input_schema(&self) -> Value {
         json!({
@@ -141,6 +154,10 @@ impl McpTool for GetPage {
             "properties": {
                 "source_id": { "type": "string", "description": "Source id, e.g. rust-std" },
                 "page_path": { "type": "string", "description": "Page path within the source" },
+                "section": {
+                    "type": "string",
+                    "description": "Heading anchor id ({#id} in page output) to read only that section",
+                },
             },
             "required": ["source_id", "page_path"],
         })
@@ -149,6 +166,7 @@ impl McpTool for GetPage {
         let source = source_id(require_str(arguments, "source_id")?)?;
         let path = PagePath::new(require_str(arguments, "page_path")?)
             .map_err(|e| format!("page_path is not valid: {e}"))?;
+        let section = arguments.get("section").and_then(Value::as_str);
 
         let store = PageStore::new(&state.paths, &source);
         let page = store
@@ -161,10 +179,138 @@ impl McpTool for GetPage {
                 )
             })?;
 
+        let body = match section {
+            Some(id) => select_section(&page.body, id).ok_or_else(|| {
+                let sections = section_list(&page.body);
+                if sections.is_empty() {
+                    format!("this page has no section {id:?} — it has no section anchors at all; call without `section`")
+                } else {
+                    format!(
+                        "no section {id:?} on this page. Sections:\n{sections}"
+                    )
+                }
+            })?,
+            None => page.body.clone(),
+        };
+
         let mut out = String::new();
-        render_markdown(&page.body, &mut out, 0);
-        Ok(out.trim().to_owned())
+        render_markdown(&body, &mut out, 0);
+        Ok(truncate_at_block(out.trim(), PAGE_BYTE_BUDGET, &page.body))
     }
+}
+
+/// A heading id can live in two places, because generators disagree: on the
+/// heading itself, or — Sphinx's way — on a sectioning wrapper that
+/// normalization reduces to a standalone [`Node::Anchor`] block immediately
+/// before the heading. A "section" is either shape; both resolve to the
+/// heading that carries the content.
+///
+/// Selection works on the document's flat block sequence. Normalization
+/// flattens sectioning containers, so headings are blocks in a flat list; a
+/// heading nested inside an admonition is quotation, not structure, and is
+/// deliberately not addressable.
+fn heading_for_anchor(children: &[Node], index: usize) -> Option<(usize, u8)> {
+    // Skip any run of consecutive anchors (Sphinx can emit several targets
+    // for one heading), then require a heading.
+    let mut i = index;
+    while matches!(children.get(i), Some(Node::Anchor { .. })) {
+        i += 1;
+    }
+    match children.get(i) {
+        Some(Node::Heading { level, .. }) => Some((i, *level)),
+        _ => None,
+    }
+}
+
+/// The sections of a page, as `##… title {#id}` lines. This is what the
+/// truncation notice and the unknown-section error show, so the model's next
+/// call needs no guessing.
+fn section_list(body: &Node) -> String {
+    let Node::Document { children } = body else {
+        return String::new();
+    };
+    let mut out = String::new();
+    let mut push = |level: u8, title: &str, id: &str| {
+        out.push_str(&format!(
+            "{} {} {{#{id}}}\n",
+            "#".repeat(usize::from(level).clamp(1, 6)),
+            title.trim()
+        ));
+    };
+    for (index, node) in children.iter().enumerate() {
+        match node {
+            Node::Heading {
+                level,
+                id: Some(id),
+                ..
+            } => push(*level, &node.text_content(), id),
+            Node::Anchor { id } => {
+                if let Some((at, level)) = heading_for_anchor(children, index) {
+                    push(level, &children[at].text_content(), id);
+                }
+            }
+            _ => {}
+        }
+    }
+    out.trim_end().to_owned()
+}
+
+/// The subtree a `section` argument names: from the section's heading (and
+/// its anchors) up to — not including — the next heading of the same or a
+/// higher level.
+fn select_section(body: &Node, section: &str) -> Option<Node> {
+    let Node::Document { children } = body else {
+        return None;
+    };
+    // `start` is where the slice begins (the anchor, when the id lives on
+    // one, so the {#id} marker survives into the output); `heading_at` is
+    // where the level comes from.
+    let (start, heading_at) = children
+        .iter()
+        .enumerate()
+        .find_map(|(index, node)| match node {
+            Node::Heading { id: Some(id), .. } if id == section => Some((index, Some(index))),
+            Node::Anchor { id } if id == section => {
+                Some((index, heading_for_anchor(children, index).map(|(at, _)| at)))
+            }
+            _ => None,
+        })?;
+    let heading_at = heading_at?;
+    let Node::Heading { level, .. } = &children[heading_at] else {
+        return None;
+    };
+    let end = children[heading_at + 1..]
+        .iter()
+        .position(|node| matches!(node, Node::Heading { level: l, .. } if l <= level))
+        .map_or(children.len(), |offset| heading_at + 1 + offset);
+    Some(Node::Document {
+        children: children[start..end].to_vec(),
+    })
+}
+
+/// Cut rendered markdown at the last block boundary inside `budget`, and say
+/// so — with the page's sections, because "call again with `section`" is
+/// only actionable if the ids are in front of the model.
+///
+/// A cut mid-block is never acceptable: half a code fence renders the rest
+/// of the conversation as code, and half a sentence reads as complete.
+fn truncate_at_block(text: &str, budget: usize, body: &Node) -> String {
+    if text.len() <= budget {
+        return text.to_owned();
+    }
+    let cut = text[..budget].rfind("\n\n").unwrap_or(0);
+    let kept = &text[..cut];
+    let sections = section_list(body);
+    let guidance = if sections.is_empty() {
+        "This page has no section anchors; the rest is not reachable through this tool.".to_owned()
+    } else {
+        format!("Call tome_get_page again with `section` set to one of:\n{sections}")
+    };
+    format!(
+        "{kept}\n\n[truncated: showing {} of {} KiB. {guidance}]",
+        cut / 1024,
+        text.len() / 1024,
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -563,5 +709,141 @@ fn render_inline(node: &Node, out: &mut String) {
         // A block node in inline position: fall back to its text content
         // rather than dropping it.
         other => out.push_str(&other.text_content()),
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
+mod tests {
+    use super::*;
+
+    fn heading(level: u8, id: &str, text: &str) -> Node {
+        Node::Heading {
+            level,
+            id: Some(id.into()),
+            children: vec![Node::Text { value: text.into() }],
+        }
+    }
+    fn para(text: &str) -> Node {
+        Node::Paragraph {
+            children: vec![Node::Text { value: text.into() }],
+        }
+    }
+    fn document() -> Node {
+        Node::Document {
+            children: vec![
+                heading(1, "top", "Widget"),
+                para("intro"),
+                heading(2, "install", "Install"),
+                para("install text"),
+                heading(3, "from-source", "From source"),
+                para("build text"),
+                heading(2, "usage", "Usage"),
+                para("usage text"),
+            ],
+        }
+    }
+
+    #[test]
+    fn a_section_runs_to_the_next_same_or_higher_heading() {
+        // #install (h2) owns its h3 subsection but stops at #usage (h2) —
+        // the definition of "subtree", and the case a naive "until the next
+        // heading" gets wrong.
+        let section = select_section(&document(), "install").expect("found");
+        let mut out = String::new();
+        render_markdown(&section, &mut out, 0);
+        assert!(out.contains("install text"), "own content: {out}");
+        assert!(out.contains("build text"), "subsection kept: {out}");
+        assert!(!out.contains("usage text"), "stops at sibling: {out}");
+        assert!(!out.contains("intro"), "starts at the heading: {out}");
+    }
+
+    #[test]
+    fn a_sphinx_shaped_anchor_before_the_heading_is_the_section_id() {
+        // What the fixture actually stores: Sphinx puts the id on a section
+        // wrapper, and normalization reduces it to an Anchor block *before*
+        // a heading whose own id is None. The first version of this code
+        // only looked at heading ids and reported "no section anchors at
+        // all" for every Sphinx page.
+        let body = Node::Document {
+            children: vec![
+                Node::Anchor { id: "top".into() },
+                Node::Heading {
+                    level: 1,
+                    id: None,
+                    children: vec![Node::Text {
+                        value: "Widget".into(),
+                    }],
+                },
+                para("intro"),
+                Node::Anchor {
+                    id: "examples".into(),
+                },
+                Node::Heading {
+                    level: 2,
+                    id: None,
+                    children: vec![Node::Text {
+                        value: "Examples".into(),
+                    }],
+                },
+                para("example text"),
+            ],
+        };
+        let list = section_list(&body);
+        assert!(list.contains("{#examples}"), "anchor id listed: {list}");
+        assert!(list.contains("## Examples"), "heading level kept: {list}");
+
+        let section = select_section(&body, "examples").expect("found by anchor");
+        let mut out = String::new();
+        render_markdown(&section, &mut out, 0);
+        assert!(out.contains("example text"), "{out}");
+        assert!(!out.contains("intro"), "{out}");
+        assert!(
+            out.contains("{#examples}"),
+            "the anchor survives into the output so the id stays visible: {out}"
+        );
+    }
+
+    #[test]
+    fn the_last_section_runs_to_the_end() {
+        let section = select_section(&document(), "usage").expect("found");
+        let mut out = String::new();
+        render_markdown(&section, &mut out, 0);
+        assert!(out.contains("usage text"), "{out}");
+    }
+
+    #[test]
+    fn an_unknown_section_is_none_and_the_list_names_the_real_ones() {
+        assert!(select_section(&document(), "nope").is_none());
+        let list = section_list(&document());
+        for id in ["{#top}", "{#install}", "{#from-source}", "{#usage}"] {
+            assert!(list.contains(id), "{id} listed: {list}");
+        }
+    }
+
+    #[test]
+    fn truncation_cuts_at_a_block_boundary_and_names_the_sections() {
+        let body = document();
+        // Blocks of 1000 'x's: the cut must land between blocks, never
+        // inside one — half a code fence would swallow the conversation.
+        let long: String = (0..100)
+            .map(|_| "x".repeat(1000))
+            .collect::<Vec<_>>()
+            .join("\n\n");
+        let out = truncate_at_block(&long, 10_000, &body);
+        assert!(out.len() < 12_000, "budget respected: {} bytes", out.len());
+        assert!(out.contains("[truncated"), "notice present");
+        assert!(out.contains("{#install}"), "sections listed: {out}");
+        // Every kept block is intact.
+        let kept = out.split("\n\n[truncated").next().expect("kept part");
+        for block in kept.split("\n\n") {
+            assert_eq!(block.len(), 1000, "no block was cut in half");
+        }
+    }
+
+    #[test]
+    fn short_output_is_untouched() {
+        let text = "short page";
+        assert_eq!(truncate_at_block(text, 1000, &document()), text);
     }
 }
