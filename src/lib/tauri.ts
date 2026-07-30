@@ -199,6 +199,36 @@ export async function installRegistrySource(id: string): Promise<InstallReport> 
 }
 
 /**
+ * Register or clear the system-wide shortcut (P5-009).
+ *
+ * `null` clears it. Rejects with the reason on failure — on macOS a refused
+ * registration is the *only* conflict detection there is, since no API lists
+ * which application holds which combination.
+ */
+export async function setGlobalShortcut(accelerator: string | null): Promise<void> {
+  return invoke<void>('set_global_shortcut', { accelerator });
+}
+
+/** Show or hide the Dock icon. Hiding makes Tome menu-bar-only. */
+export async function setDockVisible(visible: boolean): Promise<void> {
+  return invoke<void>('set_dock_visible', { visible });
+}
+
+/** Why the app was brought forward from the menu bar or a global shortcut. */
+export type ActivateIntent = 'search' | 'catalogue' | 'window';
+
+/**
+ * Listen for activation from outside the window. Returns an unlisten function.
+ *
+ * Someone who pressed a global shortcut is looking for something, so the
+ * default intent opens search rather than only raising the window.
+ */
+export async function onActivate(handler: (intent: ActivateIntent) => void): Promise<() => void> {
+  const { listen } = await import('@tauri-apps/api/event');
+  return listen<{ intent: ActivateIntent }>('activate', (event) => handler(event.payload.intent));
+}
+
+/**
  * Listen for install progress. Returns an unlisten function.
  *
  * Imported lazily so that `src/test/setup.ts` — which stubs `invoke` — does

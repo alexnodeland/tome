@@ -42,6 +42,10 @@ export const invoked: Array<[string, unknown]> = [];
 
 /** Per-command canned responses. Override in a test before rendering. */
 export const mockResponses: Record<string, unknown> = {
+  // The menu bar and the global shortcut are applied at launch, so every
+  // component test that renders App reaches these. Both are void commands.
+  set_global_shortcut: null,
+  set_dock_visible: null,
   library_location: {
     bundle_id: 'com.alexnodeland.tome',
     version: '0.0.0',

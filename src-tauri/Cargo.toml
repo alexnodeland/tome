@@ -17,12 +17,23 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tome-core.workspace = true
-tauri = { version = "2", features = [] }
+# `tray-icon` is what makes NSStatusItem reachable without a Swift shell --
+# SPIKE-001's question. See src/tray.rs. `image-png` decodes the menu bar
+# glyph at runtime; the `png` crate is already in the tree (Cargo.lock had it
+# before this line existed), so it adds a feature rather than a dependency,
+# and it means one committed artifact instead of a PNG plus a raw copy that
+# could disagree with it.
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 url.workspace = true
+# The global shortcut (P5-009). Off by default, and the only reason this is a
+# plugin rather than hand-rolled Carbon FFI is that it already handles the
+# accelerator parsing and the unregister-on-drop that a hand-rolled one gets
+# wrong.
+tauri-plugin-global-shortcut = "2"
 
 [dev-dependencies]
 tempfile.workspace = true

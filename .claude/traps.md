@@ -533,6 +533,33 @@ a test written from the same misunderstanding as the code agrees with it. The go
   false and they find out by pressing it. `src/lib/shortcuts.ts` is the implemented subset, and a
   test asserts ⌘D is absent from it.
 
+## Traps — the menu bar and the global shortcut
+
+- **A registered global shortcut is not a working one.** Measured in SPIKE-001: registering
+  `CmdOrCtrl+Space` — Spotlight's — **succeeds**, and the handler never fires, because macOS
+  consumes the keystroke before any application sees it. `RegisterEventHotKey` refuses a
+  combination held by another *application's* hotkey and not one held by the system, and no API
+  lists either. Conflict detection is therefore two-sided: report the registration error, *and*
+  refuse the reserved list in `src/lib/accelerator.ts`.
+- **Require at least two modifiers.** A global `⌘K` overrides the frontmost application's own
+  `⌘K` in every app for as long as Tome is running.
+- **Read letters from `event.code`, not `event.key`.** With Alt held, macOS reports `key` as the
+  composed character — Alt+D is `∂` — and Tauri's accelerator parser cannot use it. Shifted
+  digits arrive as their symbols for the same reason.
+- **`unregister_all` before registering a replacement**, or both combinations stay live and the
+  user has no way to discover why.
+- **Filter on `ShortcutState::Pressed`.** Without it the handler runs on press *and* release, so
+  the window is raised twice per keystroke.
+- **`show()` before `set_focus()`.** A hidden window cannot take focus, and the focus call
+  silently does nothing.
+- **Act on mouse *up* for the tray icon.** On mouse down, dragging the item along the menu bar to
+  reposition it also opens the app.
+- **The tray icon must be a template image** — black plus alpha, `icon_as_template(true)`. macOS
+  recolours it for light, dark and highlighted; an icon with colour is invisible in one of them.
+- **There is no Swift.** Tauri's `tray-icon` feature is `NSStatusItem`. Any plan, ticket or
+  comment that describes an `AppDelegate`, an `NSPopover` or a Swift plugin is describing an
+  architecture this repository does not have.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

@@ -33,7 +33,24 @@ Technical spikes are time-boxed investigations to reduce uncertainty. Each spike
 
 ### SPIKE-001: Tauri + Swift AppKit Integration
 
+> **Complete, 2026-07-30 — [write-up](../spikes/001-menu-bar.md).** No Swift shell is needed and
+> none exists: Tauri's `tray-icon` feature *is* `NSStatusItem`, and
+> `tauri-plugin-global-shortcut` is `RegisterEventHotKey`. Both live in
+> `src-tauri/src/tray.rs`, 170 lines, no `unsafe` and no bridge. The stated fallback ("pure Tauri
+> menu bar, limited features") is the whole answer, and the IPC latency criterion is moot because
+> there is no Swift ↔ Rust boundary left to measure.
+>
+> **The finding worth having is one the spike did not ask for:** registering a shortcut macOS
+> reserves — `⌘Space` — **succeeds**, and the handler then never fires. `RegisterEventHotKey`
+> refuses another *application's* hotkey, not the system's, so a failed registration is only half
+> of conflict detection. The other half is a refusal list in the frontend.
+
 **Question:** Can we achieve native macOS menu bar integration with Tauri while using Swift for the AppKit shell?
+
+> **The premise expired before the spike ran.** `CLAUDE.md` and the PRD both record that Tauri
+> *is* the application shell — there is no Swift/AppKit shell to integrate with. The question the
+> spike actually answered is the one behind it: can Tome get a status item and a global hotkey
+> without dropping to Objective-C?
 
 **Time Budget:** 3 days
 
@@ -44,22 +61,26 @@ Tome requires a native macOS menu bar experience (status item, popover, global s
 - Native notifications with actions
 
 **Investigation Tasks:**
-- [ ] Create minimal Tauri app with Swift plugin
-- [ ] Implement NSStatusItem with click handling
-- [ ] Test bidirectional communication (Swift ↔ Rust ↔ JS)
-- [ ] Measure IPC latency overhead
-- [ ] Document integration pattern
+- [~] ~~Create minimal Tauri app with Swift plugin~~ — no Swift plugin exists to build
+- [x] Implement NSStatusItem with click handling — `TrayIconBuilder`, left-click opens search,
+      right-click opens the menu
+- [x] Test bidirectional communication — Rust closures in, `AppHandle::emit` out. There is no
+      third language in the chain
+- [~] Measure IPC latency overhead — **not applicable.** The Swift boundary that would have cost
+      something does not exist; the remaining hop is the `emit`/`listen` path SPIKE-002 measured
+- [x] Document integration pattern — [`docs/spikes/001-menu-bar.md`](../spikes/001-menu-bar.md)
+      and the module docs in `src-tauri/src/tray.rs`
 
 **Success Criteria:**
-- Menu bar icon renders and responds to clicks
-- Can invoke Rust commands from Swift
-- Can trigger Swift functions from Rust
-- IPC latency < 10ms
+- [x] Menu bar icon renders and responds to clicks
+- [x] Can invoke Rust from the status item — directly; there is nothing to invoke *across*
+- [x] Can trigger the UI from Rust — `emit`, and the frontend listens for `activate`
+- [~] IPC latency < 10 ms — moot, see above
 
 **Outputs:**
-- Working prototype in `/spikes/tauri-swift/`
-- Architecture decision record (ADR)
-- Integration guide for team
+- ~~Working prototype in `/spikes/tauri-swift/`~~ — a prototype of an integration that does not
+  exist would be a prototype of nothing. **The implementation is the artifact**: `src-tauri/src/tray.rs`
+- [x] Write-up with the raw log output: [`docs/spikes/001-menu-bar.md`](../spikes/001-menu-bar.md)
 
 **Fallback:**
 If integration proves too complex, consider:
@@ -485,7 +506,7 @@ testing, and misdiagnosed as a TOC bug.
 
 | ID | Title | Priority | Status | Assignee | Due |
 |----|-------|----------|--------|----------|-----|
-| SPIKE-001 | Tauri + Swift Integration | P0 | Not Started | - | Before P1 |
+| SPIKE-001 | Menu bar without Swift | P0 | ✅ Complete 2026-07-30 | — | Answered at S4-6 |
 | SPIKE-002 | WKWebView Bridge Perf | P0 | **Complete** — [write-up](../spikes/002-reader-iframe-bridge.md) | agent | 2026-07-28 |
 | SPIKE-003 | Tantivy Memory at Scale | P0 | **Complete 2026-07-29** — [write-up](../spikes/003-tantivy-scale.md). All four criteria pass with 2–16× margin; proceed with Tantivy, no sharding | agent | (was: before P1) |
 | SPIKE-004 | iCloud Drive container | P1 | Not Started | - | Before P3 |

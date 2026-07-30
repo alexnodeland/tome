@@ -34,6 +34,28 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Added — 2026-07-30 — the menu bar, and a global shortcut (SPIKE-001, S4-6)
+
+- **A menu bar item**, with no Swift. SPIKE-001 asked whether native menu bar integration needs an
+  AppKit shell; it does not. Tauri's `tray-icon` feature *is* `NSStatusItem`, and the whole thing
+  is 170 lines of Rust with no `unsafe` and no bridge. Left-click raises the window and opens
+  search; right-click opens a menu. The glyph is a template image so macOS recolours it for light,
+  dark and highlighted states.
+- **A system-wide shortcut**, ⌘⇧D, **off by default** — one claimed at first launch is one taken
+  from whatever the user had bound to it. Rebindable by a recorder that captures the next
+  keystroke.
+- **Hide from the Dock**, making Tome menu-bar-only. The menu bar item is created unconditionally
+  and first, so this never leaves someone with no way back in.
+
+### Fixed — 2026-07-30 — conflict detection that actually detects
+
+- **A registered global shortcut is not a working one.** SPIKE-001 measured that registering
+  `⌘Space` — Spotlight's — **succeeds**, and the handler then never fires, because macOS consumes
+  the keystroke first. `RegisterEventHotKey` refuses a combination held by another *application's*
+  hotkey, not one held by the system. The first draft of `tray.rs` said "the failure IS the
+  detection" in a comment; it was wrong, and one experiment showed it. Detection is now two-sided:
+  the registration error, plus a refusal list and a two-modifier minimum in the frontend.
+
 ### Added — 2026-07-30 — a first run that is not a configuration exercise (S4-4, S4-5)
 
 - **Onboarding installs a documentation source in one click**, from the registry, on first launch.

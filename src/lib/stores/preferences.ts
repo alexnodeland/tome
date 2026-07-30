@@ -125,6 +125,26 @@ export const preferences = {
   /** Line numbers in code blocks. Reader-only; the app chrome has no code. */
   lineNumbers: booleanPreference('appearance.lineNumbers', false),
 
+  // ---- Menu bar and the global shortcut (P5-008/009) ----------------------
+  /**
+   * The system-wide shortcut, as a Tauri accelerator.
+   *
+   * **This is the only definition of the default.** Rust is told what to
+   * register and does not decide — a copy of `CmdOrCtrl+Shift+D` on the other
+   * side of the IPC boundary would be a second default that drifts from this
+   * one. PRD Appendix C is where the ⌘⇧D choice comes from.
+   */
+  globalShortcut: stringPreference('shortcut.global', 'CmdOrCtrl+Shift+D', 60),
+  /**
+   * Off by default, and PRD Appendix C says so.
+   *
+   * A system-wide hotkey claimed at first launch is a hotkey taken from
+   * whatever the user had bound to it, silently and without being asked.
+   */
+  globalShortcutEnabled: booleanPreference('shortcut.global.enabled', false),
+  /** Whether Tome appears in the Dock. Off makes it menu-bar-only. */
+  showInDock: booleanPreference('general.showInDock', true),
+
   // ---- General ------------------------------------------------------------
   /** Ask before removing a source. On by default: removal deletes content. */
   confirmBeforeRemove: booleanPreference('general.confirmBeforeRemove', true),

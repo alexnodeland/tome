@@ -27,9 +27,13 @@
     libraryLocation,
     listPages,
     listSources,
+    onActivate,
     openExternal,
     readPage,
+    setDockVisible,
+    setGlobalShortcut,
     sourceExists,
+    type ActivateIntent,
     type LibraryLocation,
     type PageSummary,
     type ReaderPage,
@@ -70,6 +74,9 @@
    * front of them would be a lie about what they know.
    */
   let onboarding = $state(false);
+
+  /** Why the global shortcut could not be registered, if it could not. */
+  let shortcutError = $state<string | null>(null);
   let searchScope = $state<string | null>(null);
   /** What had focus when search opened, so Escape gives it back (P2-004). */
   let focusBeforeSearch: Element | null = null;
@@ -86,7 +93,22 @@
     canGoForward = history.canGoForward();
   }
 
-  onMount(async () => {
+  onMount(() => {
+    // The unlisten function arrives asynchronously, so cleanup waits for it
+    // rather than capturing it — returning the promise would make Svelte
+    // treat that promise as the cleanup function.
+    let unlisten: (() => void) | undefined;
+    void onActivate(activated)
+      .then((fn) => (unlisten = fn))
+      .catch(() => {
+        // No event bus (a browser dev server, a test). The window still works;
+        // only activation from outside it does not.
+      });
+    void start();
+    return () => unlisten?.();
+  });
+
+  async function start(): Promise<void> {
     try {
       sources = await listSources();
       onboarding = sources.length === 0 && !preferences.onboarded.load();
@@ -103,7 +125,32 @@
     libraryLocation()
       .then((l) => (location = l))
       .catch(() => {});
-  });
+
+    applySystemPreferences();
+  }
+
+  /**
+   * Menu bar and global shortcut, applied at launch (S4-6).
+   *
+   * Both live in the frontend's preference store — Rust is told what to do
+   * rather than asked, so there is one definition of the default. A failure to
+   * register is *recorded* rather than thrown: another application holding the
+   * combination must not stop the app from opening, and the message is what
+   * Preferences shows.
+   */
+  function applySystemPreferences(): void {
+    const wanted = preferences.globalShortcutEnabled.load()
+      ? preferences.globalShortcut.load()
+      : null;
+    setGlobalShortcut(wanted).catch((e) => (shortcutError = message(e)));
+    setDockVisible(preferences.showInDock.load()).catch(() => {});
+  }
+
+  /** The app was brought forward from the menu bar or the global shortcut. */
+  function activated(intent: ActivateIntent): void {
+    if (intent === 'search') openSearch();
+    else if (intent === 'catalogue') onboarding = true;
+  }
 
   /** Appearance changed in Preferences: the frame needs it too. */
   function setAppearance(next: Appearance): void {
@@ -376,7 +423,9 @@
 <Preferences
   open={preferencesOpen}
   {location}
+  {shortcutError}
   onappearance={setAppearance}
+  onshortcut={(error) => (shortcutError = error)}
   onclose={() => (preferencesOpen = false)}
 />
 
