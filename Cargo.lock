@@ -4328,8 +4328,10 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tome-core",
+ "tome-testkit",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]

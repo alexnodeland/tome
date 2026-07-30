@@ -1047,11 +1047,11 @@ The CLI enables scripting and serves as the backend for the Claude Code plugin.
 tome [command] [options]
 
 Commands:
-  add <url|path>       Add documentation source (interactive)
+  add <url>            Add documentation source (interactive; --yes, --name, --category, --insecure)
   pull [source]        Fetch/update documentation content   (--all, --force, --parallel)
-  list                 List all sources
+  list                 List all sources                     (--category)
   search <query>       Search documentation
-  remove <source>      Remove a source
+  remove <source>      Remove a source                      (--yes)
   config [source]      View/edit configuration
   registry             Browse/install from the source registry
   serve                Start local API server
@@ -1074,6 +1074,28 @@ Examples:
   tome search "async iterator" --scope rust-std
   tome list --json | jq '.sources[] | select(.category == "Rust")'
 ```
+
+`tome add <url>` fetches the site's homepage through the ordinary fetch path (robots.txt, rate
+limit, SSRF guard — detection is the first thing Tome does to a host a user names), classifies the
+platform (P2-014), and proposes a config. A **confident** detection (≥ the auto-accept threshold)
+selects that platform's scraper; anything less falls back to the generic scraper, which is correct
+for every platform. Confirmation is interactive by default; `--yes` skips it and is **required**
+with `--json` or when stdin is not a terminal — and that check runs before any network traffic.
+`--insecure` permits http and private hosts (an intranet mirror you own) and is written into the
+config as `fetch.allow_insecure`. The written YAML is round-tripped through the real config parser
+before the initial pull, so `add` cannot write a file `pull` would reject. Local paths are refused
+until local/docset ingestion exists.
+
+`tome remove <source>` deletes the source's search-index entries, database rows, cached content,
+and — deliberately last, so a failed removal can be re-run — its config file. Confirmation is
+interactive with a **default of No** (the opposite of `add`); `--yes` skips it, same rules as
+above.
+
+**The `--json` contract.** Success output is a single JSON document on stdout, one stable shape
+per command (`{"sources": […]}`, `{"results": […], "suggestions": […]}`, `{"pulled": […]}`), with
+every key always present even when empty. **Errors are `{"error": {"message": …}}` on stderr**,
+stdout stays empty, and the exit code is non-zero — a script piping stdout never receives half a
+result and then an error. Progress and prompts go to stderr always.
 
 `tome search` corrects terms that appear nowhere in the index (P2-009) and **says so**, because a
 search that quietly answers a different question than the one asked is worse than one that reports

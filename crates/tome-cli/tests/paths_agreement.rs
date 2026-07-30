@@ -86,13 +86,13 @@ fn cli_reports_the_shared_bundle_identifier() {
 fn unimplemented_commands_fail_loudly() {
     // A scaffold that exits 0 on an unimplemented command is worse than one that
     // errors: scripts and CI would treat it as success. (`list` was the subject
-    // first, then `search`; S1-13 and S2-3 implemented them in turn, so this
-    // moves to one that is still a stub rather than being deleted.)
+    // first, then `search`, then `remove`; S1-13, S2-3 and S3-1 implemented
+    // them in turn, so this moves to one that is still a stub rather than
+    // being deleted.)
     let out = Command::new(tome_bin())
-        .arg("remove")
-        .arg("anything")
+        .arg("serve")
         .output()
-        .expect("`tome remove` runs");
+        .expect("`tome serve` runs");
 
     assert!(
         !out.status.success(),
