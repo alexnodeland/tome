@@ -68,19 +68,50 @@ else
   fail "architecture mismatch: cli [${CLI_ARCHS% }] vs app [${APP_ARCHS% }]"
 fi
 
-# 3. Byte-identical to the sidecar this tree staged — the "same build" proof.
+# 3. Same LINK as the sidecar this tree staged — the "same build" proof.
+#
+#    The Mach-O UUID, not a SHA-256 of the file. This compared digests until
+#    2026-07-30, when ad-hoc signing was switched on and codesign started
+#    rewriting the binary inside the bundle: the bytes legitimately differ from
+#    the staged sidecar, and the check failed on a bundle that was correct.
+#    `LC_UUID` is assigned by the linker and left alone by codesign, so it
+#    still distinguishes "the CLI from this build" from "a CLI from an earlier
+#    tree", which is the thing being asserted.
+#
 #    Skipped rather than failed when the sidecar is absent, because the release
 #    workflow verifies a downloaded artifact with no build tree beside it.
+uuid_of() { dwarfdump --uuid "$1" 2>/dev/null | awk '{print $2}' | head -1; }
 TRIPLE="$(rustc -vV | sed -n 's/^host: //p' 2>/dev/null)"
 STAGED="src-tauri/binaries/tome-${TRIPLE}"
 if [[ -n "$TRIPLE" && -f "$STAGED" ]]; then
-  if [[ "$(shasum -a 256 <"$CLI")" == "$(shasum -a 256 <"$STAGED")" ]]; then
-    pass "identical to the staged sidecar — app and CLI are one build"
+  BUNDLED_UUID="$(uuid_of "$CLI")"
+  STAGED_UUID="$(uuid_of "$STAGED")"
+  if [[ -n "$BUNDLED_UUID" && "$BUNDLED_UUID" == "$STAGED_UUID" ]]; then
+    pass "same link as the staged sidecar — app and CLI are one build"
   else
-    fail "bundled tome differs from $STAGED — the bundle has a stale CLI"
+    fail "bundled tome is a different link from $STAGED (${BUNDLED_UUID:-none} vs ${STAGED_UUID:-none}) — the bundle has a stale CLI"
   fi
 else
   printf '  — same-build check skipped (no staged sidecar)\n'
+fi
+
+# 3b. And the signature is one macOS will accept.
+#
+#     Tome is unsigned by Apple, but it MUST be ad-hoc signed with a real
+#     bundle signature. A `linker-signed` binary in a bundle with no
+#     `_CodeSignature/CodeResources` fails validation, and macOS reports that
+#     as "Tome.app is damaged and can't be opened" — offering only to move it
+#     to the Trash. That is not the documented `xattr` path; it is
+#     unrecoverable for the user, and it is what 0.1.0 shipped.
+if codesign --verify --deep --strict "$APP" 2>/dev/null; then
+  pass "code signature validates (ad-hoc)"
+else
+  fail "code signature does not validate: $(codesign --verify --deep --strict "$APP" 2>&1 | head -1)"
+fi
+if [[ -f "$APP/Contents/_CodeSignature/CodeResources" ]]; then
+  pass "_CodeSignature/CodeResources present"
+else
+  fail "no _CodeSignature/CodeResources — macOS will call this bundle damaged"
 fi
 
 # 4. One version number. Two would mean the bundler picked up an old binary.

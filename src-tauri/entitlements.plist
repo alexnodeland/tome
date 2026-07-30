@@ -14,7 +14,15 @@
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
 
-    <!-- DELIBERATELY ABSENT, and why:
+    <!-- NOTE: no `-` `-` pair may appear anywhere in these comments, even
+         though `plutil -lint` accepts them. `codesign` parses entitlements
+         with AMFI's XML reader, which enforces the XML rule that a comment
+         body cannot contain a double hyphen, and rejects the whole file with
+         "AMFIUnserializeXML: syntax error near line N". This file was written
+         in S0 and first parsed by anything on 2026-07-30, when signing was
+         switched on — until then nothing had ever read it.
+
+         DELIBERATELY ABSENT, and why:
 
          com.apple.security.app-sandbox
            Incompatible with this design: the Homebrew-installed `tome` CLI is
@@ -26,8 +34,8 @@
 
          com.apple.security.cs.allow-unsigned-executable-memory
          com.apple.security.cs.disable-library-validation
-           Both materially weaken the hardened runtime -- the second permits
-           loading unsigned third-party libraries into the process -- and
+           Both materially weaken the hardened runtime (the second permits
+           loading unsigned third-party libraries into the process) and
            neither is required by a Rust + Tauri app. Adding hardened-runtime
            exceptions "just in case" is how an app ends up with a weaker
            posture than the thing it replaced.
