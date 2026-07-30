@@ -1,0 +1,193 @@
+<div class="prose">
+  <h1>When something is wrong</h1>
+  <p class="lede">
+    Tome collects nothing and phones home never, so the only thing that knows what happened on your
+    machine is your machine. Two commands get it to say so.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>Start here</h2>
+
+  <pre><code><span class="prompt">$</span> tome debug check</code></pre>
+
+  <p>
+    It reports and never repairs — a check that fixes things cannot be run twice to see whether the
+    fix worked. It verifies that the library is writable, the database opens, every source
+    configuration parses, the index opens, and that the index and the database agree about how many
+    pages each source has. Each failure line names the command that fixes it, and it exits non-zero,
+    so <code>tome debug check &amp;&amp; tome pull --all</code> does the right thing.
+  </p>
+
+  <div class="annotated">
+    <p>
+      The last of those checks is the one worth having. An interrupted pull leaves the database
+      ahead of the index; search then quietly misses pages that are sitting on your disk, and
+      nothing anywhere says so.
+    </p>
+    <aside class="note">
+      <span class="measure">no symptom</span>
+      the only failure here that you would never notice on your own
+    </aside>
+  </div>
+
+  <p>An empty library is reported as healthy. A first run is not a fault.</p>
+</div>
+
+<div class="prose">
+  <h2>Search is missing things, or will not open</h2>
+
+  <pre><code><span class="prompt">$</span> tome debug rebuild-index</code></pre>
+
+  <div class="annotated">
+    <p>
+      Discards the index and rebuilds it from the pages already on your disk.
+      <strong>No network.</strong> Your configurations, your database and your fetched content are
+      untouched: the index is derived, which is exactly why it lives in the cache directory.
+    </p>
+    <aside class="note">
+      <span class="measure">5–21 s</span>
+      to rebuild 100 000 pages, against about seven hours to re-crawl them
+      <a href="https://github.com/alexnodeland/tome/blob/main/docs/spikes/003-tantivy-scale.md"
+        >(measured)</a
+      >
+    </aside>
+  </div>
+
+  <p>
+    If Tome tells you the index was built for an older version, this is the command it means. It
+    used to say <code>tome pull --all</code>, which also works and also re-crawls every site you
+    have.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>A source stopped producing pages</h2>
+
+  <p>
+    Sites get redesigned, and a scraper tuned to the old markup keeps parsing and stops finding
+    anything. The symptom is a pull that succeeds and stores far fewer pages than last time.
+  </p>
+
+  <pre><code><span class="prompt">$</span> tome pull rust-std
+rust-std: 3 pages in 2.1s</code></pre>
+
+  <p>
+    A pull always says what it missed — pages that failed, assets that could not be localized, and
+    whether it stopped at the page cap — because a crawl that reports success while having silently
+    skipped two hundred pages is worse than one that says what it missed. If the numbers look wrong,
+    the configuration is the place to look:
+    <code>~/Library/Application Support/Tome/sources/</code>.
+  </p>
+
+  <p>
+    A pull may also report that pages were <em>removed</em>. That happens only when the crawl
+    finished cleanly, hit no page cap, saw no ambiguous errors, and found at least one page —
+    otherwise Tome deletes nothing, because a crawl that stopped early did not look at the pages it
+    did not see.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>macOS refuses to open the app</h2>
+
+  <pre><code><span class="prompt">$</span> xattr -dr com.apple.quarantine /Applications/Tome.app</code></pre>
+
+  <p>
+    Expected, once per install. Tome is not signed by Apple and Gatekeeper blocks unsigned
+    applications on first launch. macOS 15 removed the Control-click then Open bypass, so this is
+    the way rather than a shortcut for it.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>Reporting a bug</h2>
+
+  <pre><code><span class="prompt">$</span> tome debug report</code></pre>
+
+  <div class="annotated">
+    <p>
+      Prints something you can paste into an issue: version, OS, where the library lives, which
+      sources you have with page counts and dates, the check findings, and the tail of the log.
+    </p>
+    <aside class="note">
+      <span class="measure">redacted</span>
+      no page paths, no search queries, no note text, and <code>$HOME</code> rewritten to
+      <code>~</code>
+    </aside>
+  </div>
+
+  <p>
+    Read it before you send it. It is designed to be safe to publish — which pages you have read is
+    not in it, and a test types a distinctive search query and asserts it appears nowhere — but it
+    is your machine and your call.
+  </p>
+
+  <p>
+    The logs it reads from are at
+    <code>~/Library/Application Support/Tome/logs/</code>, one file per day, kept for seven. They
+    never leave your machine on their own.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>Getting rid of it</h2>
+
+  <pre><code><span class="prompt">$</span> tome config forget-token
+<span class="prompt">$</span> brew uninstall --zap tome</code></pre>
+
+  <p>
+    In that order. The zap removes the library, the caches and the app; it cannot remove the API
+    token, because that is in the Keychain and the Keychain is not a file. If you never ran
+    <code>tome serve</code> there is no token and the first command says so.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>Things that are not bugs</h2>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>What you see</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>An image says &ldquo;unavailable offline&rdquo;</td>
+          <td>
+            That asset could not be localized during the crawl. The page still renders; re-pull to
+            try again.
+          </td>
+        </tr>
+        <tr>
+          <td>A page Tome refuses to fetch</td>
+          <td>
+            The site&rsquo;s <code>robots.txt</code> disallows it. Tome obeys it by default and
+            there is no override for registry sources.
+          </td>
+        </tr>
+        <tr>
+          <td>The search index vanishing after an upgrade</td>
+          <td>
+            The index schema changed. Rebuild it — the content is untouched and the rebuild needs no
+            network.
+          </td>
+        </tr>
+        <tr>
+          <td>A global shortcut that does nothing</td>
+          <td>
+            macOS reserves some combinations, and registering one of those <em>succeeds</em> and
+            then never fires. Tome refuses the ones it knows about; pick another.
+          </td>
+        </tr>
+        <tr>
+          <td>Sync doing nothing</td>
+          <td>There is no sync. It is designed and deferred, not broken.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

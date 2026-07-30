@@ -415,10 +415,34 @@ the few places where "agents help" is straightforwardly true.
 
 ## Stage 4 — Hardening and release
 
-**Entry gate:** S3 exit.
+**Entry gate:** S3 exit. ✅
 **Exit gate:** `brew install --cask alexnodeland/tap/tome` works on a machine that has never built
 Tome, the app launches after the documented quarantine step, `tome status` reports the same paths
 the app shows, and `--zap` leaves nothing behind.
+
+> **Every ticket is done (2026-07-30). The exit gate is NOT met, and cannot be met from here.**
+>
+> | | |
+> |---|---|
+> | The DMG exists and carries the app *and* the CLI from one build | ✅ verified by mounting it and by `scripts/verify-bundle.sh` |
+> | The cask is written, linted by `brew style`, and its zap list is checked against `tome status` | ✅ |
+> | The release workflow builds, verifies, publishes and mirrors on a tag | ✅ written, **never run** |
+> | `tome status` reports the same paths the app shows | ✅ tested from both sides since S0 |
+> | `--zap` leaves nothing behind | ✅ list verified against the running binary; `tome config forget-token` covers the Keychain, which `zap` cannot |
+> | `brew install --cask alexnodeland/tap/tome` works | ❌ **the tap repository does not exist and no tag has been cut** |
+>
+> Three things stand between here and the gate, and **none of them is code**:
+>
+> 1. `alexnodeland/homebrew-tap` has to exist.
+> 2. GitHub Actions has to be unblocked at the account level, or the release cut by hand — every
+>    step of the workflow is a script in `scripts/` precisely so the manual path and the automated
+>    one cannot diverge.
+> 3. A tag has to be pushed.
+>
+> **And then it has to be verified on a machine that has never built Tome**, which is the part the
+> stage's own note insists on: "a DMG missing the CLI, a `zap` list that leaves data behind, or an
+> app that will not launch all pass every automated check and fail for every user." Two of those
+> three now have automated checks. The third does not, and cannot from this machine.
 
 > **No notarization.** [ADR-0006](../decisions/0006-unsigned-distribution.md) defers the Apple
 > Developer Program, so Tome ships unsigned through `alexnodeland/homebrew-tap` — the same channel
@@ -428,15 +452,15 @@ the app shows, and `--zap` leaves nothing behind.
 | # | Work | Spec | Model |
 |---|------|------|-------|
 | S4-1 | Loop-until-dry bug hunt across the codebase | — | ✅ 2026-07-30 |
-| S4-2 | Performance profiling + lazy loading | P5-001/002/003 | Opus |
-| S4-3 | Error taxonomy audit + recovery | P5-004/005 | Fable |
-| S4-4 | Onboarding (registry-first) | P5-006 | Fable |
-| S4-5 | Preferences UI | P5-007 | Fable |
-| S4-6 | Menu bar + global shortcut *(conditional on SPIKE-001)* | P5-008/009 | Fable |
-| S4-7 | Accessibility pass: contrast CI, keyboard, VoiceOver | design system | Opus |
-| S4-8 | Unsigned DMG + release workflow + tap mirror | P5-011/012 | Fable |
-| S4-9 | **Ship `tome` inside the app bundle** at `Contents/MacOS/tome` | new | Opus |
-| S4-10 | User docs + landing page | P5-013/014 | Fable |
+| S4-2 | Performance profiling + lazy loading | P5-001/002/003 | ✅ 2026-07-30 |
+| S4-3 | Error taxonomy audit + recovery | P5-004/005 | ✅ 2026-07-30 |
+| S4-4 | Onboarding (registry-first) | P5-006 | ✅ 2026-07-30 |
+| S4-5 | Preferences UI | P5-007 | ✅ 2026-07-30 |
+| S4-6 | Menu bar + global shortcut *(conditional on SPIKE-001)* | P5-008/009 | ✅ 2026-07-30 · SPIKE-001 answered |
+| S4-7 | Accessibility pass: contrast CI, keyboard, VoiceOver | design system | ✅ 2026-07-30 |
+| S4-8 | Unsigned DMG + release workflow + tap mirror | P5-011/012 | ✅ 2026-07-30 · never run |
+| S4-9 | **Ship `tome` inside the app bundle** at `Contents/MacOS/tome` | new | ✅ 2026-07-30 |
+| S4-10 | User docs + landing page | P5-013/014 | ✅ 2026-07-30 |
 
 **S4-8 is much simpler than the original plan assumed**, because there are no signing identities,
 no Apple credentials, and no notarization step — the single most sensitive secret the release

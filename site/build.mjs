@@ -34,6 +34,7 @@ const PAGES = [
   { file: 'cli.html', path: '/cli/', title: 'Command reference', nav: 'CLI' },
   { file: 'agents.html', path: '/agents/', title: 'Agent access', nav: 'Agents' },
   { file: 'catalogue.html', path: '/catalogue/', title: 'Catalogue', nav: 'Catalogue' },
+  { file: 'help.html', path: '/help/', title: 'Troubleshooting', nav: 'Help' },
 ];
 
 const REPO = 'https://github.com/alexnodeland/tome';

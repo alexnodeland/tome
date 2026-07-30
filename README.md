@@ -9,7 +9,7 @@ macOS, Apple Silicon. Local-first. Open source.
 
 ---
 
-## Status: ingestion, reading, search and agent access all work. Not yet released.
+## Status: everything works except being installable.
 
 ```bash
 tome add https://docs.python.org/3/     # detect the platform, fetch, index
@@ -25,6 +25,7 @@ tome mcp                                # your coding agent reads your docs
 | Man pages, platform detection, per-platform scrapers | A published release — the pipeline exists, no tag has been cut |
 | The CLI, the MCP server, the local HTTP API, a Claude Code plugin | |
 | A DMG that ships the app **and** the CLI from one build, and a cask | |
+| Onboarding, preferences, a menu bar item, `tome debug` | |
 
 **Measured, not asserted** — every number here has a harness behind it:
 

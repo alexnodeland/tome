@@ -1,6 +1,6 @@
-# Continuation — Stage 3 is complete; Stage 4 is next
+# Continuation — Stage 4 is built; the release is not cut
 
-**Written:** 2026-07-30, after S3-8 landed. **Rewrite or delete this file when Stage 4 starts.**
+**Written:** 2026-07-30, after S4-10 landed. **Rewrite or delete this file when the release ships.**
 
 In-flight state only: what is done, what is decided, what to do next. It deliberately carries **no**
 durable knowledge — mistakes and invariants live in [`.claude/traps.md`](traps.md), which does not go
@@ -8,82 +8,66 @@ stale. Do not let this file grow a "traps" section; an earlier one was deleted f
 
 ---
 
-## Stage 3 is done
+## Stage 4 is built
 
 | | Ticket | Landed as |
 |---|---|---|
-| SPIKE-008 ✅ | MCP protocol, against the real client | [`docs/spikes/008-mcp-protocol.md`](../docs/spikes/008-mcp-protocol.md) |
-| S3-1 ✅ | CLI: `add`, `remove`, full `--json` | `add.rs`, `remove.rs`, `tests/cli_commands.rs` |
-| S3-2 ✅ | MCP stdio server | `mcp.rs` |
-| S3-3 ✅ | MCP tools | `mcp_tools.rs` — five, all read-only |
-| S3-4 ✅ | Truncation + `section` | in `mcp_tools.rs` |
-| S3-5 ✅ | HTTP API + auth | `serve.rs`, `token.rs`, `tests/api_http.rs` |
-| S3-6 ✅ | Claude Code plugin | [`packaging/claude-plugin/`](../packaging/claude-plugin/) |
-| S3-7 ✅ | Sync strategies | `tome-core/src/sync.rs`, `tome pull --all --due` |
-| S3-8 ✅ | Source registry + verification | [`registry/`](../registry/README.md) |
+| S4-9 ✅ | The CLI ships inside the app bundle | `bundle.externalBin`, `scripts/build-cli-sidecar.sh`, `scripts/verify-bundle.sh` |
+| S4-8 ✅ | DMG, release workflow, tap cask | `packaging/homebrew/Casks/tome.rb`, `.github/workflows/release.yml` |
+| S4-3 ✅ | Error taxonomy audit + recovery | `error.rs`'s exhaustive `suggestion`, `logging.rs`, `tome debug` |
+| S4-4 ✅ | Onboarding, registry-first | `src-tauri/src/onboarding.rs`, `Onboarding.svelte` |
+| S4-5 ✅ | Preferences | `Preferences.svelte`, `$lib/appearance` |
+| SPIKE-001 ✅ | Menu bar without Swift | [`docs/spikes/001-menu-bar.md`](../docs/spikes/001-menu-bar.md) |
+| S4-6 ✅ | Menu bar + global shortcut | `src-tauri/src/tray.rs`, `$lib/accelerator` |
+| S4-2 ✅ | Performance, measured | `scripts/measure-startup.sh`; the page list is windowed |
+| S4-7 ✅ | Accessibility | `$lib/a11y`'s `trapFocus` — the one real gap |
+| S4-1 ✅ | Bug hunt | three defects in one function, plus pruning |
+| S4-10 ✅ | User docs | `site/pages/help.html`, and the rest brought up to date |
 
-**The exit gate is met.** Claude Code 2.1.220 connected over stdio to a library pulled from the
-fixture site, called `tome_search` and `tome_get_page`, and answered by quoting the page.
+## The exit gate is not met, and not from here
 
-## What Stage 3 did not build
+`brew install --cask alexnodeland/tap/tome` is the gate. Everything on this side of it is done and
+verified; three things remain and **none of them is code**:
 
-Not omissions to discover later — each is marked `[~]` in its ticket with the reason:
+1. **`alexnodeland/homebrew-tap` does not exist.** The release workflow clones it.
+2. **Actions is blocked at the account level**, so the workflow has never run. Every step of it is a
+   script in `scripts/` so the manual path and the automated one cannot diverge — a release can be
+   cut by hand today.
+3. **No tag has been pushed.**
 
-- **`tome mcp --http`** (Streamable HTTP). No client Tome targets needs it — Claude Code spawns
-  the process — and an HTTP MCP endpoint has exactly the browser-reachability problem `serve`
-  spends its whole middleware stack on. It lands when a client that cannot spawn processes does.
-- **`tome_bookmark` and the `/api/v1/bookmarks` routes.** There is no bookmark model until Phase
-  3. Absent, not stubbed.
-- **`watch` sync.** **DEC-006 is open and is the owner's call.** `sync::due` returns
-  `WatchUndecided`, which does not fetch, and a test fails if someone implements it instead of
-  deciding it.
-- **A background sync loop.** `--due` is invoked, not scheduled. The daemon (and the cancellation
-  and concurrency cap it would need) belongs with the app's launch path.
-- **A `language` filter on `tome_lookup_symbol`.** Symbols come from headings and carry no
-  language; a parameter that is accepted and ignored is worse than its absence.
-- **Timeouts on tool calls.** Every tool call is a synchronous local read with no network. The
-  hang a timeout guards against has no source here.
+Then it has to be **installed on a machine that has never built Tome**. That is the part the plan
+insists on and the part no check here can do: a DMG missing the CLI, a zap list that leaves data
+behind, or an app that will not launch all pass every automated check and fail for every user. Two
+of those three now have automated checks (`scripts/verify-bundle.sh`); the third does not.
 
-## What is weakest in what *was* built
+## What is weakest in what was built
 
-- **The registry has four sources against a v1.0 target of thirty.** The machinery is done and
-  measured; the content is a weekend per ten. This is the gap between "the registry works" and
-  "onboarding works".
-- **The rate limiter is one global fixed window**, not per-token — because there is one token.
-  It becomes wrong the moment a second credential exists.
-- **`pull` is sequential**, which caps concurrency at one by accident rather than by design. A
-  background scheduler makes that a real decision.
-- **The API's `total_hits` saturates at 1000** and says so via `total_capped`. Honest, but a
-  library larger than that reports a ceiling rather than a count.
-- **Nothing has been run against a large real library.** Every end-to-end test uses the 4-page
-  fixture site; the registry verification caps at 25 pages. Behaviour at 100k pages is SPIKE-003's
-  measurement of Tantivy, not of these surfaces.
+- **The startup budget is missed** — 625 ms median against 500 ms — and **10 ms of it is Tome's own
+  code**. The rest is Tauri and WKWebView creation. There is no hot spot to find; the honest choices
+  are to accept it or to show a window before the webview is ready.
+- **The idle-memory figure excludes the webview.** 118 MB is the app process; `ps` does not
+  attribute WKWebView's own processes to it.
+- **The reserved-shortcut list is a snapshot** of macOS 26's defaults. A user who has rebound their
+  own system shortcuts will find it both incomplete and occasionally wrong.
+- **The registry still has four sources** against a v1.0 target of thirty. Unchanged since S3-8, and
+  now it is also what onboarding shows on first launch.
+- **Nothing has run against a large real library.** Every end-to-end test uses the 4-page fixture;
+  the 20 000-page numbers in S4-2 come from synthetic rows, not a crawl.
+- **The DMG has never been installed by anyone.** It has been built, mounted and inspected.
 
----
+## Next
 
-## Stage 4
+**Stage 5 (sync) is deferred** and unscheduled — see `docs/plans/18` § Stage 5. Before it, in
+rough order of value:
 
-Read [`docs/plans/18-implementation-plan.md`](../docs/plans/18-implementation-plan.md) for the
-stage's own entry gate, ticket list and ordering — it is the execution plan and it owns that.
-
-**S4-9 is the one that matters and is easy to get wrong**: the cask symlinks
-`Tome.app/Contents/MacOS/tome` onto `PATH`, so a release must deliver the app *and* the CLI from
-the same build. Everything in Stage 3 assumes they resolve the same library.
-
-Three things from this stage that should carry into the next:
-
-**Ask the tool, not the specification.** SPIKE-008 found that the current MCP revision is not what
-the shipping client speaks. `claude plugin validate` found that P4-017's manifest format never
-existed. The registry verifier found that `nodejs.org/docs/` is `Disallow`ed. All three were
-written confidently and all three were wrong; each took one command to disprove.
-
-**Verify the security property in the medium where it fails.** The CORS design reads as correct in
-Rust. It was worth driving a real browser at it from a hostile origin — that is the check that
-distinguishes "no CORS headers" from "cannot have effects", and the plan says as much.
-
-**A check that edits its subject checks nothing.** The registry verifier's first version `sed`-ed
-the config it was verifying, which both tested a file no user runs and silently failed to cap
-three of the four source types.
+1. **Cut a release.** The three non-code items above.
+2. **Grow the registry.** Four to thirty is the gap between "the registry works" and "onboarding
+   works", and it is roughly a weekend per ten.
+3. **Playwright E2E.** `main` still has none; the frontend is Vitest-only, so nothing exercises the
+   reader frame, the sandbox, or onboarding in a real browser.
+4. **The remaining spikes.** Seven are Not Started; SPIKE-011 (sanitizer against real docs) and
+   SPIKE-005/006/007 (mandoc, Sphinx, rustdoc index formats) all inform work that is already built,
+   so they would now be *audits* rather than spikes.
 
 ## How to run the gates
 
@@ -93,12 +77,20 @@ three of the four source types.
 
 cargo test -p tome-core --test relevance -- --nocapture          # search quality
 cargo test -p tome-core --test detection -- --nocapture          # platform detection
+cargo test -p tome-core --test pruning                           # the deletion guards
 cargo test -p tome-core --test registry                          # registry, offline
 cargo test -p tome-core --test search_bench --release -- --nocapture   # latency
 
-./scripts/verify-registry.sh            # registry, LIVE — deliberately not in check.sh
-TOME_VERIFY_UPDATE=1 ./scripts/verify-registry.sh   # …and write back `verified:` dates
+./scripts/verify-bundle.sh <path/to/Tome.app>   # what a user installs
+./scripts/measure-startup.sh 7                  # startup and idle memory
+./scripts/verify-registry.sh                    # registry, LIVE — deliberately not in check.sh
+./scripts/check-cask.sh --fix                   # brew style, via a throwaway tap
+./scripts/set-version.sh 0.1.0                  # one version, everywhere it is written
 ```
+
+`measure-startup.sh` and `verify-registry.sh` are deliberately outside `check.sh`: one moves with
+whatever else the machine is doing, the other fails when someone else's website is down. Both would
+be sources of flakes rather than information in a gate.
 
 The MCP handshake against real Claude Code cannot run in the suite (it needs a logged-in client).
 The command shape is in the SPIKE-008 write-up; re-run it by hand when the protocol handler
@@ -112,23 +104,21 @@ passing run is the one after the diff has been read.
 
 - **`two-face`** for TypeScript/TOML syntax highlighting. A licence decision, not a technical one.
 - **DEC-005** docset import priority · **DEC-006** `watch` fetch vs notify · **DEC-007** note
-  format · **DEC-008** export targets. DEC-006 now has code waiting on it (`sync::due` returns
+  format · **DEC-008** export targets. DEC-006 has code waiting on it (`sync::due` returns
   `WatchUndecided`); the rest remain non-blocking.
 - **PR #10 (TypeScript 7)** — left open deliberately as a reminder. `npm ci` fails outright:
   `svelte-check@4.7.4` peers on `typescript@^5 || ^6`. Re-check when svelte-check and
   typescript-eslint support TS 7.
 - **Going public + Actions billing.** Until then CI carries no information: every run fails in ~2 s
   without executing a step. **Judge by `./scripts/check.sh`**, never by a PR's checks. This also
-  means the registry's scheduled verification job has nowhere to run yet — it is a script, invoked
-  by hand.
-- **Playwright E2E.** `main` still has none; the frontend is Vitest-only. Stage 4 hardening's.
-- **Pruning after a clean crawl.** Agreed 2026-07-29, recorded on `Database::delete_page`, still
-  unimplemented. Needs a test that a capped or errored crawl deletes nothing.
+  blocks the release workflow, the Pages deploy, and the registry's scheduled verification.
+- **The 500 ms startup target.** Missed, measured, and left in place rather than moved to match the
+  measurement. Accepting ~600 ms or faking it with an early window is the owner's call.
 
 ## Environment
 
 Rust 1.96.1 · Node 26.3.0 · npm 11.16.0 · tauri-cli 2.5.0 · macOS 26.5 · arm64.
-`cargo-deny` and `mandoc` present; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the gate
-says so). Bash is 3.2 — no `mapfile`. 344 workspace Rust tests + 136 Vitest.
+`cargo-deny`, `mandoc` and `brew` present; `cargo-audit`, `cargo-fuzz`, and nightly are **not** (the
+gate says so). Bash is 3.2 — no `mapfile`, no `${arr[-1]}`. 594 workspace Rust tests + 176 Vitest (measured 2026-07-30).
 `npm audit` hits the live registry and fails the gate when npmjs.org is down — that is an outage,
 not a finding.

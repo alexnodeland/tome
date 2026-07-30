@@ -34,6 +34,15 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Added — 2026-07-30 — user documentation for what now exists (S4-10)
+
+- **A troubleshooting page** — `site/pages/help.html`. Worth having only because S4-3 gave it
+  commands to recommend: `tome debug check`, `rebuild-index`, `report`. It ends with "things that
+  are not bugs", which is the half of an FAQ that earns its place.
+- The guide covers installing, onboarding, preferences, the menu bar and the global shortcut; the
+  CLI reference covers `debug` and `config forget-token`; the landing page no longer says there is
+  no DMG.
+
 ### Fixed — 2026-07-30 — the bug hunt (S4-1)
 
 - **`tome_get_page` panicked on any page over 48 KiB whose budget boundary landed inside a
