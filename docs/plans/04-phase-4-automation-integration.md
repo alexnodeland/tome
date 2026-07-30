@@ -219,13 +219,18 @@ pub enum Commands {
 Implement the command to add new documentation sources.
 
 #### Acceptance Criteria
-- [ ] Accept URL or local path
-- [ ] Auto-detect platform type
-- [ ] Interactive confirmation (unless --yes)
-- [ ] Create config file in the sources directory (path via P1-006)
-- [ ] Trigger initial pull after adding
-- [ ] Show progress during pull
-- [ ] Handle duplicate detection
+- [~] Accept URL or local path — URLs done (S3-1). Local paths are *refused with an honest
+      message*: `local`/`docset` ingestion does not exist in the pipeline, and accepting the
+      path would write a config every pull rejects
+- [x] Auto-detect platform type — `detect_site` through the ordinary fetch path; a confident
+      detection picks the platform scraper, anything less falls back to generic (S3-1)
+- [x] Interactive confirmation (unless --yes) — and `--yes` is *required* with `--json` or a
+      non-terminal stdin, checked before any network traffic
+- [x] Create config file in the sources directory (path via P1-006) — round-tripped through
+      `SourceConfig::parse_file` before use, so `add` cannot write what `pull` rejects
+- [x] Trigger initial pull after adding
+- [x] Show progress during pull — on stderr, where every progress line goes
+- [x] Handle duplicate detection — by id and by URL (the same site under two spellings)
 
 #### Technical Notes
 ```rust
@@ -477,13 +482,17 @@ $ tome search "Vec::new" --scope rust-std --json
 Implement commands to list and remove sources.
 
 #### Acceptance Criteria
-- [ ] List all sources with metadata
-- [ ] Filter by category
-- [ ] Show sync status
-- [ ] JSON output for scripting
-- [ ] Remove by name
-- [ ] Confirmation before remove
-- [ ] Clean up data on remove
+- [x] List all sources with metadata — id, live page count, category, name, sync recency (S3-1)
+- [x] Filter by category — `--category`, reading the *config's* category: a source that has
+      never been pulled still has one, and the database's copy is a pull-time snapshot
+- [x] Show sync status — "synced 2h ago" / "never pulled"; `last_synced` (RFC 3339, `null`
+      until first pull) under `--json`
+- [x] JSON output for scripting
+- [x] Remove by name
+- [x] Confirmation before remove — default **No** (destructive; the opposite of `add`), `--yes`
+      to skip, required when non-interactive
+- [x] Clean up data on remove — index entries, database rows, cached content, then the config
+      file **last**, so a partial failure leaves a state `remove` can be run against again
 
 #### Technical Notes
 ```rust
@@ -568,12 +577,19 @@ Removed old-lib
 Ensure all CLI commands support structured JSON output.
 
 #### Acceptance Criteria
-- [ ] --json flag on all relevant commands
-- [ ] Consistent JSON structure
-- [ ] Errors as JSON (with --json)
-- [ ] Streaming JSON for large outputs
-- [ ] Exit codes preserved with JSON
-- [ ] Documented JSON schemas
+- [x] --json flag on all relevant commands — `add`, `pull`, `list`, `search`, `remove`,
+      `status` (S3-1)
+- [x] Consistent JSON structure — one stable shape per command, every key present even when
+      empty, so `jq` needs no special cases
+- [x] Errors as JSON (with --json) — `{"error": {"message": …}}` on **stderr**, stdout empty,
+      so a piped stdout never receives half a result and then an error
+- [~] Streaming JSON for large outputs — nothing the CLI emits today is large enough to
+      stream; a single document is easier for every consumer. Revisit if an output ever
+      exceeds what a script would buffer anyway
+- [x] Exit codes preserved with JSON — non-zero on error, asserted by test
+- [x] Documented JSON schemas — the shapes and the error contract are in
+      [PRD § CLI Specification](../PRD.md#cli-specification), prose rather than JSON Schema:
+      six small stable shapes, and a schema document would be a second copy of the truth
 
 #### Technical Notes
 ```rust

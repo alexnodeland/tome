@@ -12,6 +12,9 @@
 //!   a single stray `println!` corrupts the stream and the client disconnects
 //!   with an opaque parse error. All diagnostics go to stderr.
 
+mod add;
+mod remove;
+
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
@@ -19,6 +22,7 @@ use clap::{Parser, Subcommand};
 use tome_core::config::SourceConfig;
 use tome_core::db::Database;
 use tome_core::model::SourceId;
+use tome_core::pipeline::IngestReport;
 use tome_core::search::SearchEngine;
 use tome_core::Paths;
 
@@ -44,7 +48,28 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// Add a documentation source.
-    Add { target: String },
+    ///
+    /// Fetches the site's homepage, detects the documentation platform, and
+    /// writes a source configuration — then pulls. Interactive by default;
+    /// pass --yes to confirm nothing.
+    Add {
+        /// The documentation site's URL.
+        target: String,
+        /// Skip the confirmation prompt. Required with --json.
+        #[arg(long, short)]
+        yes: bool,
+        /// Display name (also drives the source id). Derived from the URL by
+        /// default.
+        #[arg(long)]
+        name: Option<String>,
+        /// Category shown in the library. Defaults to "Uncategorized".
+        #[arg(long)]
+        category: Option<String>,
+        /// Allow http and private hosts — for a server you own (an intranet
+        /// mirror). Written into the config as `fetch.allow_insecure`.
+        #[arg(long)]
+        insecure: bool,
+    },
     /// Fetch or update documentation content.
     Pull {
         source: Option<String>,
@@ -64,9 +89,19 @@ enum Command {
         limit: usize,
     },
     /// List all sources.
-    List,
-    /// Remove a source.
-    Remove { source: String },
+    List {
+        /// Only sources in this category.
+        #[arg(long)]
+        category: Option<String>,
+    },
+    /// Remove a source: its config, its cached pages and assets, its
+    /// database rows, and its search index entries.
+    Remove {
+        source: String,
+        /// Skip the confirmation prompt. Required with --json.
+        #[arg(long, short)]
+        yes: bool,
+    },
     /// Show sync and index status, and where the library lives.
     Status,
     /// Start the local HTTP API server.
@@ -95,69 +130,103 @@ fn main() -> Result<()> {
         .init();
 
     let cli = Cli::parse();
+    let json = cli.json;
+
+    match run(cli) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            if json {
+                // Errors as JSON under --json (P4-007): stderr, so a piped
+                // stdout never receives half a result and then an error
+                // object, and exit 1 so `&&` chains still work.
+                eprintln!(
+                    "{}",
+                    serde_json::json!({ "error": { "message": format!("{e:#}") } })
+                );
+                std::process::exit(1);
+            }
+            Err(e)
+        }
+    }
+}
+
+fn run(cli: Cli) -> Result<()> {
     let paths = Paths::resolve()?;
 
     match cli.command {
-        Command::Pull { source, all } => pull(&paths, source.as_deref(), all, cli.quiet)?,
-        Command::List => list(&paths, cli.json)?,
-        Command::Status => {
-            // The one command that does something real so far: it proves the
-            // CLI and the app agree on where the library lives.
-            println!(
-                "Tome {} ({})",
-                env!("CARGO_PKG_VERSION"),
-                tome_core::BUNDLE_ID
-            );
-            println!("  state:  {}", paths.state_root().display());
-            println!("  cache:  {}", paths.cache_root().display());
-            println!("  db:     {}", paths.database_file().display());
-            println!("  index:  {}", paths.index_dir().display());
-            let exists = paths.state_root().exists();
-            println!(
-                "  status: {}",
-                if exists {
-                    "initialised"
-                } else {
-                    "not yet initialised"
-                }
-            );
-        }
-        Command::Add { .. } => {
-            // P1-022 owns the interactive add workflow. Until it lands there
-            // IS a way to add a source, and saying what it is beats a bare
-            // "not implemented" that leaves the reader with nothing to read.
-            anyhow::bail!(
-                "`tome add` is not implemented yet (P1-022).\n\
-                 Until it lands, write the source configuration yourself:\n  \
-                 {}/<source-id>.yaml\n\
-                 then run `tome pull <source-id>`. The schema is in \
-                 docs/PRD.md Appendix A.",
-                paths.sources_dir().display()
-            );
-        }
+        Command::Pull { source, all } => pull(&paths, source.as_deref(), all, cli.quiet, cli.json)?,
+        Command::List { category } => list(&paths, category.as_deref(), cli.json)?,
+        Command::Status => status(&paths, cli.json),
+        Command::Add {
+            target,
+            yes,
+            name,
+            category,
+            insecure,
+        } => add::add(
+            &paths,
+            &target,
+            &add::AddOptions {
+                yes,
+                name: name.as_deref(),
+                category: category.as_deref(),
+                insecure,
+                json: cli.json,
+                quiet: cli.quiet,
+            },
+        )?,
+        Command::Remove { source, yes } => remove::remove(&paths, &source, yes, cli.json)?,
         Command::Search {
             query,
             scope,
             limit,
         } => search(&paths, &query, scope.as_deref(), limit, cli.json)?,
-        other => {
-            let name = match other {
-                Command::Remove { .. } => "remove",
-                Command::Serve { .. } => "serve",
-                Command::Mcp { .. } => "mcp",
-                Command::Add { .. }
-                | Command::Pull { .. }
-                | Command::List
-                | Command::Search { .. }
-                | Command::Status => {
-                    unreachable!("handled above")
-                }
-            };
-            anyhow::bail!("`tome {name}` is not implemented yet (scaffold only).");
+        Command::Serve { .. } => {
+            anyhow::bail!("`tome serve` is not implemented yet (S3-5).");
+        }
+        Command::Mcp { .. } => {
+            anyhow::bail!("`tome mcp` is not implemented yet (S3-2).");
         }
     }
 
     Ok(())
+}
+
+fn status(paths: &Paths, json: bool) {
+    // Proves the CLI and the app agree on where the library lives.
+    let initialised = paths.state_root().exists();
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "bundle_id": tome_core::BUNDLE_ID,
+                "state": paths.state_root().display().to_string(),
+                "cache": paths.cache_root().display().to_string(),
+                "db": paths.database_file().display().to_string(),
+                "index": paths.index_dir().display().to_string(),
+                "initialised": initialised,
+            })
+        );
+        return;
+    }
+    println!(
+        "Tome {} ({})",
+        env!("CARGO_PKG_VERSION"),
+        tome_core::BUNDLE_ID
+    );
+    println!("  state:  {}", paths.state_root().display());
+    println!("  cache:  {}", paths.cache_root().display());
+    println!("  db:     {}", paths.database_file().display());
+    println!("  index:  {}", paths.index_dir().display());
+    println!(
+        "  status: {}",
+        if initialised {
+            "initialised"
+        } else {
+            "not yet initialised"
+        }
+    );
 }
 
 /// Every source configuration on disk, as `(id, path)`.
@@ -193,7 +262,7 @@ fn source_configs(paths: &Paths) -> Result<Vec<(SourceId, PathBuf)>> {
     Ok(found)
 }
 
-fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool) -> Result<()> {
+fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool, json: bool) -> Result<()> {
     // `pull` writes, so it creates the library. `list` deliberately does not.
     paths.ensure_created()?;
     let available = source_configs(paths)?;
@@ -222,6 +291,7 @@ fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool) -> Result<(
         (None, false) => anyhow::bail!("Name a source, or pass --all."),
     };
 
+    let mut pulled = Vec::new();
     for (id, config_path) in selected {
         let config = SourceConfig::parse_file(config_path)
             .with_context(|| format!("reading {}", config_path.display()))?;
@@ -230,80 +300,134 @@ fn pull(paths: &Paths, source: Option<&str>, all: bool, quiet: bool) -> Result<(
             eprintln!("Pulling {id}…");
         }
 
-        // Progress goes to stderr, deliberately: stdout belongs to `--json`
-        // output and to `tome mcp`, and a progress line in a piped JSON
-        // stream is a parse error at the other end.
-        let mut last_reported = 0usize;
-        let report = tome_core::pipeline::pull(paths, &config, &mut |progress| {
-            if quiet {
-                return;
-            }
-            if let tome_core::pipeline::Progress::Crawled {
-                crawled, queued, ..
-            } = progress
-            {
-                if crawled > last_reported {
-                    last_reported = crawled;
-                    eprint!("\r  {crawled} pages fetched, {queued} queued   ");
-                }
-            }
-        })?;
-        if !quiet && last_reported > 0 {
-            eprintln!();
-        }
-
-        println!(
-            "{id}: {} pages in {:.1}s",
-            report.pages_stored,
-            report.elapsed.as_secs_f64()
-        );
-
-        // Everything that went wrong, said out loud. A pull that reports
-        // success while having silently skipped 200 pages is worse than one
-        // that says what it missed.
-        if report.hit_page_cap {
-            println!("  stopped at the page cap — the source has more pages than were fetched");
-        }
-        if !report.page_errors.is_empty() {
-            println!("  {} pages could not be fetched:", report.page_errors.len());
-            for error in report.page_errors.iter().take(10) {
-                println!("    {error}");
-            }
-            if report.page_errors.len() > 10 {
-                println!("    … and {} more", report.page_errors.len() - 10);
-            }
-        }
-        if !report.asset_errors.is_empty() {
-            println!(
-                "  {} assets could not be localized (those images show a placeholder)",
-                report.asset_errors.len()
-            );
-        }
-        if let Some(index) = report.index {
-            if index.rebuilt {
-                println!("  search index was unreadable and has been rebuilt");
-            }
-            if index.is_noop() {
-                println!(
-                    "  search index already up to date ({} pages)",
-                    index.unchanged
-                );
-            } else {
-                // Named counts rather than a single total: "12 indexed" hides
-                // whether a re-pull found real changes or re-did work.
-                println!(
-                    "  search index: {} added, {} updated, {} removed, {} unchanged",
-                    index.added, index.updated, index.removed, index.unchanged
-                );
-            }
+        let report = pull_source(paths, &config, quiet)?;
+        if json {
+            pulled.push(serde_json::json!({
+                "source": id.as_str(),
+                "pull": report_json(&report),
+            }));
+        } else {
+            report_human(id.as_str(), &report);
         }
     }
 
+    if json {
+        // One shape, always, like `list --json`: pulling one source still
+        // prints an array of one.
+        println!("{}", serde_json::json!({ "pulled": pulled }));
+    }
     Ok(())
 }
 
-fn list(paths: &Paths, json: bool) -> Result<()> {
-    let configs = source_configs(paths)?;
+/// Run the pipeline for one source, with crawl progress on stderr.
+///
+/// Progress goes to stderr, deliberately: stdout belongs to `--json` output
+/// and to `tome mcp`, and a progress line in a piped JSON stream is a parse
+/// error at the other end.
+fn pull_source(paths: &Paths, config: &SourceConfig, quiet: bool) -> Result<IngestReport> {
+    let mut last_reported = 0usize;
+    let report = tome_core::pipeline::pull(paths, config, &mut |progress| {
+        if quiet {
+            return;
+        }
+        if let tome_core::pipeline::Progress::Crawled {
+            crawled, queued, ..
+        } = progress
+        {
+            if crawled > last_reported {
+                last_reported = crawled;
+                eprint!("\r  {crawled} pages fetched, {queued} queued   ");
+            }
+        }
+    })?;
+    if !quiet && last_reported > 0 {
+        eprintln!();
+    }
+    Ok(report)
+}
+
+/// One pull's outcome, for humans. Everything that went wrong, said out
+/// loud: a pull that reports success while having silently skipped 200 pages
+/// is worse than one that says what it missed.
+fn report_human(id: &str, report: &IngestReport) {
+    println!(
+        "{id}: {} pages in {:.1}s",
+        report.pages_stored,
+        report.elapsed.as_secs_f64()
+    );
+
+    if report.hit_page_cap {
+        println!("  stopped at the page cap — the source has more pages than were fetched");
+    }
+    if !report.page_errors.is_empty() {
+        println!("  {} pages could not be fetched:", report.page_errors.len());
+        for error in report.page_errors.iter().take(10) {
+            println!("    {error}");
+        }
+        if report.page_errors.len() > 10 {
+            println!("    … and {} more", report.page_errors.len() - 10);
+        }
+    }
+    if !report.asset_errors.is_empty() {
+        println!(
+            "  {} assets could not be localized (those images show a placeholder)",
+            report.asset_errors.len()
+        );
+    }
+    if let Some(index) = &report.index {
+        if index.rebuilt {
+            println!("  search index was unreadable and has been rebuilt");
+        }
+        if index.is_noop() {
+            println!(
+                "  search index already up to date ({} pages)",
+                index.unchanged
+            );
+        } else {
+            // Named counts rather than a single total: "12 indexed" hides
+            // whether a re-pull found real changes or re-did work.
+            println!(
+                "  search index: {} added, {} updated, {} removed, {} unchanged",
+                index.added, index.updated, index.removed, index.unchanged
+            );
+        }
+    }
+}
+
+/// One pull's outcome, for scripts. The same facts `report_human` prints —
+/// the two must not drift, which is why both read the same report.
+fn report_json(report: &IngestReport) -> serde_json::Value {
+    serde_json::json!({
+        "pages": report.pages_stored,
+        "seconds": report.elapsed.as_secs_f64(),
+        "hit_page_cap": report.hit_page_cap,
+        "page_errors": report.page_errors,
+        "asset_errors": report.asset_errors.len(),
+        // `null` when indexing did not run — distinct from an index run
+        // that changed nothing.
+        "index": report.index.as_ref().map(|index| serde_json::json!({
+            "added": index.added,
+            "updated": index.updated,
+            "removed": index.removed,
+            "unchanged": index.unchanged,
+            "rebuilt": index.rebuilt,
+        })),
+    })
+}
+
+fn list(paths: &Paths, category: Option<&str>, json: bool) -> Result<()> {
+    let mut configs = source_configs(paths)?;
+
+    // The filter reads the config files, not the database: a source that has
+    // never been pulled still has a category, and the database's copy is a
+    // snapshot from pull time.
+    if let Some(category) = category {
+        configs.retain(|(_, path)| {
+            SourceConfig::parse_file(path)
+                .map(|config| config.category == category)
+                .unwrap_or(false)
+        });
+    }
     // A read-only command must not create the library. On a machine where
     // nothing has been pulled yet there is no database, and `tome list`
     // saying "empty" is the correct answer -- not an error, and not a reason
@@ -337,6 +461,10 @@ fn list(paths: &Paths, json: bool) -> Result<()> {
                         .and_then(|s| database.as_ref().and_then(|db| db.page_count(&s.id).ok()))
                         .unwrap_or(0),
                     "pulled": row.is_some(),
+                    // `null` until the first successful pull.
+                    "last_synced": row
+                        .and_then(|s| s.last_synced.as_ref())
+                        .map(|t| t.to_rfc3339()),
                 })
             })
             .collect();
@@ -345,28 +473,54 @@ fn list(paths: &Paths, json: bool) -> Result<()> {
     }
 
     if configs.is_empty() {
-        println!(
-            "No sources yet. Configurations go in {}.",
-            paths.sources_dir().display()
-        );
+        match category {
+            Some(category) => println!("No sources in category {category:?}."),
+            None => println!(
+                "No sources yet. Configurations go in {}.",
+                paths.sources_dir().display()
+            ),
+        }
         return Ok(());
     }
 
     for (id, _) in &configs {
         match pulled.iter().find(|s| s.id == *id) {
             Some(source) => println!(
-                "{:<24} {:<8} {}",
+                "{:<24} {:<8} {:<16} {}  ({})",
                 id.as_str(),
                 database
                     .as_ref()
                     .and_then(|db| db.page_count(id).ok())
                     .unwrap_or(source.page_count),
-                source.name
+                source.category,
+                source.name,
+                source
+                    .last_synced
+                    .as_ref()
+                    .map(|t| synced_ago(t.timestamp()))
+                    .unwrap_or_else(|| "never synced".to_owned()),
             ),
             None => println!("{:<24} {:<8} (never pulled)", id.as_str(), "-"),
         }
     }
     Ok(())
+}
+
+/// "synced 2 hours ago", from a unix timestamp. Coarse on purpose — this is
+/// orientation, not telemetry — and clock skew clamps to "just now" rather
+/// than inventing a negative age.
+fn synced_ago(then: i64) -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| i64::try_from(d.as_secs()).unwrap_or(i64::MAX))
+        .unwrap_or(then);
+    let secs = (now - then).max(0);
+    match secs {
+        0..=59 => "synced just now".to_owned(),
+        60..=3599 => format!("synced {} min ago", secs / 60),
+        3600..=86_399 => format!("synced {}h ago", secs / 3600),
+        _ => format!("synced {}d ago", secs / 86_400),
+    }
 }
 
 /// `tome search` (P4-005, brought forward by S2-3).
