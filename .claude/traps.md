@@ -560,6 +560,30 @@ a test written from the same misunderstanding as the code agrees with it. The go
   comment that describes an `AppDelegate`, an `NSPopover` or a Swift plugin is describing an
   architecture this repository does not have.
 
+## Traps — performance and accessibility
+
+- **`aria-modal="true"` does nothing to the keyboard.** It tells assistive technology the rest of
+  the page is inert; Tab still walks straight out of the dialog and behind the overlay, where the
+  focus ring is invisible and the next Return activates something the user cannot see. Both modals
+  use `trapFocus`, which intercepts only the two edges and leaves the middle to the browser.
+- **The startup budget is missed and there is nothing to optimise.** Measured: 625 ms median,
+  of which **10 ms** is Tome's code. The rest is Tauri and WKWebView creation, and a debug build
+  measures the same. Do not go looking for a Rust hot spot; there isn't one.
+- **The syntax-set warm-up costs 0 ms.** Its comment claimed for two stages that it kept "several
+  megabytes of inflated syntax dumps" off the first page view. syntect's bundled defaults are
+  lump data that is not parsed at load. Measure before believing a comment about cost.
+- **`ps -o rss` does not see the webview.** WKWebView runs in its own processes, so the 118 MB
+  idle figure is the app process only and the real total is higher. Attributing them needs
+  `footprint(8)` or Instruments.
+- **`list_pages` returns every page of a source**, and the backend is fine with it — 19 ms and
+  1 ms for 20 000 pages. The DOM is not. The sidebar renders a 200-row window.
+- **`scripts/verify-bundle.sh` must be told which bundle to verify.** Its first version preferred
+  `target/release`, so a tree holding both would verify a bundle nobody had just built and then
+  fail the same-build digest check against the sidecar staged for the other one — a false
+  negative that reads exactly like a real defect. `check.sh` now passes the path explicitly.
+- **`${arr[-1]}` is bash 4.** macOS ships 3.2. Same family as `mapfile`; use
+  `${arr[${#arr[@]}-1]}`.
+
 ## Traps — test infrastructure
 
 - **macOS accepted sockets inherit `O_NONBLOCK` from the listener** (BSD behaviour; Linux does

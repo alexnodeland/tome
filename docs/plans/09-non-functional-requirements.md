@@ -38,11 +38,38 @@ This document defines the quality attributes and constraints for Tome beyond fun
 
 ### Startup Performance
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Cold start to usable | < 500ms | Time from launch to library visible |
-| Warm start | < 200ms | Subsequent launches (cached) |
-| Time to first search | < 1s | From launch to search results |
+> **Measured 2026-07-30 (S4-2), and the target is missed.** `scripts/measure-startup.sh`, release
+> build, M-series, 7 runs: **median 625 ms, best 517 ms, worst 702 ms** from `exec` to the UI's
+> first IPC call. A warm library (no first-run migrations) is 510–578 ms. The budget is 500 ms.
+>
+> **There is no hot spot to optimise, and that is the finding.** The breakdown:
+>
+> | | |
+> |---|---|
+> | `exec` → first Rust log | **10 ms** |
+> | → menu bar item created (Tauri builder, window, webview) | **252 ms** |
+> | → first-run database migrations | **154 ms** (skipped on every later launch) |
+> | → the UI's first IPC call | **67 ms** |
+>
+> Ten milliseconds of that is Tome's own code. The rest is what a Tauri application costs to
+> start on this machine, and a debug build measures the same — so it is process and webview
+> creation, not compute. The syntax-set warm-up in `lib.rs`, long suspected, measured at **0 ms**:
+> syntect's bundled dumps are lump data, not parsed at load.
+>
+> **The 500 ms target was set without measuring what the shell costs.** It is kept, unmet, rather
+> than moved to whatever was measured — a target that is edited to match the result is not a
+> target. The honest options are to accept ~600 ms, or to show a window before the webview is
+> ready, which trades a real number for a perceived one.
+
+| Metric | Target | Measured (2026-07-30) | Measurement |
+|--------|--------|----------------------|-------------|
+| Cold start to usable | < 500 ms | **625 ms median** ❌ | `exec` → the UI's first IPC call, fresh library |
+| Warm start | < 200 ms | **~550 ms** ❌ | Same, existing library. macOS keeps the binary cached; there is no cheaper second launch |
+| Time to first search | < 1 s | not measured | Needs a keystroke after launch |
+
+**"Cold" is not truly cold** in any of these: the page cache holds the binary after the first run,
+and evicting it needs `purge`, which is root and takes the whole system's cache with it. The first
+iteration is reported separately for that reason and is consistently the slowest.
 
 ### Search Performance
 
@@ -81,9 +108,16 @@ pages` (P2-001), and `< 50MB with the index not loaded` (SPIKE-003) — with no 
 | Peak during index | < 1 GB | Full reindex of 100K pages |
 | Idle, large library | < 500 MB | 100 sources / 100K pages, index open |
 
-All are measured by the instrumented launch test, on the reference machine, against the fixture
+All are measured by `scripts/measure-startup.sh` on the reference machine, against a throwaway
 library — not by reading Activity Monitor by hand, which was the original "measurement method" and
 is not reproducible.
+
+> **Measured 2026-07-30 (S4-2): 118 MB resident, idle, empty library.** Inside the 200 MB budget
+> with room, but **the number counts the app process only.** WKWebView runs in its own processes
+> and `ps` does not attribute them here, so the true figure is higher by whatever the web content
+> and networking processes hold. That is stated rather than quietly ignored; a measurement that
+> excludes the browser engine in a browser-engine application is not the whole answer, and
+> attributing those processes needs `footprint(8)` or Instruments.
 
 ### Network Performance
 

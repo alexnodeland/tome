@@ -25,8 +25,16 @@ pass() { printf '  ✓ %s\n' "$1"; }
 
 APP="${1:-}"
 if [[ -z "$APP" ]]; then
+  # The MOST RECENTLY BUILT, not release-first. Preferring release meant that
+  # a tree with both would verify a bundle nobody had just built -- and then
+  # fail the same-build check against the sidecar staged for the other one,
+  # which is a false negative that reads exactly like a real defect. Callers
+  # that know which bundle they mean should pass it; `check.sh` does.
+  NEWEST=0
   for candidate in target/release/bundle/macos/Tome.app target/debug/bundle/macos/Tome.app; do
-    [[ -d "$candidate" ]] && { APP="$candidate"; break; }
+    [[ -d "$candidate" ]] || continue
+    STAMP=$(stat -f %m "$candidate/Contents/MacOS" 2>/dev/null || echo 0)
+    if [[ "$STAMP" -gt "$NEWEST" ]]; then NEWEST=$STAMP; APP="$candidate"; fi
   done
 fi
 if [[ -z "$APP" || ! -d "$APP" ]]; then

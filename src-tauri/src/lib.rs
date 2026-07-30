@@ -27,6 +27,12 @@ pub struct LibraryLocation {
 
 #[tauri::command]
 fn library_location() -> Result<LibraryLocation, String> {
+    // Debug rather than info: this is per-command observability
+    // (`docs/plans/13`), off in a user's log and on under
+    // `RUST_LOG=tome=debug`. `scripts/measure-startup.sh` uses this specific
+    // line as its "the UI is up and talking" marker, because it is the first
+    // call the frontend makes.
+    tracing::debug!("library_location");
     let paths = Paths::resolve().map_err(|e| e.to_string())?;
     Ok(LibraryLocation {
         bundle_id: tome_core::BUNDLE_ID,
@@ -107,10 +113,14 @@ pub fn run() {
         }
     };
 
-    // The syntax set is several megabytes of inflated syntax dumps and is
-    // loaded on first use. Doing it here, before the window exists, keeps the
-    // cost off the first page view rather than making one page mysteriously
-    // slower than the rest.
+    // The syntax set, warmed before the window exists.
+    //
+    // The comment here used to say this "keeps the cost off the first page
+    // view". **Measured at S4-2: the cost is 0 ms.** syntect's bundled
+    // defaults are lump data that is not parsed at load, so warming it buys
+    // nothing measurable. It is kept because it also costs nothing, and
+    // because it makes the first page view's cost unambiguous — but the
+    // justification is now a measurement rather than an assumption.
     let _ = tome_core::highlight::Highlighter::shared();
 
     let protocol_paths = paths.clone();

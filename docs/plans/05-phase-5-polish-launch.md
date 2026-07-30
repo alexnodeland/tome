@@ -53,14 +53,30 @@
 #### Description
 Profile the application and optimize critical performance paths.
 
+> **Done by S4-2, 2026-07-30 — and the headline is that the startup target is missed with no hot
+> spot to blame.** Median 625 ms against a 500 ms budget, of which **10 ms is Tome's own code**;
+> the rest is Tauri and WKWebView process and window creation, and a debug build measures the
+> same. The budget was set without measuring what the shell costs. It is left unmet rather than
+> edited to match, because a target that moves to fit the result is not a target. Full breakdown
+> in [`09-non-functional-requirements.md`](./09-non-functional-requirements.md) § Startup.
+
 #### Acceptance Criteria
-- [ ] Profile startup time and optimize
-- [ ] Profile memory usage and reduce
-- [ ] Profile search latency and optimize
-- [ ] Profile rendering performance
-- [ ] Profile sync operations
-- [ ] Document performance baselines
-- [ ] Automated performance tests
+- [x] Profile startup — `scripts/measure-startup.sh`. **Not optimised, because there was nothing
+      to optimise**: the syntax-set warm-up long suspected of costing "several megabytes" measured
+      at **0 ms** (syntect's dumps are lump data, not parsed at load), and its comment now says so
+- [x] Profile memory — **118 MB idle** against a 200 MB budget. The number counts the app process
+      only; WKWebView's own processes are not attributed to it, and that is stated rather than
+      quietly banked
+- [x] Profile search latency — already measured at S2-12: **158 µs P95** against 100 ms
+- [x] Profile rendering — a 20 000-page source is **19 ms** out of SQLite and **1 ms** to
+      serialise. The backend is not the bottleneck; 20 000 DOM nodes are, which is P5-002
+- [~] Profile sync operations — **there is no sync**
+- [x] Document baselines — in the NFR document, which owns them, with the measurement method and
+      what "cold" does and does not mean
+- [x] Automated — `scripts/measure-startup.sh` is repeatable and reports a distribution.
+      **Deliberately not in `check.sh`**: it launches the app seven times and its numbers move
+      with whatever else the machine is doing, so in a gate it would be a source of flakes rather
+      than a source of information
 
 #### Technical Notes
 ```rust
@@ -111,13 +127,33 @@ struct PerformanceMetrics {
 #### Description
 Implement lazy loading to handle large documentation sets efficiently.
 
+> **Partly done by S4-2, 2026-07-30, and the measurement redirected it.** Page *content* was
+> already loaded on demand — `read_page` renders one page per view and has since S1-13. What was
+> not lazy was the **page list**: `list_pages` returns every page of a source and the sidebar put
+> all of them in the DOM. For a 20 000-page source that is 19 ms of SQLite, 1 ms of serialisation,
+> a 1.8 MB IPC payload, and 20 000 DOM nodes — and only the last of those is a problem. The
+> sidebar now renders a 200-row window with a "show more" that says how many are left.
+>
+> Virtualised scrolling was considered and not built: it needs scroll maths, measured row heights
+> and a scrollbar that lies about its extent, and the filter already answers "find the page I
+> want" better than scrolling 20 000 rows ever would.
+
 #### Acceptance Criteria
-- [ ] Load page content on demand
-- [ ] Cache recently accessed pages
-- [ ] Evict old cache entries (LRU)
-- [ ] Show loading state for slow loads
-- [ ] Preload adjacent pages (optional)
-- [ ] Memory usage bounded regardless of doc size
+- [x] Load page content on demand — since S1-13
+- [x] **Load the page *list* on demand** — a 200-row window in the sidebar, with a control that
+      says how many remain. This is the one that was actually missing
+- [~] Cache recently accessed pages — **not built, and measured as unnecessary.** A page is read
+      from disk and rendered per view; SPIKE-002 put a 500 KB page across the IPC boundary in
+      ~14 ms in a *debug* build. A cache would add an invalidation problem to save 14 ms, and
+      rendering per view is what lets a stylesheet or highlighter change take effect without
+      re-crawling
+- [~] Evict old cache entries — no cache to evict
+- [x] Show loading state for slow loads — the shell's `aria-live` notice, and the install
+      progress events for a first pull
+- [~] Preload adjacent pages — marked optional in the ticket, and it would fetch pages the reader
+      may never open in exchange for saving the 14 ms above
+- [x] Memory usage bounded regardless of doc size — the sidebar window bounds the DOM; the index
+      is memory-mapped (SPIKE-003); the store is read one page at a time
 
 #### Technical Notes
 ```rust
