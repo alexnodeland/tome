@@ -685,6 +685,15 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   cannot sign for distribution.
 - **macOS 15 removed the Control-click→Open Gatekeeper bypass.** Cask caveats must lead with
   `xattr -dr com.apple.quarantine`.
+- **`xattr -dr` must be run BEFORE the app is opened, and the caveats have to say so.** Opening a
+  quarantined unsigned app raises "Apple could not verify Tome is free of malware", whose
+  **default, highlighted button is Move to Trash** — one Return and the install is gone. The
+  command prevents that dialog; it cannot dismiss one already on screen. This cost two installs
+  during the 0.1.x release, both times because the CLI was run before the flag was cleared. A
+  quarantined binary invoked from a shell just dies with **exit 137** (SIGKILL) and no message,
+  which is what makes it easy to do by accident.
+- **Homebrew no longer accepts `--no-quarantine`.** There is no install-time opt-out; the order of
+  the two commands is the whole mitigation.
 - `brew style` **refuses to lint a cask outside a tap.** `scripts/check-cask.sh` stages a
   throwaway tap under `$(brew --repository)/Library/Taps` and removes it on exit — without that,
   "the cask is linted" is a claim nobody has ever checked. The CHANGELOG asserted it for two
@@ -703,6 +712,10 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   AMFI rejects the whole file with `AMFIUnserializeXML: syntax error near line N`.
   `entitlements.plist` was written in S0 and **first parsed by anything on 2026-07-30**, when
   signing was switched on. Nothing had ever read it.
+- **The same-build check only means anything inside the build tree.** Pointed at
+  `/Applications/Tome.app` on a machine that also has a checkout, it compared a CI-built binary
+  against a locally-staged sidecar and correctly reported two different links — a true statement
+  and a useless one. `verify-bundle.sh` now skips it unless the bundle is under `target/`.
 - **Do not compare a bundled binary to its staged sidecar by SHA-256 once signing is on** —
   `codesign` rewrites the binary, so the digests legitimately differ. Compare the Mach-O
   **`LC_UUID`** (`dwarfdump --uuid`), which the linker assigns and codesign leaves alone.

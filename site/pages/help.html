@@ -94,9 +94,15 @@ rust-std: 3 pages in 2.1s</code></pre>
   <pre><code><span class="prompt">$</span> xattr -dr com.apple.quarantine /Applications/Tome.app</code></pre>
 
   <p>
-    Expected, once per install. Tome is not signed by Apple and Gatekeeper blocks unsigned
-    applications on first launch. macOS 15 removed the Control-click then Open bypass, so this is
-    the way rather than a shortcut for it.
+    Expected, once per install — and <strong>run it before you open Tome</strong>. Opening it first
+    gets you “Apple could not verify Tome is free of malware”, whose default, highlighted button is
+    <strong>Move to Trash</strong>. The command prevents that dialog; it cannot dismiss one already
+    on screen. If the app has already been trashed, <code>brew reinstall --cask tome</code> and run
+    the command first.
+  </p>
+  <p>
+    macOS 15 removed the Control-click then Open bypass, so this is the way rather than a shortcut
+    for it. Homebrew no longer offers <code>--no-quarantine</code> either.
   </p>
 </div>
 

@@ -62,10 +62,19 @@ cask "tome" do
   ]
 
   caveats <<~EOS
-    Tome is not signed by Apple, so macOS will refuse the first launch.
-    To allow it:
+    RUN THIS BEFORE YOU OPEN TOME:
 
       xattr -dr com.apple.quarantine /Applications/Tome.app
+
+    Tome is not signed by Apple. If you open it first, macOS shows
+    "Apple could not verify Tome is free of malware" and the DEFAULT,
+    highlighted button is "Move to Trash" -- one stray Return and the
+    app you just installed is gone. The command above prevents that
+    dialog; it does not dismiss one you are already looking at.
+
+    If that has already happened, reinstall and run the command first:
+
+      brew reinstall --cask tome
 
     (macOS 15 removed the Control-click then Open bypass, so the command
     above is the way, not a shortcut for it.)
