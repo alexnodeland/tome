@@ -13,6 +13,8 @@
 //!   with an opaque parse error. All diagnostics go to stderr.
 
 mod add;
+mod mcp;
+mod mcp_tools;
 mod remove;
 
 use std::path::PathBuf;
@@ -184,8 +186,13 @@ fn run(cli: Cli) -> Result<()> {
         Command::Serve { .. } => {
             anyhow::bail!("`tome serve` is not implemented yet (S3-5).");
         }
-        Command::Mcp { .. } => {
-            anyhow::bail!("`tome mcp` is not implemented yet (S3-2).");
+        Command::Mcp { http, .. } => {
+            if http {
+                // Streamable HTTP shares the HTTP API's auth and Host/Origin
+                // guard (P4-014), so it lands with `tome serve` (S3-5).
+                anyhow::bail!("`tome mcp --http` is not implemented yet (S3-5 owns the auth).");
+            }
+            mcp::serve_stdio(&paths, mcp_tools::all())?;
         }
     }
 

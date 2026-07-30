@@ -1115,16 +1115,33 @@ pub async fn require_bearer_token(
 Design the Model Context Protocol server architecture.
 
 #### Acceptance Criteria
-- [ ] MCP specification reviewed against the **current** protocol revision (SPIKE-008)
-- [ ] Tool definitions with JSON Schema inputs and documented outputs
-- [ ] Transport: stdio default, Streamable HTTP optional
-- [ ] Concurrency model defined for multiple simultaneous server processes
-- [ ] Error handling that returns actionable tool errors rather than JSON-RPC transport errors
-- [ ] Result size budget and truncation semantics defined per tool
-- [ ] Timeouts on every tool call
-- [ ] **Write-capable tools (`tome_bookmark`) are opt-in**, disabled by default. An agent that can
-      silently mutate the user's library on a prompt injection from a scraped documentation page
-      is a genuine attack path — the docs Tome ingests are untrusted text that agents will read.
+- [x] MCP specification reviewed against the **current** protocol revision (SPIKE-008) — and the
+      review's conclusion is to *not* build the current revision: 2026-07-28 abolished the
+      handshake, but the shipping client (Claude Code 2.1.220, measured) still speaks the legacy
+      `2025-11-25` handshake and has no fall-forward against a modern-only server. Legacy now,
+      dual-era additively later; [the spike write-up](../spikes/008-mcp-protocol.md) owns this
+- [x] Tool definitions with JSON Schema inputs and documented outputs (S3-2/3)
+- [~] Transport: stdio default (done), Streamable HTTP optional — `--http` bails with a pointer
+      until S3-5: it reuses the HTTP API's bearer auth and Host/Origin guard, and shipping it
+      without them would be the unauthenticated listener P4-012 exists to prevent
+- [x] Concurrency model defined for multiple simultaneous server processes — spawned per client,
+      short-lived, no exclusive locks: the index opens read-only and lazily, SQLite's own locking
+      covers the database. *Within* a session requests are handled serially, deliberately: the
+      real client issues them serially (measured), and every tool call is a local read measured
+      in microseconds
+- [x] Error handling that returns actionable tool errors rather than JSON-RPC transport errors —
+      tool failures are `isError` results whose text names the remedy; JSON-RPC errors are
+      reserved for protocol faults (unknown tool, malformed request)
+- [ ] Result size budget and truncation semantics defined per tool — **S3-4.** The spike measured
+      why: an oversized result survives the transport but is diverted to a file and never reaches
+      the model
+- [~] Timeouts on every tool call — no timeout mechanism, deliberately: every tool call is a
+      synchronous local read (index, SQLite, page store) with no network and no user input; the
+      hang a timeout would guard against has no source. Revisit if a tool ever fetches
+- [~] **Write-capable tools (`tome_bookmark`) are opt-in**, disabled by default — currently
+      **absent** rather than opt-in: no bookmark model exists until Phase 3, so no write-capable
+      tool exists at all. The opt-in requirement binds whoever adds the first one; the threat
+      note stands: the docs Tome ingests are untrusted text that agents will read
 
 #### Technical Notes
 ```typescript
@@ -1242,16 +1259,25 @@ is a defect.
 Implement the MCP protocol server.
 
 #### Acceptance Criteria
-- [ ] JSON-RPC 2.0 over stdio, correctly framed
-- [ ] `initialize` handshake with version negotiation; accepts the client's version when supported
-- [ ] `notifications/initialized` handled
-- [ ] `tools/list` and `tools/call` implemented
-- [ ] Error responses per spec, distinguishing protocol errors from tool errors
-- [ ] Optional Streamable HTTP listener behind `--http`, reusing the API's auth and Host/Origin guard
-- [ ] **Nothing but protocol messages on stdout**; all logging to stderr (enforced by a test that
-      asserts stdout is pure JSON-RPC for a scripted session)
-- [ ] Concurrent request handling within a session
-- [ ] Clean exit when stdin closes — the client going away must not leave orphaned processes
+- [x] JSON-RPC 2.0 over stdio, correctly framed (S3-2, `tome-cli/src/mcp.rs`)
+- [x] `initialize` handshake with version negotiation; accepts the client's version when
+      supported — echoing the client's own version is load-bearing: SPIKE-008 measured that an
+      answer the client does not recognise is a **silent drop**, tools absent, no error anywhere
+- [x] `notifications/initialized` handled — and never answered; a reply to a notification is
+      itself a protocol violation, pinned by test
+- [x] `tools/list` and `tools/call` implemented
+- [x] Error responses per spec, distinguishing protocol errors from tool errors
+- [ ] Optional Streamable HTTP listener behind `--http`, reusing the API's auth and Host/Origin
+      guard — **S3-5**, which builds that auth
+- [x] **Nothing but protocol messages on stdout**; all logging to stderr — enforced by a test
+      that runs the binary with `RUST_LOG=trace` (the configuration most likely to produce a
+      stray write) and asserts every stdout line parses as JSON-RPC
+- [~] Concurrent request handling within a session — serial, deliberately: the real client sends
+      strictly serially (measured in every SPIKE-008 session) and tool calls are microsecond
+      local reads. The serve loop is the single place a worker pool would go if a client ever
+      interleaves
+- [x] Clean exit when stdin closes — pinned by test; `wait_with_output` would hang forever on a
+      server that looped on EOF
 
 #### Technical Notes
 ```rust
@@ -1309,13 +1335,19 @@ every iteration or spin forever, leaving orphaned processes behind every disconn
 Implement core MCP tools for search and retrieval.
 
 #### Acceptance Criteria
-- [ ] tome_search tool working
-- [ ] tome_get_page tool working
-- [ ] tome_list_sources tool working
-- [ ] tome_get_toc tool working
-- [ ] Proper error handling
-- [ ] Reasonable timeouts
-- [ ] Documentation for each tool
+- [x] tome_search tool working (S3-3) — results as text lines, corrections announced first
+- [x] tome_get_page tool working — the stored AST rendered as markdown with heading anchors
+      kept (`{#id}`), which is what S3-4's `section` argument will address into
+- [x] tome_list_sources tool working
+- [x] tome_get_toc tool working — pages in navigation order, the same ordinal that stops the
+      Cargo Book opening on its changelog
+- [x] Proper error handling — tool errors name the remedy ("call tome_list_sources", "tome_search
+      finds pages that exist"): the consumer is a model, and it can act on a sentence but not on
+      a code
+- [~] Reasonable timeouts — none, for P4-013's reason: synchronous local reads with no network
+      have no hang to guard against
+- [x] Documentation for each tool — the `description` fields are the documentation the client
+      shows the model; specified in P4-013
 
 #### Technical Notes
 ```rust
@@ -1373,12 +1405,16 @@ impl McpTool for SearchTool {
 Implement additional MCP tools for bookmarks and symbols.
 
 #### Acceptance Criteria
-- [ ] tome_bookmark tool working
-- [ ] tome_lookup_symbol tool working
-- [ ] Bookmark creates entry in database
-- [ ] Symbol lookup uses search index
-- [ ] Language filtering works
-- [ ] Error handling for not found
+- [~] tome_bookmark tool working — **not built**: there is no bookmark model until Phase 3, and
+      P4-013 makes write-capable tools opt-in besides. Building it lands with P3's bookmark work
+- [x] tome_lookup_symbol tool working (S3-3)
+- [~] Bookmark creates entry in database — with tome_bookmark, above
+- [x] Symbol lookup uses search index — the `@symbol` declared-only query (P2-015)
+- [~] Language filtering works — **dropped**: symbols are extracted from headings and carry no
+      language, so a `language` parameter would be accepted and ignored, which is worse than its
+      absence. `scope` (a source id) is the filter that exists and is implemented
+- [x] Error handling for not found — "no page declares X; tome_search finds pages that merely
+      mention it"
 
 #### Technical Notes
 ```rust
