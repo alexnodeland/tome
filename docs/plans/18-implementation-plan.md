@@ -430,15 +430,24 @@ the app shows, and `--zap` leaves nothing behind.
 > | The tap exists, carries the cask, and bumps itself from the release | ✅ proposed in homebrew-tap#1 |
 > | `tome status` reports the same paths the app shows | ✅ tested from both sides since S0 |
 > | `--zap` leaves nothing behind | ✅ list verified against the running binary; `tome config forget-token` covers the Keychain, which `zap` cannot |
-> | `brew install --cask alexnodeland/tap/tome` works | ❌ **no tag has been cut, and Actions is refused for failed payment** |
+> | The tap's cask, style check and scheduled bumper all run in CI | ✅ verified 2026-07-30 |
+> | `brew install --cask alexnodeland/tap/tome` works | ❌ **no tag has been cut** |
 >
-> Two things stand between here and the gate, and **neither is code** (updated 2026-07-30):
+> **One thing stands between here and the gate, and it is not code** (updated 2026-07-30, after
+> CI went green):
 >
-> 1. **The account's Actions billing hold has to clear**, or the release be cut by hand — every
->    step of the workflow is a script in `scripts/` precisely so the manual path and the automated
->    one cannot diverge. The repository is public now and Actions dispatches, but every run is
->    refused at the runner for failed payment, free public minutes included.
-> 2. **A tag has to be pushed.**
+> **A tag has to be pushed.** `git tag v0.1.0 && git push --tags` runs `release.yml`, which stamps
+> the version, builds, verifies the bundle, and publishes. The tap picks the release up on its next
+> scheduled bump, or immediately via **Run workflow**.
+>
+> The Actions billing hold cleared the same day. CI is green across all five jobs, including
+> **Build app**, which stages the CLI sidecar and runs `scripts/verify-bundle.sh` on a runner that
+> has never built Tome — so the S4-9 wiring is confirmed somewhere other than the author's laptop.
+> `release.yml` itself has still never run.
+>
+> What that leaves is the thing no automated check substitutes for: **installing the DMG on a
+> machine that has never built Tome**, and confirming the app launches after the quarantine step
+> and that `--zap` leaves nothing behind.
 >
 > `alexnodeland/homebrew-tap` **does exist** and already carries three casks. Tome's is proposed in
 > [homebrew-tap#1](https://github.com/alexnodeland/homebrew-tap/pull/1), which also pins the other

@@ -68,12 +68,11 @@ has been staged — `./scripts/build-cli-sidecar.sh`, which `check.sh` and `taur
 for you. That coupling is deliberate: the cask symlinks `Tome.app/Contents/MacOS/tome` onto
 `PATH`, so an app built without the CLI would install cleanly and break every integration.
 
-> **CI has still never executed a step.** The repository is public and Actions dispatches, but
-> every run is refused at the runner with *"recent account payments have failed or your spending
-> limit needs to be increased"* — a billing hold on the account, which applies to free public-repo
-> minutes too. Judge by [`scripts/check.sh`](scripts/check.sh), never by a pull request's checks.
-> It runs exactly what [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs — change one,
-> change the other.
+> **CI runs, and is green.** [`scripts/check.sh`](scripts/check.sh) runs exactly what
+> [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs — change one, change the other. The
+> local script is still the faster feedback loop; the difference is that a red check now means
+> something. Its first real runs caught three things `check.sh` structurally could not, all
+> recorded in [`.claude/traps.md`](.claude/traps.md).
 
 ---
 

@@ -95,11 +95,22 @@ jobs:
         run: |
           set -euo pipefail
           version="${{ steps.version.outputs.value }}"
-          src=$(find target/aarch64-apple-darwin/release/bundle/dmg -name '*.dmg' | head -1)
-          test -n "$src"
-          # The cask's `url` interpolates the version into this exact name.
+
+          # A glob, not `find … | head -1`. Under `set -o pipefail` that
+          # pipeline can fail on SIGPIPE when `head` closes early, and it also
+          # silently picks whichever file sorted first — including a leftover
+          # `rw.*.dmg` from an interrupted bundle_dmg.sh run.
+          shopt -s nullglob
+          dmgs=(target/aarch64-apple-darwin/release/bundle/dmg/*.dmg)
+          if [ ${#dmgs[@]} -ne 1 ]; then
+            echo "expected exactly one DMG, found ${#dmgs[@]}: ${dmgs[*]:-none}" >&2
+            exit 1
+          fi
+
+          # The cask's `url` interpolates the version into this exact name, and
+          # the tap's bump.py derives the asset name from that same template.
           dest="Tome-${version}.dmg"
-          mv "$src" "$dest"
+          mv "${dmgs[0]}" "$dest"
           echo "path=$dest" >> "$GITHUB_OUTPUT"
           echo "sha256=$(shasum -a 256 "$dest" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 

@@ -24,16 +24,13 @@ stale. Do not let this file grow a "traps" section; an earlier one was deleted f
 | S4-1 ✅ | Bug hunt | three defects in one function, plus pruning |
 | S4-10 ✅ | User docs | `site/pages/help.html`, and the rest brought up to date |
 
-## The exit gate is not met, and not from here
+## The exit gate needs a tag
 
-`brew install --cask alexnodeland/tap/tome` is the gate. Everything on this side of it is done and
-verified; three things remain and **none of them is code**:
+`brew install --cask alexnodeland/tap/tome` is the gate, and as of 2026-07-30 **one thing stands in
+front of it**: no tag has been pushed. `git tag v0.1.0 && git push --tags` runs `release.yml`.
 
-1. **`alexnodeland/homebrew-tap` does not exist.** The release workflow clones it.
-2. **Actions is blocked at the account level**, so the workflow has never run. Every step of it is a
-   script in `scripts/` so the manual path and the automated one cannot diverge — a release can be
-   cut by hand today.
-3. **No tag has been pushed.**
+The tap exists, carries the cask, lints it in CI, and bumps itself from this repository's latest
+release — verified by dispatching it. Actions works; CI is green across all five jobs.
 
 Then it has to be **installed on a machine that has never built Tome**. That is the part the plan
 insists on and the part no check here can do: a DMG missing the CLI, a zap list that leaves data
@@ -109,12 +106,10 @@ passing run is the one after the diff has been read.
 - **PR #10 (TypeScript 7)** — left open deliberately as a reminder. `npm ci` fails outright:
   `svelte-check@4.7.4` peers on `typescript@^5 || ^6`. Re-check when svelte-check and
   typescript-eslint support TS 7.
-- **Actions billing.** The repository went public on 2026-07-30 and Actions now dispatches, but
-  every run is refused at the runner: *"recent account payments have failed or your spending limit
-  needs to be increased"*. Free public-repo minutes are blocked by it too. **No workflow here has
-  ever executed a step**, so `ci.yml`, `pages.yml` and `release.yml` are all unverified code and
-  should be expected to fail on their first real run. **Judge by `./scripts/check.sh`** until then.
-  This also blocks the Pages deploy and the registry's scheduled verification.
+- **GitHub Pages is not enabled.** `pages.yml` builds and the deploy 404s: *"Ensure GitHub Pages
+  has been enabled"*. One setting — **Settings → Pages → Source = GitHub Actions**.
+- **`release.yml` has still never run.** CI is green, but the release workflow only fires on a tag,
+  and no tag exists. Expect it to need a fix on its first run, the way `ci.yml` did.
 - **The tap now owns cask bumping.** `alexnodeland/homebrew-tap` reads this repository's latest
   release on a schedule, so a release here needs no credential for that repository —
   `.github/workflows/release.yml` deliberately does not touch it. Opened as
