@@ -150,3 +150,64 @@ export async function search(
 export async function sourceExists(sourceId: string): Promise<boolean> {
   return invoke<boolean>('source_exists', { sourceId });
 }
+
+/**
+ * One installable source from the bundled registry (S4-4).
+ *
+ * The catalogue ships **inside the app bundle** rather than being fetched, so
+ * that onboarding works with no network — see `src-tauri/src/onboarding.rs`.
+ * Installing does reach the network, from the documentation's own origin.
+ */
+export interface CatalogueEntry {
+  id: string;
+  name: string;
+  category: string;
+  homepage: string;
+  licence: string;
+  /** When the verification job last confirmed this config still works. Shown,
+   *  not hidden: a stale date is the only warning that a scraper has rotted. */
+  verified: string;
+  installed: boolean;
+}
+
+export interface InstallReport {
+  source_id: string;
+  pages: number;
+  /** Pages that could not be fetched or parsed. Not fatal, and not hidden —
+   *  40 pages of an expected 200 looks like success from the count alone. */
+  page_errors: number;
+  capped: boolean;
+}
+
+/** Progress while a source installs, pushed from Rust over the event bus. */
+export interface InstallProgress {
+  source_id: string;
+  phase: 'crawling' | 'storing' | 'indexing';
+  done: number;
+  /** Zero while crawling: the total is unknown until the crawl ends, and an
+   *  invented denominator makes a progress bar that goes backwards. */
+  total: number;
+}
+
+export async function registryCatalogue(): Promise<CatalogueEntry[]> {
+  return invoke<CatalogueEntry[]>('registry_catalogue');
+}
+
+/** Write a registry source's configuration and pull it. Resolves when done. */
+export async function installRegistrySource(id: string): Promise<InstallReport> {
+  return invoke<InstallReport>('install_registry_source', { id });
+}
+
+/**
+ * Listen for install progress. Returns an unlisten function.
+ *
+ * Imported lazily so that `src/test/setup.ts` — which stubs `invoke` — does
+ * not also have to stand up the event bus for components that never install
+ * anything.
+ */
+export async function onInstallProgress(
+  handler: (progress: InstallProgress) => void,
+): Promise<() => void> {
+  const { listen } = await import('@tauri-apps/api/event');
+  return listen<InstallProgress>('install-progress', (event) => handler(event.payload));
+}

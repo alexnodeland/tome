@@ -66,6 +66,46 @@ export function stringPreference(key: string, fallback: string, maxLength = 200)
   };
 }
 
+/**
+ * A preference with a fixed set of values.
+ *
+ * Separate from `stringPreference` because the values here reach the DOM as
+ * attribute values that CSS selects on. A stored string that is not one of
+ * `allowed` would set `data-theme="whatever-was-typed"`, match no rule, and
+ * leave the app in the default theme with a preference that reads as changed —
+ * which looks like a broken theme rather than a rejected value.
+ */
+export function enumPreference<T extends string>(key: string, fallback: T, allowed: readonly T[]) {
+  const valid = (raw: string): T | null => (allowed.includes(raw as T) ? (raw as T) : null);
+  return {
+    load: () => read<T>(key, fallback, valid),
+    save: (value: T) => {
+      if (valid(value) !== null) write(key, value);
+    },
+    values: allowed,
+  };
+}
+
+/** Colour scheme. `system` means "no attribute", so the media query decides. */
+export const THEMES = ['system', 'light', 'dark'] as const;
+export type Theme = (typeof THEMES)[number];
+
+/**
+ * Reader text size.
+ *
+ * Named steps rather than a pixel number, because `tokens.css` rescales the
+ * *whole system* off the root font size — `:root[data-text-size="large"]`
+ * — and every other size in the design system is a rem against it. An
+ * arbitrary px value would let someone pick 13px and shrink the UI chrome
+ * along with the prose.
+ */
+export const TEXT_SIZES = ['small', 'default', 'large', 'xlarge'] as const;
+export type TextSize = (typeof TEXT_SIZES)[number];
+
+/** Column width. `default` is the design system's 70ch optimal measure. */
+export const MEASURES = ['narrow', 'default', 'wide'] as const;
+export type Measure = (typeof MEASURES)[number];
+
 export const preferences = {
   leftWidth: numberPreference('sidebar.left.width', 240, 180, 400),
   rightWidth: numberPreference('sidebar.right.width', 200, 180, 400),
@@ -75,4 +115,25 @@ export const preferences = {
    *  sentinel rather than `null`, because `localStorage` only holds strings
    *  and an absent key already means "never set". */
   searchScope: stringPreference('search.scope', ''),
+
+  // ---- Appearance (P5-007) ------------------------------------------------
+  // Each of these becomes one attribute on <html>, in the app and in the
+  // reader frame. See `$lib/appearance`.
+  theme: enumPreference<Theme>('appearance.theme', 'system', THEMES),
+  textSize: enumPreference<TextSize>('appearance.textSize', 'default', TEXT_SIZES),
+  measure: enumPreference<Measure>('appearance.measure', 'default', MEASURES),
+  /** Line numbers in code blocks. Reader-only; the app chrome has no code. */
+  lineNumbers: booleanPreference('appearance.lineNumbers', false),
+
+  // ---- General ------------------------------------------------------------
+  /** Ask before removing a source. On by default: removal deletes content. */
+  confirmBeforeRemove: booleanPreference('general.confirmBeforeRemove', true),
+  /**
+   * Whether onboarding has been dismissed or completed.
+   *
+   * Distinct from "the library is empty": someone who removes their last
+   * source has not become a first-time user, and putting the welcome screen
+   * back in front of them would be a lie about what they know.
+   */
+  onboarded: booleanPreference('onboarding.done', false),
 };

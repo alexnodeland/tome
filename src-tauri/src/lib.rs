@@ -9,6 +9,7 @@
 
 use tome_core::Paths;
 
+mod onboarding;
 mod reader;
 mod search;
 
@@ -95,6 +96,8 @@ pub fn run() {
             reader::open_external,
             search::search,
             search::source_exists,
+            onboarding::registry_catalogue,
+            onboarding::install_registry_source,
         ])
         .run(tauri::generate_context!());
 

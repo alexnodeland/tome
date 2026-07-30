@@ -10,6 +10,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import FindBar from '$lib/components/FindBar.svelte';
+  import { appearanceAttributes, loadAppearance, type Appearance } from '$lib/appearance';
   import { ReaderFrame } from '$lib/reader/bridge';
   import type { ReaderPage } from '$lib/tauri';
 
@@ -62,6 +63,10 @@
       },
     });
     bridge.attach();
+    // The frame has an opaque origin and cannot inherit the shell's cascade,
+    // so it is told the appearance explicitly. Queued by the bridge until the
+    // frame reports ready, which is why this can run before it has loaded.
+    bridge.settings(appearanceAttributes(loadAppearance()));
     return () => bridge?.destroy();
   });
 
@@ -81,6 +86,18 @@
     findTotal = 0;
     findIndex = 0;
   });
+
+  /**
+   * Push appearance into the frame (P5-007).
+   *
+   * Attributes, so nothing re-renders and nothing is re-highlighted — the
+   * whole point of highlighting emitting classes rather than colours. The
+   * frame is not re-created, so the reader keeps its scroll position across a
+   * theme change.
+   */
+  export function applyAppearance(appearance: Appearance): void {
+    bridge?.settings(appearanceAttributes(appearance));
+  }
 
   /** Scroll the frame to a heading. Called by the TOC sidebar (S1-14). */
   export function scrollToHeading(id: string): void {

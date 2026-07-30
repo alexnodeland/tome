@@ -30,6 +30,18 @@ html {
   font-size: 21px;
 }
 
+/* Reader measure preference (P5-007). In `ch`, so the column stays a count of
+   characters as the text size changes rather than a fixed pixel width that
+   would hold more or fewer words at each step. 60ch is the low end of the
+   readable range and 85ch the high end; outside those, line-tracking suffers
+   in one direction and the column feels cramped in the other. */
+:root[data-measure='narrow'] {
+  --measure: 60ch;
+}
+:root[data-measure='wide'] {
+  --measure: 85ch;
+}
+
 :root {
   /* ---- Type ------------------------------------------------------------ */
 

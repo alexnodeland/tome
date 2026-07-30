@@ -34,6 +34,26 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Added — 2026-07-30 — a first run that is not a configuration exercise (S4-4, S4-5)
+
+- **Onboarding installs a documentation source in one click**, from the registry, on first launch.
+  The catalogue **ships inside the app bundle** as a Tauri resource, so the list renders with no
+  network; installing goes through the ordinary pipeline, from the documentation's own origin,
+  with robots.txt, the rate limit and the SSRF filter all inherited. Progress is pushed while the
+  pull runs — the crawl phase deliberately shows a count and no denominator, because the total is
+  unknown until the crawl ends.
+- **Preferences (⌘,)** — theme, text size, column width, code line numbers, confirm-before-remove,
+  and where the library lives. Changes apply immediately, to the DOM, to storage, **and to the
+  reader frame**: `ReaderFrame.settings` was built in S1-13 and had never had a caller, so a
+  theme change would have repainted the chrome and left the page alone.
+- **⌘= / ⌘- / ⌘0** step the text size, on the same scale the panel offers.
+- **`data-measure`** joins `data-theme`, `data-text-size` and `data-line-numbers` as a preference
+  attribute in `tokens.css`. In `ch`, so the column holds the same number of words at any text
+  size.
+- **`tome_core::registry`** — a typed reader for the registry index, used by the app. The loose
+  parser in `tests/registry.rs` still *defines* the shape, and the two are checked against each
+  other.
+
 ### Added — 2026-07-30 — errors that say what to do, and a way to repair (S4-3)
 
 - **`tome debug check`** — reports; never repairs. Library writable, database opens, every source

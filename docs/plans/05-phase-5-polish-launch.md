@@ -433,17 +433,30 @@ impl RecoveryManager {
 #### Description
 Build a first-run experience that helps users get started.
 
+> **Done by S4-4, 2026-07-30**, in three steps rather than five. The `tour` step is gone: a tour
+> of three panels is a tour of what the user can already see, and the shortcuts step does the work
+> it would have done. The `popularSources` array in the sketch below is exactly the hardcoded list
+> the criteria then forbid — the catalogue is read from `registry/index.yaml`, which ships in the
+> bundle as a Tauri resource.
+
 #### Acceptance Criteria
-- [ ] Welcome screen on first launch
-- [ ] **First source installed from the registry in one click** (PRD § Source Registry) — not by
-      hand-writing YAML. This is the single highest-leverage thing in onboarding: it is the
-      difference between a product and a configuration exercise.
-- [ ] Offer popular documentation suggestions, drawn from the registry rather than hardcoded
-- [ ] Progress and completion state for the first sync, which may take minutes
-- [ ] Tour of key features
-- [ ] Keyboard shortcuts overview
-- [ ] Skip option for experienced users, and onboarding never blocks the app
-- [ ] Works with no network: explains what it needs rather than failing opaquely
+- [x] Welcome screen on first launch — and only on a **first** run: dismissal is remembered, so
+      removing your last source does not make you a first-time user again
+- [x] **First source installed from the registry in one click** — `install_registry_source` writes
+      the configuration and pulls, through the ordinary pipeline with robots.txt, the rate limit
+      and the SSRF filter all inherited
+- [x] Suggestions drawn from the registry rather than hardcoded, grouped by category, with the
+      `verified` date shown — a stale date is the only warning that a scraper has rotted
+- [x] Progress for the first sync — `install-progress` events, crawling/storing/indexing. The
+      crawl phase shows a count and **no denominator**, because the total is unknown until the
+      crawl ends and an invented one makes a bar that goes backwards
+- [~] Tour of key features — replaced by the shortcuts step, see above
+- [x] Keyboard shortcuts overview — `src/lib/shortcuts.ts`, listing **only what is bound**. A
+      panel that showed ⌘D for "bookmark page" would teach the user something false, and they
+      would find out by pressing it
+- [x] Skip on every step, and the shell is never blocked
+- [x] Works with no network — the catalogue is in the bundle, so the list renders offline and an
+      install failure says what happened instead of leaving a spinner
 
 #### Technical Notes
 ```svelte
@@ -513,15 +526,31 @@ Build a first-run experience that helps users get started.
 #### Description
 Create the preferences window for configuring Tome.
 
+> **Done by S4-5, 2026-07-30**, with a different shape from the schema below. The appearance
+> preferences are **named steps, not free values** — `data-text-size="large"`, not
+> `font_size: 19` — because `tokens.css` rescales the whole system off the root font size and
+> every other size is a rem against it. A `font_size: 13` would shrink the UI chrome along with
+> the prose. Same for the measure: `narrow`/`default`/`wide` in `ch`, so the column holds the
+> same number of words at any text size.
+>
+> They live in `localStorage`, not a YAML file. The schema below implies a file that both the app
+> and the CLI would read, but the CLI has no appearance and a sidebar width in a config file is a
+> migration to maintain — the rule `stores/preferences.ts` already states.
+
 #### Acceptance Criteria
-- [ ] Cmd+, opens preferences
-- [ ] General tab (startup, updates)
-- [ ] Appearance tab (theme, typography)
-- [ ] Sync tab (iCloud, strategies)
-- [ ] Keyboard tab (shortcut customization)
-- [ ] Advanced tab (paths, cache, debug)
-- [ ] Changes apply immediately
-- [ ] Reset to defaults option
+- [x] Cmd+, opens preferences
+- [x] General tab — confirm-before-remove, and an honest note that Tome does not check for updates
+- [x] Appearance tab — theme, text size, column width, code line numbers
+- [~] Sync tab — **omitted. There is no sync.** ADR-0001 designs it and Stage 5 is deferred; a tab
+      of controls that do nothing is worse than no tab
+- [~] Keyboard tab — a **reference**, not customisation. Shortcuts are not rebindable, and fields
+      that discard what is typed into them are worse than saying so
+- [x] Library tab (paths, version) — the same paths `tome status` prints, so the app and the CLI
+      can be compared without leaving either
+- [x] Changes apply immediately — to the DOM, the store, **and the reader frame**, which has an
+      opaque origin and cannot inherit the shell's cascade. `ReaderFrame.settings` was built in
+      S1-13 and had never had a caller until now
+- [x] Reset to defaults
 
 #### Technical Notes
 ```svelte

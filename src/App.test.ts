@@ -119,12 +119,31 @@ describe('App', () => {
     expect(document.body.innerHTML).not.toContain('<h1 id="widget">');
   });
 
-  it('says what to do when the library is empty rather than showing nothing', async () => {
+  it('offers onboarding on a first run with an empty library', async () => {
+    // S4-4 replaced "write some YAML and run a CLI command" with the
+    // registry. The empty state below is what someone who has already been
+    // through this sees.
     mockResponses.list_sources = [];
+    mockResponses.registry_catalogue = [];
+    localStorage.removeItem('tome.onboarding.done');
+    render(App);
+
+    expect(
+      await screen.findByRole('button', { name: 'Add your first source' }),
+    ).toBeInTheDocument();
+  });
+
+  it('says what to do when the library is empty and onboarding is done', async () => {
+    // Not "empty" alone: someone who removes their last source has not become
+    // a first-time user, and putting the welcome screen back in front of them
+    // would be a lie about what they know.
+    mockResponses.list_sources = [];
+    localStorage.setItem('tome.onboarding.done', 'true');
     render(App);
 
     expect(await screen.findByText(/library is empty/i)).toBeInTheDocument();
-    expect(await screen.findByText(/tome pull/)).toBeInTheDocument();
+    expect(await screen.findByText(/tome add/)).toBeInTheDocument();
+    localStorage.removeItem('tome.onboarding.done');
   });
 
   it('surfaces a backend error instead of failing silently', async () => {

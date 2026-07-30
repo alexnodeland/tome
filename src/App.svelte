@@ -9,18 +9,28 @@
   import { onMount } from 'svelte';
   import Layout from '$lib/components/Layout.svelte';
   import Library from '$lib/components/Library.svelte';
+  import Onboarding from '$lib/components/Onboarding.svelte';
   import Outline from '$lib/components/Outline.svelte';
+  import Preferences from '$lib/components/Preferences.svelte';
   import Reader from '$lib/components/Reader.svelte';
   import SearchModal from '$lib/components/SearchModal.svelte';
+  import {
+    applyToDocument,
+    loadAppearance,
+    saveAppearance,
+    type Appearance,
+  } from '$lib/appearance';
   import { isCommand, isCommandShift } from '$lib/keys';
   import { classifyLink, NavigationHistory, type HistoryEntry } from '$lib/navigation';
-  import { preferences } from '$lib/stores/preferences';
+  import { preferences, TEXT_SIZES } from '$lib/stores/preferences';
   import {
+    libraryLocation,
     listPages,
     listSources,
     openExternal,
     readPage,
     sourceExists,
+    type LibraryLocation,
     type PageSummary,
     type ReaderPage,
     type SearchHit,
@@ -43,6 +53,23 @@
   let reader = $state<Reader>();
 
   let searchOpen = $state(false);
+  let preferencesOpen = $state(false);
+  let location = $state<LibraryLocation | null>(null);
+
+  // Read once and applied to <html> during component init, before anything
+  // renders, so the app never flashes the default theme on the way to the
+  // chosen one. The `$state` copy is what the UI binds to afterwards.
+  const initialAppearance = loadAppearance();
+  applyToDocument(initialAppearance);
+  let appearance = $state<Appearance>(initialAppearance);
+
+  /**
+   * Onboarding shows when the library is empty AND the user has not dismissed
+   * it before. Not "empty" alone: someone who removes their last source has
+   * not become a first-time user, and putting the welcome screen back in
+   * front of them would be a lie about what they know.
+   */
+  let onboarding = $state(false);
   let searchScope = $state<string | null>(null);
   /** What had focus when search opened, so Escape gives it back (P2-004). */
   let focusBeforeSearch: Element | null = null;
@@ -62,6 +89,7 @@
   onMount(async () => {
     try {
       sources = await listSources();
+      onboarding = sources.length === 0 && !preferences.onboarded.load();
       const first = sources[0];
       if (first) await selectSource(first.id);
     } catch (e) {
@@ -70,7 +98,49 @@
       loading = false;
     }
     await restoreSearchScope();
+    // Not awaited with the rest: the paths are only shown in Preferences, and
+    // a slow or failed lookup must not delay the library appearing.
+    libraryLocation()
+      .then((l) => (location = l))
+      .catch(() => {});
   });
+
+  /** Appearance changed in Preferences: the frame needs it too. */
+  function setAppearance(next: Appearance): void {
+    appearance = next;
+    reader?.applyAppearance(next);
+  }
+
+  /** ⌘= / ⌘- / ⌘0 — Appendix C's font-size shortcuts, on the same scale the
+   *  Preferences panel offers, so the two cannot disagree about the steps. */
+  function stepTextSize(direction: 1 | -1 | 0): void {
+    const current = TEXT_SIZES.indexOf(appearance.textSize);
+    const next =
+      direction === 0
+        ? TEXT_SIZES.indexOf('default')
+        : Math.min(TEXT_SIZES.length - 1, Math.max(0, current + direction));
+    const size = TEXT_SIZES[next];
+    if (!size || size === appearance.textSize) return;
+    const updated = { ...appearance, textSize: size };
+    saveAppearance(updated);
+    applyToDocument(updated);
+    setAppearance(updated);
+  }
+
+  function finishOnboarding(): void {
+    onboarding = false;
+    preferences.onboarded.save(true);
+  }
+
+  /** A source finished installing during onboarding. */
+  async function sourceInstalled(id: string): Promise<void> {
+    try {
+      sources = await listSources();
+      await selectSource(id);
+    } catch (e) {
+      error = message(e);
+    }
+  }
 
   /**
    * P2-008 asks the scope to be remembered across launches. A source can be
@@ -282,11 +352,33 @@
     } else if (isCommand(event, ']')) {
       event.preventDefault();
       void goForward();
+    } else if (isCommand(event, ',')) {
+      event.preventDefault();
+      preferencesOpen = !preferencesOpen;
+    } else if (isCommand(event, '=') || isCommand(event, '+')) {
+      // Both, because the key is `=` unshifted and `+` shifted, and people
+      // press either. `isCommandShift` is not used: ⇧⌘= is not a separate
+      // shortcut, it is the same one typed differently.
+      event.preventDefault();
+      stepTextSize(1);
+    } else if (isCommand(event, '-')) {
+      event.preventDefault();
+      stepTextSize(-1);
+    } else if (isCommand(event, '0')) {
+      event.preventDefault();
+      stepTextSize(0);
     }
   }
 </script>
 
 <svelte:window onkeydown={shortcuts} />
+
+<Preferences
+  open={preferencesOpen}
+  {location}
+  onappearance={setAppearance}
+  onclose={() => (preferencesOpen = false)}
+/>
 
 <SearchModal
   open={searchOpen}
@@ -325,12 +417,15 @@
   <div class="body">
     {#if loading}
       <p class="notice" aria-live="polite">Loading…</p>
+    {:else if onboarding}
+      <Onboarding oninstalled={sourceInstalled} onclose={finishOnboarding} />
     {:else if sources.length === 0}
       <div class="notice">
         <p>The library is empty.</p>
         <p class="hint selectable">
-          Add a source configuration and run <code>tome pull &lt;source-id&gt;</code>.
+          Install one from the catalogue, or run <code>tome add &lt;url&gt;</code>.
         </p>
+        <button class="link" onclick={() => (onboarding = true)}>Open the catalogue</button>
       </div>
     {:else}
       <Layout bind:this={layout}>
@@ -479,6 +574,13 @@
 
   .hint {
     color: var(--color-text-tertiary);
+  }
+
+  .link {
+    font-family: var(--font-ui);
+    font-size: var(--text-sm);
+    color: var(--color-link);
+    text-decoration: underline;
   }
 
   .error {
