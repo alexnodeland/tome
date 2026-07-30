@@ -650,6 +650,25 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   re-run it.
 - **`gh` needs the `workflow` scope** to merge a PR touching `.github/workflows/`; without it the
   merge fails with a GraphQL error naming the scope. `gh auth refresh -h github.com -s workflow`.
+- **A wall-clock assertion needs orders of magnitude of headroom, or CI will find it.** The
+  indexing-cost gate was `< 10 ms` per page and measured **12.2 ms on a shared GitHub runner**
+  against ~1 ms locally — on CI's first real run, four days after it was written. The claim it
+  guards was still true; the threshold just had none. The P95 latency assertion beside it states
+  the principle explicitly ("three orders of magnitude of headroom, so it fires on a lost index
+  rather than on a slow machine") and survived. Either follow that, or `#[ignore]` the test the
+  way `fuzzy_cost` and the relevance measurements are.
+- **A secret scan on a shallow clone scans nothing and says "no leaks found".** `actions/checkout`
+  fetches depth 1 by default; gitleaks scans the range `<sha>^..<sha>`, and with one commit there
+  is no `<sha>^`. It logged `scanned ~0 bytes (0)` and `no leaks found in partial scan`. It only
+  failed the job because it propagated git's error — **had it exited 0, the repository would have
+  had a permanently green secret scan that had never read a line of code**, which is worse than
+  having none. The audit job checks out with `fetch-depth: 0`.
+- **`rustsec/audit-check` is not target-scoped and cargo-deny is.** The action reads `Cargo.lock`
+  whole, so it fails on `unmaintained` advisories for Tauri's Linux GTK bindings that no macOS
+  build compiles — while reporting **zero vulnerabilities**. It also ran *first* in its job, so
+  cargo-deny, `npm audit` and the secret scan were skipped: the redundant check was gating the
+  ones that work. Removed from `ci.yml` and `check.sh` both. One advisory check, and it is the
+  one that reads `deny.toml`.
 - **CI has never executed a step, and the reason changed on 2026-07-30.** It used to be that the
   repository was private and Actions was blocked. It is now public and Actions *dispatches* — and
   every run is refused at the runner with "recent account payments have failed or your spending

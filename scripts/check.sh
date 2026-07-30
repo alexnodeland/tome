@@ -90,12 +90,12 @@ else
   printf '%s▸ deps: licences and bans%s\n  %s— skipped (cargo install cargo-deny)%s\n' \
     "$bold" "$reset" "$dim" "$reset"
 fi
-if command -v cargo-audit >/dev/null 2>&1; then
-  run "deps: rust advisories" cargo audit
-else
-  printf '%s▸ deps: rust advisories%s\n  %s— skipped (cargo install cargo-audit)%s\n' \
-    "$bold" "$reset" "$dim" "$reset"
-fi
+# `cargo audit` was here and has been removed, to stay in lockstep with
+# ci.yml. It reads Cargo.lock unscoped, so it fails on unmaintained advisories
+# for Tauri's Linux GTK bindings that no macOS build ever compiles — which is
+# exactly what broke CI's first real run. `cargo deny check` above reads the
+# same RustSec database, is scoped to aarch64-apple-darwin, and keeps dated
+# per-advisory ignores so a new one still fails.
 
 if [[ $FAST -eq 0 ]]; then
   run "app: builds and bundles" \

@@ -236,13 +236,21 @@ fn indexing_a_corpus_stays_far_cheaper_than_crawling_it() {
     );
 
     // A polite crawl is rate-limited to a few requests a second, so a page
-    // costs hundreds of milliseconds at best. Ten milliseconds of indexing per
-    // page would still be an order of magnitude cheaper; anything above it
-    // means something has gone badly wrong.
+    // costs ~500 ms at best. This threshold is an order of magnitude below
+    // that, which is enough to fire on "indexing has become as expensive as
+    // fetching" — the thing that would make `open_or_rebuild` destructive —
+    // and not on a slow machine.
+    //
+    // It was 10 ms until 2026-07-30, when CI ran for the first time and
+    // measured **12.2 ms per page** on a shared GitHub runner against ~1 ms
+    // locally. The claim was still true at 12.2 ms; the threshold just had no
+    // headroom. Same principle as the P95 assertion above: pick a number with
+    // orders of magnitude of room so it detects catastrophe rather than load.
     assert!(
-        per_page < Duration::from_millis(10),
-        "indexing cost {per_page:?} per page. SPIKE-003 measured this three orders of \
-         magnitude below the cost of fetching one."
+        per_page < Duration::from_millis(50),
+        "indexing cost {per_page:?} per page, which is no longer cheap next to the ~500 ms \
+         a politely-fetched page costs. SPIKE-003 finding 1 is what makes discarding and \
+         rebuilding the index a cheap operation; if this fires, it is not."
     );
 }
 

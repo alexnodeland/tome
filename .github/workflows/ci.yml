@@ -83,18 +83,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Full history, for the secret scan below.
+          #
+          # `actions/checkout` fetches depth 1 by default, and gitleaks scans a
+          # commit RANGE — `<sha>^..<sha>`. With one commit there is no `<sha>^`,
+          # so git fails, gitleaks scans **~0 bytes**, and reports "no leaks
+          # found in partial scan". On 2026-07-30 it happened to propagate the
+          # git error and fail the job; had it exited 0 this would have been a
+          # permanently green secret scan that had never read a line of code.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
 
-      - name: Rust advisories
-        uses: rustsec/audit-check@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Licences, bans, sources
+      # `rustsec/audit-check` was here and has been removed. It reads
+      # `Cargo.lock` with no target scoping, so on 2026-07-30 — CI's first
+      # real run — it failed the build on `unmaintained` advisories for
+      # Tauri's Linux GTK bindings (`atk`, `atk-sys`, …), which are never
+      # compiled into a macOS build. It reported **zero vulnerabilities**.
+      #
+      # Worse, it failed *first*, so cargo-deny, `npm audit` and the secret
+      # scan were all skipped: the redundant check was gating the ones that
+      # work. cargo-deny reads the same RustSec database, is scoped to
+      # `aarch64-apple-darwin` in `deny.toml`, and lists its ignores
+      # individually with dated reasons so a NEW unmaintained advisory still
+      # fails. One advisory check, and it is the better one.
+      - name: Advisories, licences, bans, sources
         uses: EmbarkStudios/cargo-deny-action@v2
 
       - run: npm ci
