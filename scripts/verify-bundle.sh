@@ -122,14 +122,15 @@ if [[ -f "$CASK" ]]; then
   done
   [[ $ZAP_OK -eq 1 ]] && pass "cask zap list covers every path tome status reports"
 
-  # 7. The two lines the release workflow rewrites. A reformat that broke
-  #    these would publish a cask pinned to 0.0.0 with a checksum for nothing.
+  # 7. The two lines the TAP's bumper rewrites (alexnodeland/homebrew-tap,
+  #    scripts/bump.py). A reformat that broke these would leave the published
+  #    cask pinned to whatever it last held, silently, for ever.
   grep -qE '^  version "[0-9]+\.[0-9]+\.[0-9]+"$' "$CASK" \
-    && pass "cask version line matches the release rewrite pattern" \
-    || fail "cask version line no longer matches the release workflow's pattern"
+    && pass "cask version line matches the tap bumper's pattern" \
+    || fail "cask version line no longer matches the tap bumper's pattern"
   grep -qE '^  sha256 "[0-9a-f]{64}"$' "$CASK" \
-    && pass "cask sha256 line matches the release rewrite pattern" \
-    || fail "cask sha256 line no longer matches the release workflow's pattern"
+    && pass "cask sha256 line matches the tap bumper's pattern" \
+    || fail "cask sha256 line no longer matches the tap bumper's pattern"
 else
   fail "$CASK is missing — it is the cask's source of truth"
 fi

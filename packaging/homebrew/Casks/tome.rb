@@ -1,21 +1,21 @@
-# The cask, and the source of truth for it.
+# The cask, authored here and living in `alexnodeland/homebrew-tap`.
 #
-# This file is mirrored to `alexnodeland/homebrew-tap` by the release workflow
-# on tag, at the same path. Edit it HERE — an edit made in the tap is
-# overwritten by the next release, silently, which is the worst kind of lost
-# change.
+# **`version` and `sha256` below are placeholders and are NOT what ships.** The
+# tap bumps its own casks on a schedule, reading this repository's latest
+# release — so a release here needs no credential for that repository, and the
+# two lines drift here on purpose. Everything else is authored in this file and
+# copied across by hand when it changes, which is rare.
 #
 # Tome ships UNSIGNED and un-notarized (ADR-0006: the Apple Developer Program
 # is deferred). Gatekeeper therefore blocks first launch, and the caveats carry
 # the fix. Revisit at v1.0.
 #
-# `version` and `sha256` below are rewritten by the release workflow from the
-# tag and the DMG it just built. They are NOT `:latest` / `:no_check`: Tome is
-# unsigned, so the checksum is the only integrity check a user gets, and
-# turning it off would remove the last one. The two lines are matched by a
-# fixed pattern in .github/workflows/release.yml, and `scripts/verify-bundle.sh`
-# asserts that pattern still matches — so reformatting this file cannot
-# silently break the release.
+# They are NOT `:latest` / `:no_check`: Tome is unsigned, so the checksum is
+# the only integrity check a user gets, and turning it off would remove the
+# last one. `brew upgrade` also skips `:latest` casks unless you pass
+# `--greedy`. The two lines are matched by a fixed pattern in the tap's
+# `scripts/bump.py`, and `scripts/verify-bundle.sh` asserts that pattern still
+# matches — so reformatting this file cannot silently break the bumper.
 cask "tome" do
   version "0.0.0"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
