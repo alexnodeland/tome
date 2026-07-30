@@ -35,6 +35,19 @@
 
   const needle = $derived(filter.trim().toLowerCase());
 
+  /**
+   * How many pages to put in the DOM at once (P5-002).
+   *
+   * Measured at S4-2: a 20 000-page source is 19 ms to read from SQLite and
+   * 1 ms to serialise — the backend is not the problem — but it is a 1.8 MB
+   * IPC payload and **20 000 DOM nodes**, and that is. The window is well
+   * past what any screen shows; past it, the filter is the tool, and the
+   * button below says how many are left rather than pretending this is all
+   * of them.
+   */
+  const PAGE_WINDOW = 200;
+  let shown = $state(PAGE_WINDOW);
+
   const visibleSources = $derived(
     needle === ''
       ? sources
@@ -74,7 +87,7 @@
    * matching page titles inside the open source. Typing a page title into a
    * box next to a list of pages should find the page.
    */
-  const visiblePages = $derived(
+  const matchingPages = $derived(
     needle === '' || visibleSources.some((s) => s.id === selectedSource)
       ? pages
       : pages.filter(
@@ -82,6 +95,20 @@
             page.title.toLowerCase().includes(needle) || page.path.toLowerCase().includes(needle),
         ),
   );
+
+  /** The window actually rendered. */
+  const visiblePages = $derived(matchingPages.slice(0, shown));
+  const hiddenPages = $derived(matchingPages.length - visiblePages.length);
+
+  // Back to the first window whenever the list underneath changes. Without
+  // this, expanding a 20 000-page source and then filtering would leave the
+  // window opened for the previous list — so "show more" would already be
+  // exhausted for a result set of three.
+  $effect(() => {
+    void selectedSource;
+    void needle;
+    shown = PAGE_WINDOW;
+  });
 
   function toggleCategory(category: string): void {
     if (collapsed.has(category)) collapsed.delete(category);
@@ -183,6 +210,15 @@
                   {/each}
                   {#if visiblePages.length === 0}
                     <li class="empty page-empty">No pages.</li>
+                  {:else if hiddenPages > 0}
+                    <li>
+                      <button class="more" onclick={() => (shown += PAGE_WINDOW)}>
+                        {hiddenPages.toLocaleString()} more — show {Math.min(
+                          PAGE_WINDOW,
+                          hiddenPages,
+                        )}
+                      </button>
+                    </li>
                   {/if}
                 </ul>
               {/if}
@@ -195,6 +231,19 @@
 </nav>
 
 <style>
+  .more {
+    width: 100%;
+    padding: var(--space-1) var(--space-2);
+    text-align: left;
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  .more:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+  }
+
   .library {
     font-family: var(--font-ui);
     font-size: var(--text-sm);

@@ -27,6 +27,7 @@
     applyToDocument,
     type Appearance,
   } from '$lib/appearance';
+  import { trapFocus } from '$lib/a11y';
   import { accelerator, pretty, unusableBecause } from '$lib/accelerator';
   import { SHORTCUTS } from '$lib/shortcuts';
   import {
@@ -195,6 +196,7 @@
       role="dialog"
       aria-modal="true"
       aria-labelledby="preferences-title"
+      use:trapFocus
       tabindex="-1"
       bind:this={dialog}
       onkeydown={(e) => {

@@ -129,4 +129,26 @@ describe('Library', () => {
     setup();
     expect(screen.getByRole('navigation', { name: 'Documentation sources' })).toBeInTheDocument();
   });
+
+  it('renders a window of a large page list rather than all of it', async () => {
+    // Measured at S4-2: a 20 000-page source is 19 ms out of SQLite and 1 ms
+    // to serialise — the backend is fine — but it is 20 000 DOM nodes, and
+    // that is not. The window is well past what any screen shows.
+    const many: PageSummary[] = Array.from({ length: 1000 }, (_, i) => ({
+      path: `std/struct.Thing${i}.html`,
+      title: `Struct Thing${i}`,
+    }));
+    setup({ pages: many });
+
+    expect(screen.getAllByRole('button', { name: /^Struct Thing/ })).toHaveLength(200);
+    // And it says how many are left rather than pretending this is all of them.
+    const more = screen.getByRole('button', { name: /800 more/ });
+    await userEvent.setup().click(more);
+    expect(screen.getAllByRole('button', { name: /^Struct Thing/ })).toHaveLength(400);
+  });
+
+  it('does not offer to show more when everything is already shown', () => {
+    setup();
+    expect(screen.queryByRole('button', { name: /more/ })).not.toBeInTheDocument();
+  });
 });

@@ -34,6 +34,33 @@ Nothing released yet. See [`docs/plans/18-implementation-plan.md`](docs/plans/18
 - **`scripts/set-version.sh`** — one version, written to `Cargo.toml` and `package.json`.
   `tauri.conf.json` deliberately has no `version` key so the bundle inherits Cargo's.
 
+### Added — 2026-07-30 — measured performance, and a focus trap (S4-2, S4-7)
+
+- **`scripts/measure-startup.sh`** — startup and idle memory, with a stated definition of what it
+  measures and what "cold" does not mean. Release build, 7 runs: **625 ms median** against a
+  500 ms budget, **118 MB idle** against 200 MB.
+- **The page list is windowed** (P5-002). A 20 000-page source is 19 ms out of SQLite and 1 ms to
+  serialise — the backend is fine — but it was also 20 000 DOM nodes. The sidebar renders 200 rows
+  and says how many remain.
+- **`trapFocus`** — Tab stays inside the search and preferences modals. `aria-modal="true"` tells
+  assistive technology the rest of the page is inert and does **nothing** to the keyboard; without
+  this, Tab moved focus behind the overlay, where the focus ring is invisible and the next Return
+  activates something the user cannot see.
+
+### Changed — 2026-07-30
+
+- **The startup target is recorded as missed**, with the breakdown, rather than moved to match
+  what was measured. **10 ms of the 625 is Tome's own code**; the rest is Tauri and WKWebView
+  process and window creation, and a debug build measures the same.
+- **The syntax-set warm-up comment was wrong for two stages.** It claimed to keep "several
+  megabytes of inflated syntax dumps" off the first page view. Measured: **0 ms**. syntect's
+  bundled defaults are lump data that is not parsed at load. The call is kept — it costs nothing
+  either — but its justification is now a measurement.
+- **`scripts/verify-bundle.sh` picks the most recently built bundle**, not release-first. The old
+  order meant a tree holding both would verify one nobody had just built, then fail the same-build
+  digest check against the sidecar staged for the other — a false negative that reads exactly like
+  a real defect.
+
 ### Added — 2026-07-30 — the menu bar, and a global shortcut (SPIKE-001, S4-6)
 
 - **A menu bar item**, with no Swift. SPIKE-001 asked whether native menu bar integration needs an

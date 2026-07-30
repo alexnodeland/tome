@@ -102,7 +102,11 @@ if [[ $FAST -eq 0 ]]; then
     env TOME_CLI_PROFILE=debug npm run tauri build -- --debug --bundles app
   # Only meaningful on a bundle that was just built, which is why it lives here
   # and not with the other gates: it inspects the artifact a user installs.
-  run "app: bundle ships the CLI" ./scripts/verify-bundle.sh
+  # The path is explicit: a tree that also holds a release bundle would
+  # otherwise have the verifier choose between them, and the one it did not
+  # choose is the one this run built.
+  run "app: bundle ships the CLI" \
+    ./scripts/verify-bundle.sh target/debug/bundle/macos/Tome.app
 else
   printf '%s▸ app: builds and bundles%s\n  %s— skipped (--fast)%s\n' "$bold" "$reset" "$dim" "$reset"
   printf '%s▸ app: bundle ships the CLI%s\n  %s— skipped (--fast; needs a bundle)%s\n' \

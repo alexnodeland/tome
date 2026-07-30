@@ -18,6 +18,7 @@
   is no `{@html}` in this file and there must never be one.
 -->
 <script lang="ts">
+  import { trapFocus } from '$lib/a11y';
   import { tick } from 'svelte';
   import { searchHistory } from '$lib/stores/searchHistory';
   import {
@@ -257,6 +258,7 @@
     role="dialog"
     aria-modal="true"
     aria-label="Search documentation"
+    use:trapFocus
     tabindex="-1"
     onkeydown={keydown}
   >
