@@ -239,6 +239,75 @@ fn a_pulled_library_is_readable_over_mcp() {
     );
 }
 
+/// `section` addresses a real page's heading anchor: only that subtree comes
+/// back, and an unknown id gets an error naming the ids that exist (S3-4).
+#[test]
+fn get_page_section_selects_a_subtree() {
+    let server = FixtureServer::start("sphinx-example").expect("fixture server");
+    let home = tempfile::tempdir().expect("tempdir");
+    let url = format!("{}/", server.url());
+
+    let add = Command::new(tome_bin())
+        .args([
+            "add",
+            &url,
+            "--yes",
+            "--insecure",
+            "--quiet",
+            "--name",
+            "widget",
+        ])
+        .env("TOME_HOME", home.path())
+        .stdin(Stdio::null())
+        .output()
+        .expect("tome add runs");
+    assert!(add.status.success());
+
+    let replies = mcp_session(
+        home.path(),
+        &[
+            call(
+                1,
+                "tome_get_page",
+                serde_json::json!({
+                    "source_id": "widget",
+                    "page_path": "api/reference.html",
+                    "section": "examples",
+                }),
+            ),
+            call(
+                2,
+                "tome_get_page",
+                serde_json::json!({
+                    "source_id": "widget",
+                    "page_path": "api/reference.html",
+                    "section": "nope",
+                }),
+            ),
+        ],
+    );
+
+    // The Examples section (its heading and code), and nothing above it.
+    let section = text_of(&replies[0]);
+    assert!(section.contains("Examples"), "section content: {section}");
+    assert!(
+        section.contains("from widget import Widget"),
+        "section keeps its code block: {section}"
+    );
+    assert!(
+        !section.contains("API reference"),
+        "the h1 above the section is not included: {section}"
+    );
+
+    // The unknown id is a tool error that lists the page's real anchors.
+    assert_eq!(replies[1]["result"]["isError"], true);
+    let error = text_of(&replies[1]);
+    assert!(
+        error.contains("{#examples}"),
+        "error names the sections that exist: {error}"
+    );
+}
+
 /// Against an empty library, tools answer with guidance — never a protocol
 /// error, and never a hang on a missing index.
 #[test]

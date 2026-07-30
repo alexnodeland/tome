@@ -1132,9 +1132,9 @@ Design the Model Context Protocol server architecture.
 - [x] Error handling that returns actionable tool errors rather than JSON-RPC transport errors —
       tool failures are `isError` results whose text names the remedy; JSON-RPC errors are
       reserved for protocol faults (unknown tool, malformed request)
-- [ ] Result size budget and truncation semantics defined per tool — **S3-4.** The spike measured
-      why: an oversized result survives the transport but is diverted to a file and never reaches
-      the model
+- [x] Result size budget and truncation semantics defined per tool (S3-4) — 48 KiB for
+      `tome_get_page`, cut at a block boundary, notice listing the sections; `section` selects a
+      heading subtree; other tools bound themselves via `limit`. See "Tool result sizing" below
 - [~] Timeouts on every tool call — no timeout mechanism, deliberately: every tool call is a
       synchronous local read (index, SQLite, page store) with no network and no user input; the
       hang a timeout would guard against has no source. Revisit if a tool ever fetches
@@ -1236,10 +1236,16 @@ What the user actually configures:
 - Startup must be fast — the client waits on `initialize`. Defer index opening until the first
   tool call.
 
-**Tool result sizing.** A documentation page can be enormous. Results are truncated to a token
-budget with `truncated: true`, and `tome_get_page` accepts a `section` argument so an agent can
-fetch a TOC subtree instead of the whole document. Returning 200 KB into an agent's context window
-is a defect.
+**Tool result sizing** (implemented by S3-4). A documentation page can be enormous, and SPIKE-008
+measured what happens: an oversized result survives the transport but the client diverts it to a
+file — the model receives a filename instead of the page. `tome_get_page` results are therefore
+capped at **48 KiB** (~12k tokens, inside Claude Code's default 25k-token cap with room for the
+turn), cut at a **block boundary** — half a code fence swallows the rest of the conversation —
+with a `[truncated: …]` notice that lists the page's sections, so the remedy is in the text the
+model just read. The `section` argument takes a heading anchor id (`{#id}` in page output) and
+returns that heading's subtree, up to the next heading of the same or higher level. A section id
+lives either on the heading itself or — Sphinx's shape — on an `Anchor` block immediately before
+it; both resolve. The other tools bound themselves through their `limit` parameters.
 
 #### Success Metrics
 - All tools defined clearly
