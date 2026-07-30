@@ -1,0 +1,219 @@
+<div class="prose">
+  <h1>Command reference</h1>
+  <p class="lede">
+    Everything <code>tome</code> does. Anything not on this page does not exist — the CLI surface is
+    specified, and commands used to enter this project as examples in unrelated documents.
+  </p>
+
+  <div class="annotated">
+    <p>
+      Every command takes <code>--json</code>. Success is one JSON document on stdout with a stable
+      shape per command and every key present even when empty, so <code>jq</code> needs no special
+      cases. <strong>Errors are JSON on stderr</strong> — <code>{"error": {"message": …}}</code> —
+      stdout stays empty, and the exit code is non-zero.
+    </p>
+    <aside class="note">
+      <span class="measure">stdout is data</span>
+      progress, prompts and diagnostics all go to stderr, always. A progress line in a piped JSON
+      stream is a parse error at the other end.
+    </aside>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Sources</h2>
+
+  <h3><code>tome add &lt;url&gt;</code></h3>
+  <p>Detect the platform, write a configuration, pull. Interactive unless <code>--yes</code>.</p>
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr>
+          <td><code>--yes</code>, <code>-y</code></td>
+          <td>
+            Skip confirmation. Required with <code>--json</code> or a non-terminal stdin, and
+            checked before any network traffic.
+          </td>
+        </tr>
+        <tr>
+          <td><code>--name &lt;id&gt;</code></td>
+          <td>Set the source id. Derived from the URL otherwise.</td>
+        </tr>
+        <tr>
+          <td><code>--category &lt;name&gt;</code></td>
+          <td>Library category. Defaults to <code>Uncategorized</code>.</td>
+        </tr>
+        <tr>
+          <td><code>--insecure</code></td>
+          <td>
+            Permit <code>http</code> and private hosts, for a server you own. Written into the
+            config as <code>fetch.allow_insecure</code>.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Duplicates are refused by id <em>and</em> by URL, so the same site cannot be added twice under
+    two spellings. The YAML it writes is round-tripped through the real parser before the initial
+    pull: <code>add</code> cannot write a config <code>pull</code> would reject.
+  </p>
+
+  <h3><code>tome pull [source]</code></h3>
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr>
+          <td><code>--all</code></td>
+          <td>Every configured source.</td>
+        </tr>
+        <tr>
+          <td><code>--due</code></td>
+          <td>
+            With <code>--all</code>: only sources their sync strategy says are due, naming what it
+            skipped and why.
+          </td>
+        </tr>
+        <tr>
+          <td><code>--max-pages &lt;n&gt;</code></td>
+          <td>Cap the crawl, overriding the config. Only ever tightens. For health checks.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Indexing happens as it goes, and only pages whose content hash changed are rewritten. The report
+    names what went wrong — failed pages, un-localized assets, whether the page cap was hit.
+  </p>
+
+  <h3><code>tome list</code></h3>
+  <p>
+    Sources with page counts, categories and sync recency. <code>--category &lt;name&gt;</code>
+    filters, reading each config file rather than the database, because a source that has never been
+    pulled still has a category.
+  </p>
+
+  <h3><code>tome remove &lt;source&gt;</code></h3>
+  <div class="annotated">
+    <p>
+      Deletes the source's search index entries, database rows, cached content, and — last — its
+      config file. Last, so a partial failure leaves a state <code>remove</code> can be run against
+      again. Confirmation defaults to <strong>No</strong>; <code>--yes</code>
+      skips it.
+    </p>
+    <aside class="note">
+      <span class="measure">four places</span>
+      skipping the index would leave results pointing at pages that no longer exist
+    </aside>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Reading</h2>
+
+  <h3><code>tome search &lt;query&gt;</code></h3>
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr>
+          <td><code>--scope &lt;source-id&gt;</code></td>
+          <td>One source only.</td>
+        </tr>
+        <tr>
+          <td><code>--limit &lt;n&gt;</code></td>
+          <td>Results to return. Default 10.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Prefix a term with <code>@</code> to search declared symbols only:
+    <code>tome search "@with_capacity"</code> returns the pages that declare it rather than every
+    page that mentions it. Under <code>--json</code>, results carry <code>symbol_kind</code> (<code
+      >null</code
+    >
+    for prose pages) and corrections come back as a <code>suggestions</code> array — both always
+    present.
+  </p>
+
+  <h3><code>tome status</code></h3>
+  <p>
+    Version, bundle id, and where the library lives. <code>--show-token</code> prints the API bearer
+    token, creating one if none exists — the one place it is ever printed.
+  </p>
+</div>
+
+<div class="prose">
+  <h2>Programmable surfaces</h2>
+
+  <h3><code>tome mcp</code></h3>
+  <p>
+    The MCP server, over stdio. A client spawns it; there is no port and nothing to leave running.
+    <a href="/agents/">Setup is here.</a>
+  </p>
+  <div class="annotated">
+    <p>
+      <code>--http</code> exists in the help and is <strong>not implemented</strong>, by choice: no
+      client Tome targets needs it, and an HTTP MCP endpoint has exactly the browser-reachability
+      problem the local API spends its whole middleware stack on.
+    </p>
+    <aside class="note">
+      <span class="measure">stdio only</span>
+      MCP defines stdio and Streamable HTTP. There is no Unix-socket transport — an earlier design
+      specified one, and no client could have connected.
+    </aside>
+  </div>
+
+  <h3><code>tome serve</code></h3>
+  <p>
+    The local HTTP API, on <code>127.0.0.1:7431</code>. <strong>Off unless you run this.</strong>
+  </p>
+  <div class="table-scroll">
+    <table>
+      <tbody>
+        <tr>
+          <td><code>--port &lt;n&gt;</code></td>
+          <td>Default 7431. <code>0</code> picks an ephemeral port, printed to stderr.</td>
+        </tr>
+        <tr>
+          <td><code>--bind &lt;addr&gt;</code></td>
+          <td>Default <code>127.0.0.1</code>. Anything else logs a warning.</td>
+        </tr>
+        <tr>
+          <td><code>--allow-origin &lt;origin&gt;</code></td>
+          <td>
+            Let a browser origin read responses. Repeatable. <code>*</code> is refused before the
+            server starts.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="annotated">
+    <p>
+      Every request needs <code>Authorization: Bearer &lt;token&gt;</code> except
+      <code>GET /api/v1/status</code> — <strong>including on loopback</strong>. Loopback is not a
+      trust boundary: every process on your machine and every page in your browser can originate a
+      loopback request.
+    </p>
+    <aside class="note">
+      <span class="measure">no bypass</span>
+      the token is 256 bits, kept in the Keychain, compared in constant time, and the server holds
+      only its hash after startup
+    </aside>
+  </div>
+
+  <p>
+    No CORS headers are emitted by default, <code>Host</code> and <code>Origin</code> are validated
+    against DNS rebinding, and a request carrying a non-allowlisted <code>Origin</code> is refused
+    outright rather than merely denied headers — absence of CORS hides the response, refusal also
+    stops the request having effects.
+  </p>
+
+  <h3><code>tome config rotate-token</code></h3>
+  <p>
+    Replace the API token. A running server keeps its startup token until restarted, and the command
+    says so.
+  </p>
+</div>

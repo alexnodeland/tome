@@ -40,8 +40,10 @@ export default [
   },
   {
     // Build/gate scripts run under Node, not in a webview, so their globals
-    // are Node's. `scripts/` is not shipped and is not bundled.
-    files: ['scripts/**/*.mjs'],
+    // are Node's. Neither `scripts/` nor the site builder is shipped or
+    // bundled — the site builder emits HTML at build time and nothing it
+    // writes runs in a browser.
+    files: ['scripts/**/*.mjs', 'site/**/*.mjs'],
     languageOptions: {
       globals: {
         console: 'readonly',

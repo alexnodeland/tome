@@ -56,6 +56,10 @@ run "frontend: types"       npm run check
 run "frontend: lint"        npm run lint
 run "frontend: tests"       npm run test
 run "design: contrast"      node scripts/check-contrast.mjs
+# The site is deployed by a workflow that has never run (Actions is blocked at
+# the account level), so this is the only thing standing between a broken
+# build script and a broken deploy on the day it can.
+run "site: builds"          node site/build.mjs
 run "deps: npm advisories"  npm audit --audit-level=high
 
 # cargo-deny and cargo-audit are optional locally: they are slow to install and

@@ -82,3 +82,7 @@ lcov*.info
 
 # Playwright MCP scratch output (browser verification runs)
 .playwright-mcp/
+
+# The documentation site's build output. Sources are in `site/`; build it with
+# `node site/build.mjs`, which `scripts/check.sh` runs.
+site/_build/

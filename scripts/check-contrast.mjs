@@ -294,6 +294,11 @@ const CONSUMERS = [
   'public/reader.css',
   'src/app.css',
   'index.html',
+  // The documentation site. It has no palette of its own — it links the very
+  // token file this script checks — so a misspelt property there is the same
+  // silent fallback as anywhere else, and nothing else would catch it: the
+  // site is built by a script, not by Vite, so no bundler ever resolves it.
+  'site/assets/site.css',
   // Every Svelte component's `<style>` block. Scoped styles are still styles,
   // and a component is the most likely place for a token name to be typed
   // from memory.

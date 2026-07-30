@@ -2,46 +2,70 @@
 
 **A personal library for technical documentation.** Point it at any documentation site — ReadTheDocs,
 rustdoc, mdBook, man pages, or a plain HTML site — and read it offline in a single, well-typeset
-place, with fast search across everything, bookmarks that follow you between machines, and an MCP
-server so your coding agent can read your docs too.
+place, with fast search across everything, and an MCP server so your coding agent can read your docs
+too.
 
 macOS, Apple Silicon. Local-first. Open source.
 
 ---
 
-## Status: scaffolded. Stage 0 of the implementation plan.
-
-The app builds, launches, and creates its library in the right place. Nothing else works yet —
-there is no ingestion, no reader, no search. The P0 technical spikes have not been run.
-
-If you are here to use Tome: there is nothing useful to install yet.
-If you are here to understand or shape it: start below.
+## Status: ingestion, reading, search and agent access all work. Not yet released.
 
 ```bash
-npm install
-npm run tauri dev          # launches the app
-./scripts/check.sh         # everything CI would run
-cargo run -p tome-cli -- status
+tome add https://docs.python.org/3/     # detect the platform, fetch, index
+tome search "async iterator"            # 158 µs P95 across the library
+tome mcp                                # your coding agent reads your docs
 ```
 
-> **CI does not run yet.** The repository is private until release, so
-> [`scripts/check.sh`](scripts/check.sh) is the gate — it runs exactly what
-> [`.github/workflows/ci.yml`](.github/workflows/ci.yml) will. Keep the two in lockstep.
+| Works | Does not exist |
+|---|---|
+| Ingestion — robots, rate limit, SSRF, scope, asset localization | Bookmarks and annotations |
+| The reader — offline, sandboxed, typeset, with outline and history | Cross-device sync (deferred; ADR-0001 designs it) |
+| Search — ⌘K across everything, ⌘F in a page, typo tolerance, symbols | A signed, notarized build |
+| Man pages, platform detection, per-platform scrapers | A release you can `brew install` |
+| The CLI, the MCP server, the local HTTP API, a Claude Code plugin | |
+
+**Measured, not asserted** — every number here has a harness behind it:
+
+| | | |
+|---|---|---|
+| Search relevance | **0.9082 recall@3** over 339 documents | target ≥ 0.90 |
+| Search latency | **158 µs P95** | budget 100 ms |
+| Platform detection | **0.9922** accuracy, zero confident errors | 128 homepages |
+| Index size | **224 MB** per 100 000 pages | budget 500 MB |
+
+There is no release yet: no signing, no DMG, no tap. If you want to use it today you build it
+yourself. **[Build and run](#building-it-yourself)** is below.
 
 | | |
 |---|---|
-| **What it should be** | [`docs/PRD.md`](docs/PRD.md) — product requirements, architecture, API and CLI surface |
-| **How it would be built** | [`docs/plans/`](docs/plans/) — 90 tickets across 5 phases, plus testing, security, CI/CD, design system, risk register |
+| **How to use it** | [`site/`](site/README.md) — the user documentation: getting started, CLI reference, agent setup |
+| **What it is** | [`docs/PRD.md`](docs/PRD.md) — product requirements, architecture, API and CLI surface |
+| **How it is being built** | [`docs/plans/18-implementation-plan.md`](docs/plans/18-implementation-plan.md) — stages, gates, and what each one proved |
+| **What was measured** | [`docs/spikes/`](docs/spikes/) — spikes that ran, raw output included |
 | **What's wrong with the plan** | [`docs/reviews/2026-07-28-plan-review.md`](docs/reviews/2026-07-28-plan-review.md) — a full critical review |
-| **How it gets built** | [`docs/plans/18-implementation-plan.md`](docs/plans/18-implementation-plan.md) — agent-driven execution plan, stages and gates |
 | **What's undecided** | [`docs/decisions/`](docs/decisions/) — open decisions and ADRs |
-| **What exists so far** | [Repository layout](#repository-layout) below — a Cargo workspace, a Svelte frontend, and one real module |
-
-**Start with the review.** It is the shortest path to understanding both the plan and its gaps.
+| **Ready-made sources** | [`registry/`](registry/README.md) — configurations, never content |
 
 ---
 
-## Installing (once there is something to install)
+## Building it yourself
+
+```bash
+npm install
+npm run tauri dev                       # the app
+cargo build --release -p tome-cli       # the `tome` binary
+./scripts/check.sh                      # the gate: everything CI would run
+```
+
+> **CI carries no information.** The repository is private and GitHub Actions is blocked at the
+> account level, so every run fails in seconds without executing a step. Judge by
+> [`scripts/check.sh`](scripts/check.sh), never by a pull request's checks. It runs exactly what
+> [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs — change one, change the other.
+
+---
+
+## Installing (once there is a release)
 
 ```bash
 brew install --cask alexnodeland/tap/tome
@@ -144,7 +168,7 @@ crates/
 ├── tome-core/                shared library — app, CLI, and MCP server all use it
 │   ├── src/paths.rs          the only place a data path is constructed
 │   └── corpus/               golden corpora: real pages and their expected output
-├── tome-cli/                 the `tome` binary
+├── tome-cli/                 the `tome` binary — CLI, MCP server, HTTP API
 └── tome-testkit/             test infrastructure (dev-dependency only)
     ├── src/server.rs         fixture HTTP server — serves doc-site fixtures offline
     ├── src/golden.rs         golden-corpus harness — snapshot, diff, review
@@ -152,6 +176,9 @@ crates/
 fuzz/                         fuzz targets; its own workspace, needs nightly
 src-tauri/                    the desktop app (Tauri owns the shell)
 src/                          Svelte frontend
+registry/                     ready-made source configurations, and their live verifier
+site/                         the documentation site, deployed to GitHub Pages
+dist/claude-plugin/           the Claude Code plugin
 docs/
 ├── PRD.md                    product requirements — the authoritative specification
 ├── plans/                    phase plans (01-05), dependency map, and supporting documents
@@ -180,14 +207,17 @@ restate; the plan previously drifted badly because the same table lived in three
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). While the project is pre-implementation, the most useful
-contributions are:
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). The most useful contributions right now:
 
-- **Disagreement with the plan.** Especially about the architecture, the scope, or whether the
-  product is worth building at all. Open a discussion.
-- **Answers to the open decisions above.**
-- **Running a spike** from [`docs/plans/07-technical-spikes.md`](docs/plans/07-technical-spikes.md).
-  Each is one to three days and unblocks a phase.
+- **A registry source.** One YAML file and one index entry, in [`registry/`](registry/README.md).
+  Four exist against a v1.0 target of thirty, and this is the gap between "the registry works" and
+  "onboarding works". The checks tell you if it is right, and
+  `./scripts/verify-registry.sh <id>` proves it against the live site.
+- **A documentation site that Tome reads badly.** The golden corpus is how content fidelity gets
+  fixed, and every entry in it started as a page that came out wrong.
+- **Disagreement.** Especially about the architecture, the scope, or whether the product is worth
+  building at all. Open a discussion.
+- **Answers to the open decisions above.** DEC-006 now has code waiting on it.
 
 Security issues: see [`SECURITY.md`](SECURITY.md) — please do not open a public issue.
 
