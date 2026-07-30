@@ -37,7 +37,7 @@ detection), `pull`, `list`, `search`, `remove`, `status`, `serve`, `mcp`, all wi
 **`tome mcp` is a real MCP stdio server**: Claude Code connects to it and answers questions from
 locally indexed pages, verified against the real client. **`tome serve` is the local HTTP API**,
 off by default, bearer token on every route including loopback. There is a
-[Claude Code plugin](dist/claude-plugin/) and a [source registry](registry/README.md) with a
+[Claude Code plugin](packaging/claude-plugin/) and a [source registry](registry/README.md) with a
 live verification job.
 
 **Sync and annotations do not exist at all.** When asked whether something works, check rather
@@ -58,8 +58,10 @@ than assume — parts of this repo still describe intent rather than behaviour.
 | `scripts/check.sh` | The verification gate, standing in for CI |
 | `scripts/check-contrast.mjs` | Design-token gate: WCAG contrast in both themes, light/dark parity, and that every `var(--token)` resolves. Specified by `docs/plans/15`; it found three real palette defects on its first run |
 | `registry/` | The source registry: ready-made configurations, its own README, and `scripts/verify-registry.sh` |
-| `dist/homebrew/` | Cask source of truth, mirrored to `alexnodeland/homebrew-tap` on release. **`dist/` is gitignored except for explicit negations** — see `.gitignore` |
-| `dist/claude-plugin/` | The Claude Code plugin: manifest, commands, bundled MCP config |
+| `packaging/` | Authored distribution artifacts. **Not `dist/`** — that is Vite's `outDir`, and Vite empties it on every build, which is how the plugin and the cask were deleted for two stages without anyone noticing |
+| `packaging/homebrew/Casks/tome.rb` | Cask source of truth, mirrored to `alexnodeland/homebrew-tap` on release. Linted by `scripts/check-cask.sh` |
+| `packaging/claude-plugin/` | The Claude Code plugin: manifest, commands, bundled MCP config |
+| `scripts/verify-bundle.sh` | The only check that looks at the artifact a user installs: that `Tome.app` ships the CLI, from the same build, with the same version, resolving the same library, and that the cask's zap list covers what it writes |
 | `docs/reviews/` | Point-in-time critical reviews of the plan |
 | `docs/spikes/` | Results of spikes that have actually run, raw output included. `docs/plans/07` defines the spikes; this directory is where their answers live |
 | `docs/decisions/` | Open decisions (DEC-*) and accepted ADRs |
@@ -110,6 +112,11 @@ These are settled, and earlier drafts had them wrong. Do not regress them.
 
 - **Tauri is the application shell.** There is no separate Swift/AppKit shell, and no second
   `WKWebView` — the reader is a sandboxed `<iframe>` inside Tauri's primary webview.
+- **The `tome` CLI ships inside the app bundle**, at `Tome.app/Contents/MacOS/tome`, as a Tauri
+  `externalBin` sidecar — one build delivers both, which is what makes them resolve the same
+  library. There is no second artifact, and no separate `brew install tome` formula.
+- **Tome ships unsigned** (ADR-0006), so Gatekeeper blocks first launch and the cask's caveats
+  carry `xattr -dr com.apple.quarantine`. Not a bug to fix; a decision to revisit at v1.0.
 - **App Sandbox is off** (ADR-0002). Data lives in `~/Library/Application Support/Tome` and
   `~/Library/Caches/Tome`, never `~/.tome`.
 - **Sync is an iCloud Drive container with per-device op logs** (ADR-0001), not CloudKit.

@@ -18,7 +18,7 @@ stale. Do not let this file grow a "traps" section; an earlier one was deleted f
 | S3-3 ✅ | MCP tools | `mcp_tools.rs` — five, all read-only |
 | S3-4 ✅ | Truncation + `section` | in `mcp_tools.rs` |
 | S3-5 ✅ | HTTP API + auth | `serve.rs`, `token.rs`, `tests/api_http.rs` |
-| S3-6 ✅ | Claude Code plugin | [`dist/claude-plugin/`](../dist/claude-plugin/) |
+| S3-6 ✅ | Claude Code plugin | [`packaging/claude-plugin/`](../packaging/claude-plugin/) |
 | S3-7 ✅ | Sync strategies | `tome-core/src/sync.rs`, `tome pull --all --due` |
 | S3-8 ✅ | Source registry + verification | [`registry/`](../registry/README.md) |
 

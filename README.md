@@ -21,9 +21,10 @@ tome mcp                                # your coding agent reads your docs
 |---|---|
 | Ingestion — robots, rate limit, SSRF, scope, asset localization | Bookmarks and annotations |
 | The reader — offline, sandboxed, typeset, with outline and history | Cross-device sync (deferred; ADR-0001 designs it) |
-| Search — ⌘K across everything, ⌘F in a page, typo tolerance, symbols | A signed, notarized build |
-| Man pages, platform detection, per-platform scrapers | A release you can `brew install` |
+| Search — ⌘K across everything, ⌘F in a page, typo tolerance, symbols | A signed, notarized build (deferred; ADR-0006) |
+| Man pages, platform detection, per-platform scrapers | A published release — the pipeline exists, no tag has been cut |
 | The CLI, the MCP server, the local HTTP API, a Claude Code plugin | |
+| A DMG that ships the app **and** the CLI from one build, and a cask | |
 
 **Measured, not asserted** — every number here has a harness behind it:
 
@@ -34,8 +35,10 @@ tome mcp                                # your coding agent reads your docs
 | Platform detection | **0.9922** accuracy, zero confident errors | 128 homepages |
 | Index size | **224 MB** per 100 000 pages | budget 500 MB |
 
-There is no release yet: no signing, no DMG, no tap. If you want to use it today you build it
-yourself. **[Build and run](#building-it-yourself)** is below.
+There is no *published* release yet. The pipeline is built and verified — `npm run tauri build`
+produces a DMG whose `Tome.app` contains the `tome` CLI, and `scripts/verify-bundle.sh` checks
+that the two are one build — but no tag has been cut, and the tap repository does not exist yet.
+Until then you build it yourself. **[Build and run](#building-it-yourself)** is below.
 
 | | |
 |---|---|
@@ -55,8 +58,14 @@ yourself. **[Build and run](#building-it-yourself)** is below.
 npm install
 npm run tauri dev                       # the app
 cargo build --release -p tome-cli       # the `tome` binary
+npm run tauri build                     # the DMG, with the CLI inside it
 ./scripts/check.sh                      # the gate: everything CI would run
 ```
+
+The CLI is bundled as a Tauri sidecar, which means `cargo build -p tome-app` **fails** until it
+has been staged — `./scripts/build-cli-sidecar.sh`, which `check.sh` and `tauri build` both run
+for you. That coupling is deliberate: the cask symlinks `Tome.app/Contents/MacOS/tome` onto
+`PATH`, so an app built without the CLI would install cleanly and break every integration.
 
 > **CI carries no information.** The repository is private and GitHub Actions is blocked at the
 > account level, so every run fails in seconds without executing a step. Judge by
@@ -77,6 +86,10 @@ Tome is **not signed or notarized** — the Apple Developer Program is deferred
 on first launch until the quarantine flag is cleared; the command above works on every supported
 version, and the cask's caveats give the click-through alternatives. You only do it once per
 install.
+
+`brew uninstall --zap tome` removes the library and the caches. It cannot remove the API token,
+which lives in the Keychain — run `tome config forget-token` first if you ever started
+`tome serve`.
 
 That friction is a real cost, and it is the main reason to revisit the decision at v1.0.
 
@@ -178,7 +191,9 @@ src-tauri/                    the desktop app (Tauri owns the shell)
 src/                          Svelte frontend
 registry/                     ready-made source configurations, and their live verifier
 site/                         the documentation site, deployed to GitHub Pages
-dist/claude-plugin/           the Claude Code plugin
+packaging/                    authored distribution artifacts (NOT dist/ — Vite empties that)
+├── homebrew/Casks/tome.rb    the cask, mirrored to the tap on release
+└── claude-plugin/            the Claude Code plugin
 docs/
 ├── PRD.md                    product requirements — the authoritative specification
 ├── plans/                    phase plans (01-05), dependency map, and supporting documents

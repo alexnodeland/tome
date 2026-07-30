@@ -28,7 +28,7 @@ documenting the Gatekeeper path.
 1. **Skip the Apple Developer Program for now.** No Developer ID signing, no notarization.
 2. **Distribute through `alexnodeland/homebrew-tap`** as the single channel:
    `brew install --cask alexnodeland/tap/tome`.
-3. **Keep the cask's source of truth in this repository** at `dist/homebrew/Casks/tome.rb`,
+3. **Keep the cask's source of truth in this repository** at `packaging/homebrew/Casks/tome.rb`,
    mirrored to the tap on release — the same arrangement Curio uses.
 4. **Ship the `tome` CLI inside the app bundle** and symlink it from the cask, following
    `statusbar.rb`. One install, one build, therefore one library — which is exactly the invariant

@@ -448,12 +448,13 @@ a test written from the same misunderstanding as the code agrees with it. The go
 - **A Claude Code session has no terminal**, so every plugin command that mutates must pass
   `--yes` — and for `tome remove` that makes the assistant's own confirmation the only one there
   is.
-- **`dist/` is gitignored, so `dist/homebrew/` and `dist/claude-plugin/` need explicit
-  negations — and `dist/` must be spelled `dist/*` for them to work at all.** Git cannot
-  re-include a file whose parent *directory* is excluded, so the negations are silently inert
-  under `dist/`. CLAUDE.md has designated `dist/homebrew/` the cask's source of truth since
-  before it existed; without this the release would ship without the thing it was meant to
-  mirror.
+- **Authored files must not live in a build-output directory.** The Claude Code plugin and the
+  cask were committed under `dist/`, behind `dist/*` plus gitignore negations. That made them
+  *tracked*, which looked like the whole problem — but `dist/` is Vite's `outDir`, and Vite
+  **empties its output directory on every build**, so `npm run build` deleted them. It went
+  unnoticed for two stages because nothing ran a frontend build between committing them and
+  S4-9's first `tauri build`, which does. The negations were a fix for the visible half of a
+  two-part mistake. They now live in `packaging/`, and `dist/` is gitignored outright.
 - **A health check that edits the config it is checking is checking nothing.** The registry
   verifier's first version `sed`-ed `max_pages` into a copy — which verifies a file no user runs,
   and silently failed to cap rustdoc/mdbook/readthedocs sources at all, because those types carry
@@ -517,8 +518,31 @@ Details in [`docs/spikes/002-reader-iframe-bridge.md`](../docs/spikes/002-reader
   cannot sign for distribution.
 - **macOS 15 removed the Control-click→Open Gatekeeper bypass.** Cask caveats must lead with
   `xattr -dr com.apple.quarantine`.
-- `brew style` **refuses to lint a cask outside a tap.**
+- `brew style` **refuses to lint a cask outside a tap.** `scripts/check-cask.sh` stages a
+  throwaway tap under `$(brew --repository)/Library/Taps` and removes it on exit — without that,
+  "the cask is linted" is a claim nobody has ever checked. The CHANGELOG asserted it for two
+  stages while the file it named did not exist.
 - The built app is `adhoc, linker-signed`. `spctl` rejects it. Expected.
+- **The CLI ships as a Tauri `externalBin` sidecar, and that is load-bearing.** Tauri wants
+  `src-tauri/binaries/tome-<target-triple>` and copies it to `Contents/MacOS/tome`, dropping the
+  triple. Three ways it goes wrong silently: the triple must match `--target`, not the *host*, or
+  the bundler never finds it (`TOME_CLI_TARGET`); `cargo build -p tome-app` **fails** without it
+  staged, so the sidecar step comes before every compile of the app; and `tauri build` will
+  happily bundle a sidecar staged from an older tree, which is why `scripts/verify-bundle.sh`
+  compares digests rather than checking the file exists.
+- **`tauri.conf.json` deliberately has no `version` key.** Omitted, Tauri takes the version from
+  the `src-tauri` crate, so `CFBundleShortVersionString` and `tome --version` cannot disagree —
+  and they are the same number for the same reason the app and the CLI are the same build.
+  `scripts/set-version.sh` is the only thing that writes it, and it must also bump the
+  `version = "…"` on the **path dependencies** in `[workspace.dependencies]`, or the workspace
+  stops resolving (`failed to select a version for the requirement tome-testkit = "^0.0.0"`).
+- **`brew uninstall --zap` cannot remove a Keychain item**, so the API token outlives the
+  uninstall. `tome config forget-token` exists for that, and the cask's caveats name it. Anything
+  Tome stores outside the filesystem needs the same treatment.
+- **Zap lists rot silently.** Every path in the cask was observed on a machine that had run Tome,
+  and `scripts/verify-bundle.sh` re-derives the two that matter from `tome status --json` at
+  verify time. Paths that no version has ever created are deliberately absent and say so in a
+  comment — the iCloud container is listed nowhere, because sync does not exist.
 
 ## Traps — cargo-deny
 

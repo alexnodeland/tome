@@ -155,6 +155,12 @@ enum Command {
 enum ConfigAction {
     /// Replace the API bearer token; the old one stops working.
     RotateToken,
+    /// Delete the API bearer token from the Keychain.
+    ///
+    /// `brew uninstall --zap` removes files, and the Keychain is not a file,
+    /// so this is the only way an uninstall leaves nothing behind. The cask's
+    /// caveats name it.
+    ForgetToken,
 }
 
 fn main() -> Result<()> {
@@ -217,6 +223,16 @@ fn run(cli: Cli) -> Result<()> {
                     "API token rotated. A running `tome serve` keeps the old token until restarted."
                 );
             }
+            ConfigAction::ForgetToken => {
+                let existed = token::forget(&paths)?;
+                if cli.json {
+                    println!("{}", serde_json::json!({ "removed": existed }));
+                } else if existed {
+                    println!("API token removed. `tome serve` will mint a new one.");
+                } else {
+                    println!("There was no API token to remove.");
+                }
+            }
         },
         Command::Add {
             target,
@@ -275,7 +291,7 @@ fn run(cli: Cli) -> Result<()> {
                 // It lands when a client that cannot spawn processes does.
                 anyhow::bail!(
                     "`tome mcp --http` is not implemented yet. Use stdio: a client spawns \
-                     `tome mcp` itself — see dist/claude-plugin/.mcp.json for the shape."
+                     `tome mcp` itself — see packaging/claude-plugin/.mcp.json for the shape."
                 );
             }
             mcp::serve_stdio(&paths, mcp_tools::all())?;

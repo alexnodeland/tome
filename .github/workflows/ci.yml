@@ -65,6 +65,19 @@ jobs:
         # fine and neither passed 4.5:1.
         run: node scripts/check-contrast.mjs
 
+      - name: Site builds
+        run: node site/build.mjs
+
+      - name: Release versions agree
+        # Cargo.toml is the source of truth; package.json carries a copy npm
+        # insists on. The bundle's CFBundleShortVersionString comes from Cargo.
+        run: ./scripts/set-version.sh --check
+
+      - name: Cask style
+        # Homebrew's own linter. It refuses casks outside a tap, so the script
+        # stages a throwaway one.
+        run: ./scripts/check-cask.sh
+
   audit:
     name: Security audit
     runs-on: ubuntu-latest
@@ -101,6 +114,12 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+
+      - name: Stage the CLI sidecar
+        # `bundle.externalBin` makes the CLI a sidecar, and src-tauri/build.rs
+        # refuses to compile without it staged — so this has to run before
+        # anything that builds tome-app.
+        run: TOME_CLI_PROFILE=debug ./scripts/build-cli-sidecar.sh
 
       - name: Unit and integration tests
         # tome-app is included: its tests cover the `tome://` asset protocol
@@ -143,7 +162,17 @@ jobs:
       - run: npm ci
 
       - name: Build (unsigned)
+        # TOME_CLI_TARGET has to match --target: Tauri looks for the sidecar
+        # under the TARGET triple, and the host triple would stage a file the
+        # bundler never finds.
+        env:
+          TOME_CLI_TARGET: aarch64-apple-darwin
         run: npm run tauri build -- --target aarch64-apple-darwin --bundles app
+
+      - name: Verify the bundle
+        # The app and the CLI must come from one build (S4-9). Nothing above
+        # this line can see the artifact a user installs.
+        run: ./scripts/verify-bundle.sh target/aarch64-apple-darwin/release/bundle/macos/Tome.app
 
       - uses: actions/upload-artifact@v7
         with:

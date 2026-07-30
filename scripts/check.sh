@@ -42,6 +42,13 @@ run() {
 echo
 run "rust: formatting"      cargo fmt --all --check
 run "rust: lints"           cargo clippy -p tome-core -p tome-cli -p tome-testkit --all-targets -- -D warnings
+# Before any step that compiles tome-app: `bundle.externalBin` makes the CLI a
+# sidecar, and src-tauri/build.rs refuses to compile without it staged. Debug,
+# because everything else here is debug -- a release CLI would rebuild the
+# whole dependency tree for a binary this run only checks the wiring of.
+# (`env` rather than a `VAR=x run …` prefix: `run` is a shell function, and an
+# assignment prefixed to a function call leaks into the shell in bash.)
+run "cli: sidecar staged" env TOME_CLI_PROFILE=debug ./scripts/build-cli-sidecar.sh
 # tome-app is included here but NOT in the clippy line above: its tests
 # cover the `tome://` asset protocol handler, which is the one place a
 # string from page content becomes a filesystem path. Clippy still runs
@@ -60,7 +67,20 @@ run "design: contrast"      node scripts/check-contrast.mjs
 # the account level), so this is the only thing standing between a broken
 # build script and a broken deploy on the day it can.
 run "site: builds"          node site/build.mjs
+# One version, in two files npm and Cargo each insist on owning. The bundle's
+# CFBundleShortVersionString comes from Cargo (tauri.conf.json has no version
+# key), so a drift here means the DMG and the CLI disagree.
+run "release: versions agree" ./scripts/set-version.sh --check
 run "deps: npm advisories"  npm audit --audit-level=high
+
+# Homebrew's own linter, on the cask this repository is the source of truth
+# for. It refuses casks outside a tap, so the script stages one; skipped when
+# brew is absent, like cargo-deny below.
+if command -v brew >/dev/null 2>&1; then
+  run "release: cask style" ./scripts/check-cask.sh
+else
+  printf '%s▸ release: cask style%s\n  %s— skipped (no brew)%s\n' "$bold" "$reset" "$dim" "$reset"
+fi
 
 # cargo-deny and cargo-audit are optional locally: they are slow to install and
 # CI runs them regardless. Check them if present rather than nagging.
@@ -78,9 +98,15 @@ else
 fi
 
 if [[ $FAST -eq 0 ]]; then
-  run "app: builds and bundles" npm run tauri build -- --debug --bundles app
+  run "app: builds and bundles" \
+    env TOME_CLI_PROFILE=debug npm run tauri build -- --debug --bundles app
+  # Only meaningful on a bundle that was just built, which is why it lives here
+  # and not with the other gates: it inspects the artifact a user installs.
+  run "app: bundle ships the CLI" ./scripts/verify-bundle.sh
 else
   printf '%s▸ app: builds and bundles%s\n  %s— skipped (--fast)%s\n' "$bold" "$reset" "$dim" "$reset"
+  printf '%s▸ app: bundle ships the CLI%s\n  %s— skipped (--fast; needs a bundle)%s\n' \
+    "$bold" "$reset" "$dim" "$reset"
 fi
 
 echo
