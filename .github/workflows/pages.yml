@@ -63,7 +63,7 @@ jobs:
       - name: Check design tokens
         run: node scripts/check-contrast.mjs
 
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site/_build
 
